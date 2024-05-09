@@ -1,7 +1,7 @@
-DROP DATABASE IF EXISTS spaceout;
-CREATE DATABASE spaceout DEFAULT CHARACTER SET utf8mb4;
+DROP DATABASE IF EXISTS zerogravity;
+CREATE DATABASE zerogravity DEFAULT CHARACTER SET utf8mb4;
 
-USE spaceout;
+USE zerogravity;
 
 # 사용자 기본 정보
 CREATE TABLE user (
@@ -26,9 +26,9 @@ CREATE TABLE user_info (
 
 # 사용자 커스터마이징 설정 정보
 CREATE TABLE user_setting (
-    setting_id VARCHAR(36) NOT NULL PRIMARY KEY,
+    user_setting_id VARCHAR(36) NOT NULL PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    object_id VARCHAR(36) NOT NULL,
+    scene_object_id VARCHAR(36) NOT NULL,
     font_style VARCHAR(100) NOT NULL,
     color_scheme VARCHAR(100) NOT NULL,
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
