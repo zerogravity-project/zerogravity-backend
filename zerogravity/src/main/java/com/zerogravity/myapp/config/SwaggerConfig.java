@@ -1,4 +1,4 @@
-package com.spaceout.myapp.config;
+package com.zerogravity.myapp.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,9 +12,9 @@ public class SwaggerConfig {
       @Bean
       public OpenAPI springShopOpenAPI() {
           return new OpenAPI()
-                  .info(new Info().title("SpaceOut REST API")
-                  .description("SpaceOut REST API")
+                  .info(new Info().title("ZeroGravity REST API")
+                  .description("ZeroGravity REST API")
                   .version("v0.0.1")
-                  .license(new License().name("SpaceOut").url("http://www.spaceout.com")));
+                  .license(new License().name("ZeroGravity").url("http://www.zerogravity.com")));
       }
 }
