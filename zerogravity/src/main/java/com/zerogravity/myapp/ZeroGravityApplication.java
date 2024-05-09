@@ -1,13 +1,13 @@
-package com.spaceout.myapp;
+package com.zerogravity.myapp;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SpaceoutApplication {
+public class ZeroGravityApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SpaceoutApplication.class, args);
+		SpringApplication.run(ZeroGravityApplication.class, args);
 	}
 
 }
