@@ -8,11 +8,11 @@
 		<version>3.2.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.spaceout</groupId>
-	<artifactId>spaceout</artifactId>
+	<groupId>com.zerogravity</groupId>
+	<artifactId>zerogravity</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>spaceout</name>
-	<description>Space Out PJT</description>
+	<name>zerogravity</name>
+	<description>Zero Gravity PJT</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
