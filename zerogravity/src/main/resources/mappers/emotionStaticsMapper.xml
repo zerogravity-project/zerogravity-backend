@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.spaceout.model.dao.EmotionStaticsDao">
+
+	<select id="selectAvgWeekly" parameterType="long" resultType="long">
+		SECLECT avg_level_weekly 
+		FROM zerogravity
+		WHERE user_id = #{userId};		
+	</select>
+	
+	<select id="selectAvgMonthly" parameterType="long" resultType="long">
+		SECLECT avg_level_monthly
+		FROM zerogravity
+		WHERE user_id = #{userId};		
+	</select>
+	
+	<select id="selectAvgYearly" parameterType="long" resultType="long">
+		SECLECT avg_level_yearly 
+		FROM zerogravity
+		WHERE user_id = #{userId};		
+	</select>
+</mapper>

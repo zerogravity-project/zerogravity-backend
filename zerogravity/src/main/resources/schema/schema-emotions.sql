@@ -1,7 +1,7 @@
-DROP DATABASE IF EXISTS spaceout;
-CREATE DATABASE spaceout DEFAULT CHARACTER SET utf8mb4;
+DROP DATABASE IF EXISTS zerogravity;
+CREATE DATABASE zerogravity DEFAULT CHARACTER SET utf8mb4;
 
-USE spaceout;
+USE zerogravity;
 
 # 감정 정보
 CREATE TABLE emotion (
@@ -18,7 +18,7 @@ CREATE TABLE emotion (
 CREATE TABLE emotion_detail (
     emotion_detail_id VARCHAR(36) NOT NULL KEY,
     emotion_id VARCHAR(36) NOT NULL,
-   emotion_detail VARCHAR(100) NOT NULL,
+	emotion_detail VARCHAR(100) NOT NULL,
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (emotion_id) REFERENCES emotion(emotion_id) ON DELETE CASCADE ON UPDATE CASCADE
