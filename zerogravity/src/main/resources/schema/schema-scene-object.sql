@@ -1,11 +1,11 @@
-DROP DATABASE IF EXISTS spaceout;
-CREATE DATABASE spaceout DEFAULT CHARACTER SET utf8mb4;
+DROP DATABASE IF EXISTS zerogravity;
+CREATE DATABASE zerogravity DEFAULT CHARACTER SET utf8mb4;
 
-USE spaceout;
+USE zerogravity;
 
 # 메인 3D 오브젝트
-CREATE TABLE object (
-    object_id VARCHAR(36) NOT NULL PRIMARY KEY,
+CREATE TABLE scene_object (
+    scene_object_id VARCHAR(36) NOT NULL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     model_url VARCHAR(255) NOT NULL,
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
