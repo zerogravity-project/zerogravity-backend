@@ -1,10 +1,10 @@
-package com.spaceout.myapp;
+package com.zerogravity.myapp;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SpaceoutApplicationTests {
+class ZeroGravityApplicationTests {
 
 	@Test
 	void contextLoads() {
