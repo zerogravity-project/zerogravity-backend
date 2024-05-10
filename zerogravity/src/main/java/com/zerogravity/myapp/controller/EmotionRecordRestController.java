@@ -19,14 +19,14 @@ import com.zerogravity.myapp.model.service.EmotionRecordService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping()
+@RequestMapping("/api-zerogravity/emotions")
 public class EmotionRecordRestController {
 
     @Autowired
     private EmotionRecordService emotionRecordService;
     
     // GET Emotion Record
-    @GetMapping()
+    @GetMapping("/users/{userId}/emotions/records")
     public ResponseEntity<?> getEmotionRecordsByUserId(@PathVariable long userId) {
         List<EmotionRecord> records = emotionRecordService.getEmotionRecordsByUserId(userId);
         if (records != null && !records.isEmpty()) {
@@ -37,7 +37,7 @@ public class EmotionRecordRestController {
     }
     
     // POST Emotion Record
-    @PostMapping()
+    @PostMapping("/records")
     public ResponseEntity<?> createEmotionRecord(@RequestBody EmotionRecord record) {
         int created = emotionRecordService.createEmotionRecord(record);
         if (created == 0) {
@@ -48,8 +48,8 @@ public class EmotionRecordRestController {
     }
     
     // PUT Emotion Record
-    @PutMapping()
-    public ResponseEntity<?> modifyEmotionRecord(@Valid @RequestBody EmotionRecord record, BindingResult bindingResult) {
+    @PutMapping("/records/{recordId}")
+    public ResponseEntity<?> modifyEmotionRecord(@PathVariable long userID, @Valid @RequestBody EmotionRecord record, BindingResult bindingResult) {
         
     	if (bindingResult.hasErrors()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

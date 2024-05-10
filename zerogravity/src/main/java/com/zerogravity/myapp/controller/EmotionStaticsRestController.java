@@ -1,9 +1,16 @@
 package com.zerogravity.myapp.controller;
 
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,7 +21,7 @@ import com.zerogravity.myapp.model.dto.EmotionStatics;
 import com.zerogravity.myapp.model.service.EmotionStaticsService;
 
 @RestController
-@RequestMapping()
+@RequestMapping("/api-zerogravity/statics")
 public class EmotionStaticsRestController {
 	
 	private final EmotionStaticsService emotionStaticsService;
@@ -25,38 +32,61 @@ public class EmotionStaticsRestController {
 	}
 	
 	// GET Emotion Statics: Weekly, Monthly, Yearly
-	@GetMapping()
-	public ResponseEntity<Double> getEmotionStaticsWeekly(long userId) {
-		double weekly = emotionStaticsService.getEmotionStaticsWeekly(userId);
+	@GetMapping("/weekly/{userId}")
+	public ResponseEntity<?> getEmotionStaticsWeekly(@PathVariable long userId) {
+		LocalDate now = LocalDate.now();
+		LocalDate startOfWeek = now.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+		LocalDate endOfWeek = now.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.SUNDAY));
+		Timestamp startDate = Timestamp.valueOf(LocalDateTime.of(startOfWeek, LocalTime.MIN));
+		Timestamp endDate = Timestamp.valueOf(LocalDateTime.of(endOfWeek, LocalTime.MAX));
+		
+		double weekly = emotionStaticsService.getEmotionStaticsWeekly(userId, startDate, endDate);
+		
 		if (weekly != 0) {
-			return new ResponseEntity<>(weekly, HttpStatus.OK);
+			return new ResponseEntity<Double>(weekly, HttpStatus.OK);
 		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<Double>(weekly, HttpStatus.NOT_FOUND);
 		}
+		
+		
 	}
 	
-	@GetMapping()
-	public ResponseEntity<Double> getEmotionStaticsMonthly(long userId) {
-		double monthly = emotionStaticsService.getEmotionStaticsMonthly(userId);
+	@GetMapping("/montly/{userId}")
+	public ResponseEntity<Double> getEmotionStaticsMonthly(@PathVariable long userId) {
+		LocalDate now = LocalDate.now();
+		LocalDate startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth());
+		LocalDate endOfMonth = now.with(TemporalAdjusters.lastDayOfMonth());
+		Timestamp startDate = Timestamp.valueOf(LocalDateTime.of(startOfMonth, LocalTime.MIN));
+		Timestamp endDate = Timestamp.valueOf(LocalDateTime.of(endOfMonth, LocalTime.MAX));
+		
+		double monthly = emotionStaticsService.getEmotionStaticsMonthly(userId, startDate, endDate);
+		
 		if (monthly != 0) {
-			return new ResponseEntity<>(monthly, HttpStatus.OK);
+			return new ResponseEntity<Double>(monthly, HttpStatus.OK);
 		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<Double>(monthly, HttpStatus.NOT_FOUND);
 		}
 	}
 	
-	@GetMapping()
-	public ResponseEntity<Double> getEmotionStaticsYearly(long userId) {
-		double yearly = emotionStaticsService.getEmotionStaticsYearly(userId);
+	@GetMapping("/yearly/{userId}")
+	public ResponseEntity<Double> getEmotionStaticsYearly(@PathVariable long userId) {
+		LocalDate now = LocalDate.now();
+		LocalDate startOfYear = now.with(TemporalAdjusters.firstDayOfYear());
+		LocalDate endOfYear = now.with(TemporalAdjusters.lastDayOfYear());
+		Timestamp startDate = Timestamp.valueOf(LocalDateTime.of(startOfYear, LocalTime.MIN));
+		Timestamp endDate = Timestamp.valueOf(LocalDateTime.of(endOfYear, LocalTime.MAX));
+		
+		double yearly = emotionStaticsService.getEmotionStaticsYearly(userId, startDate, endDate);
+		
 		if (yearly != 0) {
-			return new ResponseEntity<>(yearly, HttpStatus.OK);
+			return new ResponseEntity<Double>(yearly, HttpStatus.OK);
 		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return new ResponseEntity<Double>(yearly, HttpStatus.NOT_FOUND);
 		}
 	}
 	
 	// POST Emotion Statics
-	@PostMapping
+	@PostMapping("/weekly")
 	public ResponseEntity<?> createEmotionStaticsWeekly(@RequestBody EmotionStatics emotionStatics) {
 		try {
 			emotionStaticsService.createEmotionStaticsWeekly(emotionStatics);
@@ -68,7 +98,7 @@ public class EmotionStaticsRestController {
 		}
 	}
 	
-	@PostMapping
+	@PostMapping("/monthly")
 	public ResponseEntity<?> createEmotionStaticsMonthly(@RequestBody EmotionStatics emotionStatics) {
 		try {
 			emotionStaticsService.createEmotionStaticsMonthly(emotionStatics);
@@ -80,7 +110,7 @@ public class EmotionStaticsRestController {
 		}
 	}
 	
-	@PostMapping
+	@PostMapping("/yearly")
 	public ResponseEntity<?> createEmotionStaticsYearly(@RequestBody EmotionStatics emotionStatics) {
 		try {
 			emotionStaticsService.createEmotionStaticsYearly(emotionStatics);
@@ -93,8 +123,8 @@ public class EmotionStaticsRestController {
 	}
 	
 	// PUT Emotion Statics: Weekly, Monthly, Yearly
-	@PutMapping()
-	public ResponseEntity<?> modifyEmotionStaticsWeekly(long userId, @RequestBody EmotionStatics emotionStatics) {
+	@PutMapping("/weekly/{userId}")
+	public ResponseEntity<?> modifyEmotionStaticsWeekly(@PathVariable long userId, @RequestBody EmotionStatics emotionStatics) {
 		try {
 			boolean updated = emotionStaticsService.modifyEmotionStaticsWeekly(userId, emotionStatics);
 			if (updated) {
@@ -109,8 +139,8 @@ public class EmotionStaticsRestController {
 		}
 	}
 	
-	@PutMapping()
-	public ResponseEntity<?> modifyEmotionStaticsMonthly(long userId, @RequestBody EmotionStatics emotionStatics) {
+	@PutMapping("/montly/{userId}")
+	public ResponseEntity<?> modifyEmotionStaticsMonthly(@PathVariable long userId, @RequestBody EmotionStatics emotionStatics) {
 		try {
 			boolean updated = emotionStaticsService.modifyEmotionStaticsMonthly(userId, emotionStatics);
 			if (updated) {
@@ -125,8 +155,8 @@ public class EmotionStaticsRestController {
 		}
 	}
 	
-	@PutMapping()
-	public ResponseEntity<?> modifyEmotionStaticsYearly(long userId, @RequestBody EmotionStatics emotionStatics) {
+	@PutMapping("/yearly/{userId}")
+	public ResponseEntity<?> modifyEmotionStaticsYearly(@PathVariable long userId, @RequestBody EmotionStatics emotionStatics) {
 		try {
 			boolean updated = emotionStaticsService.modifyEmotionStaticsYearly(userId, emotionStatics);
 			if (updated) {
