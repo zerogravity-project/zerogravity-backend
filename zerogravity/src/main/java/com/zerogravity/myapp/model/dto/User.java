@@ -1,12 +1,28 @@
 package com.zerogravity.myapp.model.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "사용자 정보")
 public class User {
+	@Schema(description = "사용자 ID", example = "1")
 	private long userId;
+	
+	@Schema(description = "사용자 이메일", example = "user@example.com")
 	private String email;
+	
+	@Schema(description = "사용자 이름", example = "표다영")
 	private String name;
+	
+	@Schema(description = "사용자 별명", example = "데이지")
 	private String profileNickname;
+	
+	@Schema(description = "프로필 이미지 URL", example = "https://example.com/profiles/daisy.jpg")
 	private String profileImgUrl;
+	
+	@Schema(description = "생성 시간", example = "2021-10-01T12:00:00Z")
 	private String createdTime;
+	
+	@Schema(description = "업데이트 시간", example = "2021-12-01T12:00:00Z")
 	private String updatedTime;
 	
 	public User() {
