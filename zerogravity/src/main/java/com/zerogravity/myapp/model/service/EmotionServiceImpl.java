@@ -3,10 +3,14 @@ package com.zerogravity.myapp.model.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.zerogravity.myapp.model.dao.EmotionDao;
 import com.zerogravity.myapp.model.dto.Emotion;
 
+@Service
+@Transactional
 public class EmotionServiceImpl implements EmotionService {
 	
 	private final EmotionDao emotionDao;
@@ -18,7 +22,7 @@ public class EmotionServiceImpl implements EmotionService {
 
 	@Override
 	public List<Emotion> getEmotionList() {
-		return emotionDao.selectAll();
+		return emotionDao.selectAllEmotions();
 	}
 
 }

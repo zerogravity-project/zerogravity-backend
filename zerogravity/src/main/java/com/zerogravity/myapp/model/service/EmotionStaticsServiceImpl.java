@@ -1,9 +1,18 @@
 package com.zerogravity.myapp.model.service;
 
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.zerogravity.myapp.model.dao.EmotionStaticsDao;
+import com.zerogravity.myapp.model.dto.EmotionStatics;
 
+@Service
+@Transactional
 public class EmotionStaticsServiceImpl implements EmotionStaticsService {
 	
 	private final EmotionStaticsDao emotionStaticsDao;
@@ -14,18 +23,62 @@ public class EmotionStaticsServiceImpl implements EmotionStaticsService {
 	}
 
 	@Override
-	public double getEmotionStaticsWeekly(long userId) {
-		return emotionStaticsDao.selectAvgWeekly(userId);
-	}                                          
-
-	@Override
-	public double getEmotionStaticsMonthly(long userId) {
-		return emotionStaticsDao.selectAvgMonthly(userId);
+	public double getEmotionStaticsWeekly(long userId,Timestamp startDate, Timestamp endDate) {
+		Map<String, Object> information = new HashMap<>();
+		information.put("userId", userId);
+		information.put("startDate", startDate);
+		information.put("userId", endDate);
+		return emotionStaticsDao.selectAvgWeekly(information);
 	}
 
 	@Override
-	public double getEmotionStaticsYearly(long userId) {
-		return emotionStaticsDao.selectAvgYearly(userId);
+	public double getEmotionStaticsMonthly(long userId, Timestamp startDate, Timestamp endDate) {
+		Map<String, Object> information = new HashMap<>();
+		information.put("userId", userId);
+		information.put("startDate", startDate);
+		information.put("userId", endDate);
+		return emotionStaticsDao.selectAvgMonthly(information);
 	}
+
+	@Override
+	public double getEmotionStaticsYearly(long userId, Timestamp startDate, Timestamp endDate) {
+		Map<String, Object> information = new HashMap<>();
+		information.put("userId", userId);
+		information.put("startDate", startDate);
+		information.put("userId", endDate);
+		return emotionStaticsDao.selectAvgYearly(information);
+	}
+
+	@Override
+	public int createEmotionStaticsWeekly(EmotionStatics emotionStatics) {
+		return emotionStaticsDao.insertAvgWeekly(emotionStatics);
+	}
+
+	@Override
+	public int createEmotionStaticsMonthly(EmotionStatics emotionStatics) {
+		return emotionStaticsDao.insertAvgMonthly(emotionStatics);
+	}
+
+	@Override
+	public int createEmotionStaticsYearly(EmotionStatics emotionStatics) {
+		return emotionStaticsDao.insertAvgYearly(emotionStatics);
+	}
+
+	@Override
+	public boolean modifyEmotionStaticsWeekly(long userId, EmotionStatics emotionStatics) {
+		return emotionStaticsDao.updateAvgWeekly(userId, emotionStatics);
+	}
+
+	@Override
+	public boolean modifyEmotionStaticsMonthly(long userId, EmotionStatics emotionStatics) {
+		return emotionStaticsDao.updateAvgMontyly(userId, emotionStatics);
+	}
+
+	@Override
+	public boolean modifyEmotionStaticsYearly(long userId, EmotionStatics emotionStatics) {
+		return emotionStaticsDao.updateAvgYearly(userId, emotionStatics);
+	}
+
+
 
 }

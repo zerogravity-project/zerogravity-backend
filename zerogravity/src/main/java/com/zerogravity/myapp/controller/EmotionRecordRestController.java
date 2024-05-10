@@ -19,24 +19,37 @@ import com.zerogravity.myapp.model.service.EmotionRecordService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping()
+@RequestMapping("/api-zerogravity/emotions")
 public class EmotionRecordRestController {
 
     @Autowired
     private EmotionRecordService emotionRecordService;
-
-    @PostMapping()
+    
+    // GET Emotion Record
+    @GetMapping("/users/{userId}/emotions/records")
+    public ResponseEntity<?> getEmotionRecordsByUserId(@PathVariable long userId) {
+        List<EmotionRecord> records = emotionRecordService.getEmotionRecordsByUserId(userId);
+        if (records != null && !records.isEmpty()) {
+            return new ResponseEntity<List<EmotionRecord>>(records, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+    
+    // POST Emotion Record
+    @PostMapping("/records")
     public ResponseEntity<?> createEmotionRecord(@RequestBody EmotionRecord record) {
         int created = emotionRecordService.createEmotionRecord(record);
         if (created == 0) {
-            return new ResponseEntity<EmotionRecord>(HttpStatus.CREATED);
+            return new ResponseEntity<>(HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
-
-    @PutMapping()
-    public ResponseEntity<String> updateEmotionRecord(@Valid @RequestBody EmotionRecord record, BindingResult bindingResult) {
+    
+    // PUT Emotion Record
+    @PutMapping("/records/{recordId}")
+    public ResponseEntity<?> modifyEmotionRecord(@PathVariable long userID, @Valid @RequestBody EmotionRecord record, BindingResult bindingResult) {
         
     	if (bindingResult.hasErrors()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -50,13 +63,4 @@ public class EmotionRecordRestController {
         }
     }
 
-    @GetMapping()
-    public ResponseEntity<?> getEmotionRecordsByUserId(@PathVariable long userId) {
-        List<EmotionRecord> records = emotionRecordService.getEmotionRecordsByUserId(userId);
-        if (records != null && !records.isEmpty()) {
-            return new ResponseEntity<List<EmotionRecord>>(records, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
 }
