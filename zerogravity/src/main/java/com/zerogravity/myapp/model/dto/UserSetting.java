@@ -1,12 +1,28 @@
 package com.zerogravity.myapp.model.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "사용자 설정 정보")
 public class UserSetting {
+	@Schema(description = "사용자 설정 ID", example = "abc123")
 	private String userSettingId;
+	
+	@Schema(description = "사용자 ID", example = "1")
 	private long userId;
+	
+	@Schema(description = "3D 오브젝트 ID", example = "abc123")
 	private String sceneObjectId;
+	
+	@Schema(description = "폰트 스타일", example = "Arial")
 	private String fontStyle;
+	
+	@Schema(description = "색깔", example = "Red")
 	private String colorScheme;
+	
+	@Schema(description = "생성 시간", example = "2021-10-01T12:00:00Z")
 	private String createdTime;
+	
+	@Schema(description = "업데이트 시간", example = "2021-12-01T12:00:00Z")
 	private String updatedTime;
 
 	public UserSetting() {
