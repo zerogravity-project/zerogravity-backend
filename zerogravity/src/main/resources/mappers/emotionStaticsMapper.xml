@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
   
-<mapper namespace="com.spaceout.model.dao.EmotionStaticsDao">
+<mapper namespace="com.zerogravity.model.dao.EmotionStaticsDao">
 
-	<select id="selectAvgWeekly" parameterType="long" resultType="long">
-		SECLECT avg_level_weekly 
-		FROM zerogravity
-		WHERE user_id = #{userId};		
-	</select>
+	<select id="selectAvgWeekly" resultType="double">
+	        SELECT COALESCE(AVG(emotion_score), 0)
+	        FROM emotion_statics
+	        WHERE user_id = #{userId}
+	          AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+	    </select>
 	
-	<select id="selectAvgMonthly" parameterType="long" resultType="long">
-		SECLECT avg_level_monthly
-		FROM zerogravity
-		WHERE user_id = #{userId};		
-	</select>
+	    <select id="selectAvgMonthly" resultType="double">
+	        SELECT COALESCE(AVG(emotion_score), 0)
+	        FROM emotion_statics
+	        WHERE user_id = #{userId}
+	          AND created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+	    </select>
 	
-	<select id="selectAvgYearly" parameterType="long" resultType="long">
-		SECLECT avg_level_yearly 
-		FROM zerogravity
-		WHERE user_id = #{userId};		
-	</select>
+	    <select id="selectAvgYearly" resultType="double">
+	        SELECT COALESCE(AVG(emotion_score), 0)
+	        FROM emotion_statics
+	        WHERE user_id = #{userId}
+	          AND created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)
+	    </select>
+	    
 </mapper>

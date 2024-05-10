@@ -24,19 +24,32 @@ public class EmotionRecordRestController {
 
     @Autowired
     private EmotionRecordService emotionRecordService;
-
+    
+    // GET Emotion Record
+    @GetMapping()
+    public ResponseEntity<?> getEmotionRecordsByUserId(@PathVariable long userId) {
+        List<EmotionRecord> records = emotionRecordService.getEmotionRecordsByUserId(userId);
+        if (records != null && !records.isEmpty()) {
+            return new ResponseEntity<List<EmotionRecord>>(records, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+    
+    // POST Emotion Record
     @PostMapping()
     public ResponseEntity<?> createEmotionRecord(@RequestBody EmotionRecord record) {
         int created = emotionRecordService.createEmotionRecord(record);
         if (created == 0) {
-            return new ResponseEntity<EmotionRecord>(HttpStatus.CREATED);
+            return new ResponseEntity<>(HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
-
+    
+    // PUT Emotion Record
     @PutMapping()
-    public ResponseEntity<String> updateEmotionRecord(@Valid @RequestBody EmotionRecord record, BindingResult bindingResult) {
+    public ResponseEntity<?> modifyEmotionRecord(@Valid @RequestBody EmotionRecord record, BindingResult bindingResult) {
         
     	if (bindingResult.hasErrors()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -50,13 +63,4 @@ public class EmotionRecordRestController {
         }
     }
 
-    @GetMapping()
-    public ResponseEntity<?> getEmotionRecordsByUserId(@PathVariable long userId) {
-        List<EmotionRecord> records = emotionRecordService.getEmotionRecordsByUserId(userId);
-        if (records != null && !records.isEmpty()) {
-            return new ResponseEntity<List<EmotionRecord>>(records, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
 }
