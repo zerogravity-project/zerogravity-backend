@@ -13,7 +13,7 @@ import com.zerogravity.myapp.model.dto.Emotion;
 import com.zerogravity.myapp.model.service.EmotionService;
 
 @RestController
-@RequestMapping()
+@RequestMapping("/api-zerogravity/emtoions")
 public class EmotionRestController {
 	
 	private final EmotionService emotionService;
@@ -23,8 +23,9 @@ public class EmotionRestController {
 		this.emotionService = emotionService;
 	}
 	
-	@GetMapping()
-	public ResponseEntity<?> emotionList() {
+	// GET Emotion 
+	@GetMapping("/emotion")
+	public ResponseEntity<?> getEmotionList() {
 		List<Emotion> emotionList = emotionService.getEmotionList();
 		return new ResponseEntity<List<Emotion>>(emotionList, HttpStatus.OK);
 	}
