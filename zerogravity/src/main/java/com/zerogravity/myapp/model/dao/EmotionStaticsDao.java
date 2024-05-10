@@ -1,12 +1,14 @@
 package com.zerogravity.myapp.model.dao;
 
+import java.util.Map;
+
 import com.zerogravity.myapp.model.dto.EmotionStatics;
 
 public interface EmotionStaticsDao {
 	
-	public abstract double selectAvgWeekly(long userId);
-	public abstract double selectAvgMonthly(long userId);
-	public abstract double selectAvgYearly(long userId);
+	public abstract double selectAvgWeekly(Map<String, Object> information);
+	public abstract double selectAvgMonthly(Map<String, Object> userIdAndDate);
+	public abstract double selectAvgYearly(Map<String, Object> userIdAndDate);
 	
 	public abstract int insertAvgWeekly(EmotionStatics emotionStataics);
 	public abstract int insertAvgMonthly(EmotionStatics emotionStataics);

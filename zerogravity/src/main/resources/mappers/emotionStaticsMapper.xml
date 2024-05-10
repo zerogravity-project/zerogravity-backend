@@ -5,25 +5,67 @@
   
 <mapper namespace="com.zerogravity.model.dao.EmotionStaticsDao">
 
-	<select id="selectAvgWeekly" resultType="double">
-	        SELECT COALESCE(AVG(emotion_score), 0)
-	        FROM emotion_statics
-	        WHERE user_id = #{userId}
-	          AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-	    </select>
+	<!-- select average -->
+	<select id="selectAvgWeekly" parameterType="map" resultType="double">
+		SELECT AVG(record.value)
+		FROM emotion_record record
+		WHERE record.user_id = #{userID}
+		<if test="startDate != null and endDate != null">
+			AND record.created_time BETWEEN #{startDate} AND #{endDate}
+		</if>
+	</select>
 	
-	    <select id="selectAvgMonthly" resultType="double">
-	        SELECT COALESCE(AVG(emotion_score), 0)
-	        FROM emotion_statics
-	        WHERE user_id = #{userId}
-	          AND created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
-	    </select>
+	<select id="selectAvgMonthly" parameterType="map" resultType="double">
+		SELECT AVG(record.value)
+		FROM emotion_record record
+		WHERE record.user_id = #{userID}
+		<if test="startDate != null and endDate != null">
+			AND record.created_time BETWEEN #{startDate} AND #{endDate}
+		</if>
+	</select>
 	
-	    <select id="selectAvgYearly" resultType="double">
-	        SELECT COALESCE(AVG(emotion_score), 0)
-	        FROM emotion_statics
-	        WHERE user_id = #{userId}
-	          AND created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)
-	    </select>
+	<select id="selectAvgYearly" parameterType="map" resultType="double">
+		SELECT AVG(record.value)
+		FROM emotion_record record
+		WHERE record.user_id = #{userID}
+		<if test="startDate != null and endDate != null">
+			AND record.created_time BETWEEN #{startDate} AND #{endDate}
+		</if>
+	</select>
+	
+	<!-- insert average -->
+	<insert id="insertAvgWeekly" parameterType="EmotionStatics">
+		INSERT INTO emotion_statics (user_id, avg_level_weekly)
+		VALUES (#{userId), #{avgLevelWeekly})
+	</insert>
+	
+	<insert id="insertAvgMonthly" parameterType="EmotionStatics">
+		INSERT INTO emotion_statics (user_id, avg_level_monthly)
+		VALUES (#{userId), #{avgLevelMonthly})
+	</insert>
+	
+	<insert id="insertAvgYearly" parameterType="EmotionStatics">
+		INSERT INTO emotion_statics (user_id, avg_level_yearly)
+		VALUES (#{userId), #{avgLevelYearly})
+	</insert>
+	
+	<!-- update average -->
+	<update id="updateAvgWeekly" parameterType="EmotionStatics">
+		UPDATE emotion_statics
+		SET avg_level_monthly = #{avgLevelWeekly}
+		WHERE user_id = #{userId}
+	</update>
+	
+	<update id="updateAvgMonthly" parameterType="EmotionStatics">
+		UPDATE emotion_statics
+		SET avg_level_monthly = #{avgLevelMonthly}
+		WHERE user_id = #{userId}
+	</update>
+	
+	<update id="updateAvgYearly" parameterType="EmotionStatics">
+		UPDATE emotion_statics
+		SET avg_level_yearly = #{avgLevelYearly}
+		WHERE user_id = #{userId}
+	</update>
 	    
 </mapper>
