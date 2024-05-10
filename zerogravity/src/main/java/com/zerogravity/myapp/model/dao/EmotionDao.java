@@ -6,6 +6,6 @@ import com.zerogravity.myapp.model.dto.Emotion;
 
 public interface EmotionDao {
 	
-	public abstract List<Emotion> selectAll();
+	public abstract List<Emotion> selectAllEmotions();
 	
 }

@@ -6,10 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.zerogravity.myapp.model.dto.EmotionDetail;
 import com.zerogravity.myapp.model.service.EmotionDetailService;
 
+@RestController
+@RequestMapping()
 public class EmotionDetailRestController {
 	private final EmotionDetailService emotionDetailService;
 	
@@ -18,8 +22,9 @@ public class EmotionDetailRestController {
 		this.emotionDetailService = emotionDetailService;
 	}
 	
+	// GET Emotion Detail
 	@GetMapping()
-	public ResponseEntity<?> emotionDetail(String emotionId) {
+	public ResponseEntity<?> getEmotionDetail(String emotionId) {
 		
 		List<EmotionDetail> emotionList = emotionDetailService.getEmotionDetail(emotionId);
 		
