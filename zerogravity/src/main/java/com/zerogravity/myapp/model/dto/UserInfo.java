@@ -1,10 +1,22 @@
 package com.zerogravity.myapp.model.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "사용자 추가 정보")
 public class UserInfo {
+	@Schema(description = "사용자 ID", example = "1")
 	private long userId;
+	
+	@Schema(description = "성별", example = "male")
 	private Gender gender;
+	
+	@Schema(description = "연령 범위", example = "20~29")
 	private String ageRange;
+	
+	@Schema(description = "생일", example = "0105")
 	private String birthday;
+	
+	@Schema(description = "출생년도", example = "1985")
 	private String birthyear;
 	
 	public UserInfo() {
