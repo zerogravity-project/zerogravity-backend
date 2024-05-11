@@ -24,7 +24,7 @@ public class EmotionRestController {
 	}
 	
 	// GET Emotion 
-	@GetMapping("/emotion")
+	@GetMapping()
 	public ResponseEntity<?> getEmotionList() {
 		List<Emotion> emotionList = emotionService.getEmotionList();
 		return new ResponseEntity<List<Emotion>>(emotionList, HttpStatus.OK);
