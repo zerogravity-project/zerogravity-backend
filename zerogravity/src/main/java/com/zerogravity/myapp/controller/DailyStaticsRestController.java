@@ -15,7 +15,7 @@ import com.zerogravity.myapp.model.dto.DailyStatics;
 import com.zerogravity.myapp.model.service.DailyStaticsService;
 
 @RestController
-@RequestMapping("/api/daily-statics")
+@RequestMapping("/api-zerogravity/statics")
 public class DailyStaticsRestController {
 
     private final DailyStaticsService dailyStaticsService;
