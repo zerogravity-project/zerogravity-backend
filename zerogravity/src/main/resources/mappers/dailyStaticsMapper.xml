@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zerogravity.myapp.model.dao.DailyStaticsDao">
+
+	<!-- 일일 감정 기록 조회 -->
+	<select id="selectDailyStatics" parameterType="long" resultType="DailyStatics">
+		SELECT * FROM daily_statics
+		WHERE user_id = #{userId}	
+	</select>
+	
+	<!-- 일일 감정 기록 삽입 -->
+	<insert id="insertDailyStatics" parameterType="DailyStatics" keyProperty="dailyStaticsId">
+		INSERT INTO daily_statics (daily_statics_id, user_id, daily_sum)
+		VALUES (#{dailyStaticsId}, #{userId}, #{dailySum})
+	</insert>
+	
+	<!-- 일일 감정 기록 업데이트 -->
+	<update id="updateDailyStatics" parameterType="DailyStatics">
+		UPDATE daily_statics
+		SET daily_sum = #{dailySum}
+		WHERE daily_statics_id = #{dailyStaticsId};
+	</update>
+</mapper>
