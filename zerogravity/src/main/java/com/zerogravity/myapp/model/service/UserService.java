@@ -11,7 +11,7 @@ public interface UserService {
 	public abstract UserInfo getUserInfoByUserId(long userId);
 	
 	// 사용자 정보 삽입
-	public abstract boolean createUser(User user, UserInfo userInfo);
+	public abstract boolean createUser(User user);
 	
 	// 사용자 정보 삭제
 	public abstract boolean removeUser(long userId);

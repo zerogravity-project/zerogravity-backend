@@ -69,9 +69,9 @@ public class UserRestController {
 			@ApiResponse(responseCode = "201", description = "사용자 생성 성공"),
 			@ApiResponse(responseCode = "400", description = "잘못된 요청으로 인한 사용자 생성 실패") 
 	})
-	public ResponseEntity<Void> createUser(@Parameter(description = "사용자 정보") @RequestBody User user, @Parameter(description = "사용자 추가 정보") @RequestBody UserInfo userInfo) {
-		if (isValidUser(user) && isValidUserInfo(userInfo)) {
-			boolean isCreated = userService.createUser(user, userInfo);
+	public ResponseEntity<Void> createUser(@Parameter(description = "사용자 정보") @RequestBody User user) {
+		if (isValidUser(user)){
+			boolean isCreated = userService.createUser(user);
 			if (isCreated) {
 				return new ResponseEntity<>(HttpStatus.CREATED);
 			}

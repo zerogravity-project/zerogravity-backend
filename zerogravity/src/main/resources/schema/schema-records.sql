@@ -11,6 +11,6 @@ CREATE TABLE emotion_record (
     diary_entry TEXT NULL,
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (emotion_detail_id) REFERENCES emotion_detail(emotion_detail_id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE ON UPDATE CASCADE
+   --  FOREIGN KEY (emotion_detail_id) REFERENCES emotion_detail(emotion_detail_id) ON DELETE CASCADE ON UPDATE CASCADE 
 );
