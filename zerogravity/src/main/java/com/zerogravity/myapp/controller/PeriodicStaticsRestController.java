@@ -20,7 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/api-zerogravity/statics")
+@RequestMapping("/api-zerogravity/periodic-statics")
 @Tag(name = "Periodic Statics Management", description = "감정 통계 기록 API")
 public class PeriodicStaticsRestController {
 

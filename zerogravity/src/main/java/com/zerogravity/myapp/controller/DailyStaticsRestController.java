@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/api-zerogravity/statics")
+@RequestMapping("/api-zerogravity/daily-statics")
 @Tag(name = "Daily Statics Management", description = "일일 감정 기록 API")
 public class DailyStaticsRestController {
 

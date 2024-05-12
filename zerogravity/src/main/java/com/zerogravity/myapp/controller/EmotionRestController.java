@@ -24,10 +24,13 @@ public class EmotionRestController {
 	}
 	
 	// GET Emotion 
-	@GetMapping()
+	@GetMapping
 	public ResponseEntity<?> getEmotionList() {
 		List<Emotion> emotionList = emotionService.getEmotionList();
-		return new ResponseEntity<List<Emotion>>(emotionList, HttpStatus.OK);
+		if (emotionList != null) {
+			return new ResponseEntity<List<Emotion>>(emotionList, HttpStatus.OK);
+		}
+		return new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
 	}
 
 }

@@ -7,5 +7,6 @@ public interface DailyStaticsDao {
 	public abstract DailyStatics selectDailyStatics(long userId);
 	public abstract int insertDailyStatics(DailyStatics dailyStatics);
 	public abstract int updateDailyStatics(DailyStatics dailyStatics);
+	public abstract DailyStatics selectDailyStatics(String dailyStaticsId);
 
 }
