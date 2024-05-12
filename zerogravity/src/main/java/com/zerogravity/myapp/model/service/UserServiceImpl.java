@@ -29,11 +29,10 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@Transactional
-	public boolean createUser(User user, UserInfo userInfo) {
+	public boolean createUser(User user) {
 		int userResult = userDao.insertUser(user);
 		if(userResult == 1) {
-			int infoResult = userDao.insertUserInfo(userInfo);
-			return infoResult == 1;
+			return true;
 		}
 		return false;
 	}
