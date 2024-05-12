@@ -49,7 +49,7 @@ public class EmotionRecordRestController {
     
     // PUT Emotion Record
     @PutMapping("/records/{recordId}")
-    public ResponseEntity<?> modifyEmotionRecord(@PathVariable long userID, @Valid @RequestBody EmotionRecord record, BindingResult bindingResult) {
+    public ResponseEntity<?> modifyEmotionRecord(@PathVariable String recordId, @Valid @RequestBody EmotionRecord record, BindingResult bindingResult) {
         
     	if (bindingResult.hasErrors()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

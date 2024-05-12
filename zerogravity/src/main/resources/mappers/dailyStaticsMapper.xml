@@ -18,8 +18,8 @@
 	
 	<!-- 일일 감정 기록 업데이트 -->
 	<update id="updateDailyStatics" parameterType="DailyStatics">
-		UPDATE daily_statics
-		SET daily_sum = #{dailySum}
-		WHERE daily_statics_id = #{dailyStaticsId};
+	    UPDATE daily_statics
+	    SET daily_sum = daily_sum + #{dailySum}
+	    WHERE daily_statics_id = #{dailyStaticsId};
 	</update>
 </mapper>

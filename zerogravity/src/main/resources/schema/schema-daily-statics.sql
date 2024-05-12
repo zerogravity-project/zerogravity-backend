@@ -9,5 +9,5 @@ CREATE TABLE daily_statics (
     daily_sum INT,
     created_time DATETIME,
     updated_time DATETIME,
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    FOREIGN KEY (user_id) REFERENCES user(user_id)
 );

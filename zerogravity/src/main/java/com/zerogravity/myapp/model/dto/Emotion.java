@@ -4,7 +4,7 @@ public class Emotion {
 	
 	private String emotionId;
 	private String emotionType;
-	private int emotionLevle;
+	private int emotionLevel;
 	private String colorScheme;
 	private String shapeName;
 	private String createdTime;
@@ -15,7 +15,7 @@ public class Emotion {
 	public Emotion(String emotionId, String emotionType, int emotionLevle, String colorScheme, String shapeName, String createdTime, String updatedTime) {
 		this.emotionId = emotionId;
 		this.emotionType = emotionType;
-		this.emotionLevle = emotionLevle;
+		this.emotionLevel = emotionLevle;
 		this.colorScheme = colorScheme;
 		this.shapeName = shapeName;
 		this.createdTime = createdTime;
@@ -38,12 +38,12 @@ public class Emotion {
 		this.emotionType = emotionType;
 	}
 
-	public int getEmotionLevle() {
-		return emotionLevle;
+	public int getEmotionLevel() {
+		return emotionLevel;
 	}
 
-	public void setEmotionLevle(int emotionLevle) {
-		this.emotionLevle = emotionLevle;
+	public void setEmotionLevel(int emotionLevel) {
+		this.emotionLevel = emotionLevel;
 	}
 
 	public String getColorScheme() {
@@ -80,7 +80,7 @@ public class Emotion {
 
 	@Override
 	public String toString() {
-		return "Emotion [emotionId=" + emotionId + ", emotionType=" + emotionType + ", emotionLevle=" + emotionLevle
+		return "Emotion [emotionId=" + emotionId + ", emotionType=" + emotionType + ", emotionLevel=" + emotionLevel
 				+ ", colorScheme=" + colorScheme + ", shapeName=" + shapeName + ", createdTime=" + createdTime
 				+ ", updatedTime=" + updatedTime + "]";
 	}

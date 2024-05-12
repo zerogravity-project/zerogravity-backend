@@ -12,5 +12,5 @@ CREATE TABLE periodic_statics (
     average_score DOUBLE,
     created_time DATETIME,
     updated_time DATETIME,
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    FOREIGN KEY (user_id) REFERENCES user(user_id)
 );

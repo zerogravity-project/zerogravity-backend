@@ -3,25 +3,24 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
   
-<mapper namespace="com.zerogravity.model.dao.EmotionRecordDao">
+<mapper namespace="com.zerogravity.myapp.model.dao.EmotionRecordDao">
 
     <select id="selectEmotionRecordByEmotionId" parameterType="long">
         SELECT *
-        FROM emotion_records
+        FROM emotion_record
         WHERE user_id = #{userId}
     </select>
 
     <insert id="createEmotionRecord" parameterType="EmotionRecord">
-        INSERT INTO emotion_records (emotion_record_id, user_id, emotion_detail_id, diary_entry, created_time)
-        VALUES (#{emotionRecordId}, #{userId}, #{emotionDetailId}, #{diaryEntry}, now())
-    </insert>;
+        INSERT INTO emotion_record (emotion_record_id, user_id, emotion_detail_id, diary_entry)
+        VALUES (#{emotionRecordId}, #{userId}, #{emotionDetailId}, #{diaryEntry})
+    </insert>
 
     <update id="updateEmotionRecord" parameterType="EmotionRecord">
-        UPDATE emotion_records
+        UPDATE emotion_record
         SET user_id = #{userId},
             emotion_detail_id = #{emotionDetailId},
             diary_entry = #{diaryEntry},
-            created_time = created_time,
             updated_time = now()
         WHERE emotion_record_id = #{emotionRecordId};
     </update>
