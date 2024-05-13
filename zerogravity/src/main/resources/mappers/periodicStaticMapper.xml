@@ -9,13 +9,14 @@
         WHERE user_id = #{userId} AND period_type = #{periodType}
     </select>
     
-
-    <select id="findByPeriodAndUserId" parameterType="map" resultType="PeriodicStatics">
-        SELECT *
-        FROM periodic_statics
-        WHERE user_id = #{userId}
-          AND period_start <![CDATA[ >= ]]> #{periodStart}
-          AND period_end <![CDATA[ <= ]]> #{periodEnd}
+	<!-- 기간 및 사용자 ID에 따른 기존 통계 조회 -->
+    <select id="selectPeriodicStaticsByPeriodAndUserId" parameterType="map" resultType="PeriodicStatics">
+		SELECT *
+		FROM periodic_statics
+		WHERE user_id = #{userId}
+		  AND DATE(period_start) = DATE(#{periodStart})
+		  AND DATE(period_end) = DATE(#{periodEnd})
+		LIMIT 1;
     </select>
     
     <!-- 새 주기 통계 삽입 -->

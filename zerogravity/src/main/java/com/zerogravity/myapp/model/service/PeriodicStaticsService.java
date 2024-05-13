@@ -10,7 +10,8 @@ public interface PeriodicStaticsService {
 	// 감정 기록 통계 조회 
 	public abstract PeriodicStatics getPeriodicStaticsByUserId(long userId);
 	
-	public abstract boolean updateOrCreatePeriodicStatics(EmotionRecord emotionRecord, Timestamp createdTime);
+	// 감정 기록 통계 생성 또는 업데이트 
+	public abstract boolean createOrModifyPeriodicStatics(EmotionRecord emotionRecord, Timestamp createdTime);
 
 
 

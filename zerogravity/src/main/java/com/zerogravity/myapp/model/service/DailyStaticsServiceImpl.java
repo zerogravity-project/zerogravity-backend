@@ -27,20 +27,18 @@ public class DailyStaticsServiceImpl implements DailyStaticsService {
     
     @Override
     @Transactional
-    public boolean updateOrCreateDailyStatics(EmotionRecord emotionRecord, Timestamp createdTime) {
+    public boolean createOrModifyDailyStatics(EmotionRecord emotionRecord, Timestamp createdTime) {
     	
-//        Timestamp recordTime = emotionRecord.getCreatedTime();
-//        LocalDate recordDate = recordTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-//        LocalDate today = LocalDate.now();
     	Timestamp recordTime = createdTime;
 
         long userId = emotionRecord.getUserId();
         int emotionType = emotionRecord.getEmotionRecordType();
 
-        DailyStatics existingStatics = dailyStaticsDao.findDailyStaticsByDateAndUserId(recordTime, userId);
+        DailyStatics existingStatics = dailyStaticsDao.selectDailyStaticsByDateAndUserId(recordTime, userId);
+        // 오늘 날짜의 기록이 없으면 새로 생성
         if (existingStatics == null) {
-            // 오늘 날짜의 기록이 없으면 새로 생성
             DailyStatics newStatics = new DailyStatics();
+            // 새로운 고유 ID 부여 
             String newId = UUID.randomUUID().toString();
 
             newStatics.setDailyStaticsId(newId);
@@ -49,8 +47,9 @@ public class DailyStaticsServiceImpl implements DailyStaticsService {
             newStatics.setCreatedTime(recordTime);
             newStatics.setUpdatedTime(recordTime);
             return dailyStaticsDao.insertDailyStatics(newStatics) == 1;
+            
+        // 오늘 날짜의 기록이 있으면 업데이트
         } else {
-            // 오늘 날짜의 기록이 있으면 업데이트
         	existingStatics.setDailyStaticsId(existingStatics.getDailyStaticsId());
             existingStatics.setDailySum(emotionType);
             existingStatics.setUpdatedTime(Timestamp.from(Instant.now()));
