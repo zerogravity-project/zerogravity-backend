@@ -10,7 +10,7 @@
     </select>
     
     <!-- 특정 날짜와 사용자 ID에 대한 일일 감정 기록 ID 조회 -->
-    <select id="findDailyStaticsByDateAndUserId" parameterType="map">
+    <select id="selectDailyStaticsByDateAndUserId" parameterType="map">
         SELECT * FROM daily_statics
         WHERE DATE(created_time) = DATE(#{createdTime}) AND user_id = #{userId}
     </select>
