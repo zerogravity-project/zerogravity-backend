@@ -17,22 +17,33 @@ import com.zerogravity.myapp.model.service.DailyStaticsService;
 import com.zerogravity.myapp.model.service.EmotionRecordService;
 import com.zerogravity.myapp.model.service.PeriodicStaticsService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api-zerogravity/emotions")
-public class EmotionManagementRestController {
+@Tag(name = "Emotion Record Management", description = "감정 기록 및 통계 관리 API")
+public class EmotionRecordManagementRestController {
 
     private final EmotionRecordService emotionRecordService;
     private final DailyStaticsService dailyStaticsService;
     private final PeriodicStaticsService periodicStaticsService;
 
     @Autowired
-    public EmotionManagementRestController(EmotionRecordService emotionRecordService, DailyStaticsService dailyStaticsService, PeriodicStaticsService periodicStaticsService) {
+    public EmotionRecordManagementRestController(EmotionRecordService emotionRecordService, DailyStaticsService dailyStaticsService, PeriodicStaticsService periodicStaticsService) {
         this.emotionRecordService = emotionRecordService;
         this.dailyStaticsService = dailyStaticsService;
         this.periodicStaticsService = periodicStaticsService;
     }
 
     @PostMapping("/records")
+    @Operation(summary = "감정 기록 생성 및 통계 생성 또는 업데이트", description = "감정 기록을 생성함과 동시에 통계 기록을 생성 또는 업데이트 합니다.")
+	@ApiResponses(value = { 
+			@ApiResponse(responseCode = "201", description = "감정 기록 생성 및 통계 생성 또는 업데이트 성공"),
+			@ApiResponse(responseCode = "400", description = "잘못된 요청으로 인한 감정 기록 생성 및 통계 생성 또는 업데이트 실패")
+	})
     public ResponseEntity<?> createAndManageRecords(@RequestBody EmotionRecord emotionRecord) {
     	
     	// 1. Emotion Record 생성 
@@ -42,7 +53,7 @@ public class EmotionManagementRestController {
         Timestamp createdTime = emotionRecordService.getCreatedTimeByEmotionRecordId(emotionRecord.getEmotionRecordId());
         
         if (createDailyRecord == 0) {
-            throw new RuntimeException("Failed to create emotion record");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } else {
         	// 2. Daily Statics 생성 또는 업데이트 
         	boolean dailyStaticsUpdated = dailyStaticsService.createOrModifyDailyStatics(emotionRecord, createdTime);
