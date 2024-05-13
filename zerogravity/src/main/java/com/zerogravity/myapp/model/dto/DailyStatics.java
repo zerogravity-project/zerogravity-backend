@@ -1,19 +1,24 @@
 package com.zerogravity.myapp.model.dto;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
 public class DailyStatics {
 	
 	private String dailyStaticsId;
 	private long userId;
-	private String aggregatedDate;
 	private int dailySum;
+	private Timestamp createdTime;
+	private Timestamp updatedTime;
 	
 	public DailyStatics() {}
 
-	public DailyStatics(String dailyStaticsId, long userId, String aggregatedDate, int dailySum) {
+	public DailyStatics(String dailyStaticsId, long userId, int dailySum, Timestamp createdTime, Timestamp updatedTime) {
 		this.dailyStaticsId = dailyStaticsId;
 		this.userId = userId;
-		this.aggregatedDate = aggregatedDate;
 		this.dailySum = dailySum;
+		this.createdTime = createdTime;
+		this.updatedTime = updatedTime;
 	}
 
 	public String getDailyStaticsId() {
@@ -32,14 +37,6 @@ public class DailyStatics {
 		this.userId = userId;
 	}
 
-	public String getAggregatedDate() {
-		return aggregatedDate;
-	}
-
-	public void setAggregatedDate(String aggregatedDate) {
-		this.aggregatedDate = aggregatedDate;
-	}
-
 	public int getDailySum() {
 		return dailySum;
 	}
@@ -48,10 +45,27 @@ public class DailyStatics {
 		this.dailySum = dailySum;
 	}
 
+	public Timestamp getCreatedTime() {
+		return createdTime;
+	}
+
+	public void setCreatedTime(Timestamp createdTime) {
+		this.createdTime = createdTime;
+	}
+
+	public Timestamp getUpdatedTime() {
+		return updatedTime;
+	}
+
+	public void setUpdatedTime(Timestamp updatedTime) {
+		this.updatedTime = updatedTime;
+	}
+
 	@Override
 	public String toString() {
-		return "DailyStatics [dailyStaticsId=" + dailyStaticsId + ", userId=" + userId + ", aggregatedDate="
-				+ aggregatedDate + ", dailySum=" + dailySum + "]";
+		return "DailyStatics [dailyStaticsId=" + dailyStaticsId + ", userId=" + userId + ", dailySum=" + dailySum
+				+ ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
 	}
+
 	
 }

@@ -9,7 +9,6 @@ import com.zerogravity.myapp.model.dao.EmotionRecordDao;
 import com.zerogravity.myapp.model.dto.EmotionRecord;
 
 @Service
-@Transactional
 public class EmotionRecordServiceImpl implements EmotionRecordService {
 	
     private EmotionRecordDao emotionRecordDao;
@@ -24,11 +23,13 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	}
 
 	@Override
+	@Transactional
 	public int createEmotionRecord(EmotionRecord record) {
 		return emotionRecordDao.createEmotionRecord(record);
 	}
 
 	@Override
+	@Transactional
 	public boolean updateEmotionRecord(EmotionRecord record) {
 		return emotionRecordDao.updateEmotionRecord(record);
 	}

@@ -1,15 +1,17 @@
 package com.zerogravity.myapp.model.service;
 
+import java.sql.Timestamp;
 import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.zerogravity.myapp.model.dao.PeriodicStaticsDao;
+import com.zerogravity.myapp.model.dto.EmotionRecord;
 import com.zerogravity.myapp.model.dto.PeriodicStatics;
 
 @Service
@@ -29,60 +31,55 @@ public class PeriodicStaticsServiceImpl implements PeriodicStaticsService {
 
     @Override
     @Transactional
-    public boolean upsertPeriodicStatics(PeriodicStatics periodicStatics) {
-        if (!isValidInput(periodicStatics)) {
-            return false;
-        }
+    public boolean updateOrCreatePeriodicStatics(EmotionRecord emotionRecord) {
+        Timestamp recordDateTime = emotionRecord.getCreatedTime();
+        
+        long userId = emotionRecord.getUserId();
+        int scoreToAdd = emotionRecord.getEmotionRecordType(); 
 
-        PeriodicStatics existingStatics = periodicStaticsDao.selectPeriodicStaticsByUserAndType(
-                periodicStatics.getUserId(), periodicStatics.getPeriodType());
+        boolean weeklySuccess = processPeriodicStatics(userId, recordDateTime, "weekly", scoreToAdd);
+        boolean monthlySuccess = processPeriodicStatics(userId, recordDateTime, "monthly", scoreToAdd);
+        boolean yearlySuccess = processPeriodicStatics(userId, recordDateTime, "yearly", scoreToAdd);
 
-        if (existingStatics == null || shouldStartNewRecord(existingStatics, periodicStatics.getPeriodType())) {
-            return periodicStaticsDao.insertPeridodicStatics(periodicStatics) == 1;
-        } else {
-            return updateExistingStatics(existingStatics, periodicStatics);
-        }
+        return weeklySuccess && monthlySuccess && yearlySuccess;
     }
 
-    private boolean isValidInput(PeriodicStatics periodicStatics) {
-        if (periodicStatics == null || periodicStatics.getPeriodType() == null) {
-            return false;
-        }
-        return periodicStatics.getPeriodType().equals("weekly") ||
-               periodicStatics.getPeriodType().equals("monthly") ||
-               periodicStatics.getPeriodType().equals("yearly");
-    }
-
-    private boolean shouldStartNewRecord(PeriodicStatics existingStatics, String periodType) {
-        LocalDate today = LocalDate.now();
-        LocalDate lastPeriodEnd = parseDate(existingStatics.getPeriodEnd());
+    private boolean processPeriodicStatics(long userId, Timestamp recordDateTime, String periodType, int scoreToAdd) {
+        LocalDateTime dateTime = recordDateTime.toLocalDateTime();
+        Timestamp periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)));
+        Timestamp periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)));
 
         switch (periodType) {
-            case "weekly":
-                return lastPeriodEnd.with(TemporalAdjusters.next(DayOfWeek.MONDAY)).isBefore(today);
             case "monthly":
-                return lastPeriodEnd.with(TemporalAdjusters.firstDayOfNextMonth()).isBefore(today);
+                periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.firstDayOfMonth()));
+                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.lastDayOfMonth()));
+                break;
             case "yearly":
-                return lastPeriodEnd.with(TemporalAdjusters.firstDayOfNextYear()).isBefore(today);
-            default:
-                return false;
+                periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.firstDayOfYear()));
+                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.lastDayOfYear()));
+                break;
         }
-    }
 
-    private LocalDate parseDate(String dateString) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        return LocalDate.parse(dateString, formatter);
-    }
-
-    private boolean updateExistingStatics(PeriodicStatics existingStatics, PeriodicStatics newStatics) {
-        int newCount = existingStatics.getCount() + 1;
-        int newSumScore = existingStatics.getSumScore() + newStatics.getSumScore();
-        double newAverage = (double) newSumScore / newCount;
-
-        existingStatics.setSumScore(newSumScore);
-        existingStatics.setCount(newCount);
-        existingStatics.setAverageScore(newAverage);
-
-        return periodicStaticsDao.updatePeriodiccStatics(existingStatics) == 1;
+        PeriodicStatics statics = periodicStaticsDao.findByPeriodAndUserId(userId, periodStart, periodEnd);
+        if (statics == null) {
+            statics = new PeriodicStatics();
+            statics.setPeriodicStaticsId(UUID.randomUUID().toString()); 
+            statics.setUserId(userId);
+            statics.setPeriodEnd(periodEnd.toString());
+            statics.setPeriodType(periodType);
+            statics.setCount(1);
+            statics.setSumScore(scoreToAdd);
+            statics.setAverageScore(scoreToAdd);
+            periodicStaticsDao.insertPeriodicStatics(statics);
+        } else {
+            int newCount = statics.getCount() + 1;
+            int newSumScore = statics.getSumScore() + scoreToAdd;
+            double newAverageScore = (double) newSumScore / newCount;
+            statics.setCount(newCount);
+            statics.setSumScore(newSumScore);
+            statics.setAverageScore(newAverageScore);
+            periodicStaticsDao.updatePeriodicStatics(statics);
+        }
+        return true;
     }
 }
