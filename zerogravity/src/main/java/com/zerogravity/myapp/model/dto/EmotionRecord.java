@@ -1,23 +1,27 @@
 package com.zerogravity.myapp.model.dto;
 
-import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 public class EmotionRecord {
 	
 	private String emotionRecordId;
-	private BigInteger userId;
+	private long userId;
 	private String emotionDetailId;
 	private String diaryEntry;
-	private String createdTime;
-	private String updatedTime;
+	private int emotionRecordType;
+	private Timestamp createdTime;
+	private Timestamp updatedTime;
 	
 	public EmotionRecord() {}
 
-	public EmotionRecord(String emotionRecordId, BigInteger userId, String emotionDetailId, String diaryEntry, String createdTime, String updatedTime) {
+	public EmotionRecord(String emotionRecordId, long userId, String emotionDetailId, String diaryEntry,
+			int emotionRecordType, Timestamp createdTime, Timestamp updatedTime) {
 		this.emotionRecordId = emotionRecordId;
 		this.userId = userId;
 		this.emotionDetailId = emotionDetailId;
 		this.diaryEntry = diaryEntry;
+		this.emotionRecordType = emotionRecordType;
 		this.createdTime = createdTime;
 		this.updatedTime = updatedTime;
 	}
@@ -30,11 +34,11 @@ public class EmotionRecord {
 		this.emotionRecordId = emotionRecordId;
 	}
 
-	public BigInteger getUserId() {
+	public long getUserId() {
 		return userId;
 	}
 
-	public void setUserId(BigInteger userId) {
+	public void setUserId(long userId) {
 		this.userId = userId;
 	}
 
@@ -54,27 +58,37 @@ public class EmotionRecord {
 		this.diaryEntry = diaryEntry;
 	}
 
-	public String getCreatedTime() {
+	public int getEmotionRecordType() {
+		return emotionRecordType;
+	}
+
+	public void setEmotionRecordType(int emotionRecordType) {
+		this.emotionRecordType = emotionRecordType;
+	}
+
+	public Timestamp getCreatedTime() {
 		return createdTime;
 	}
 
-	public void setCreatedTime(String createdTime) {
+	public void setCreatedTime(Timestamp createdTime) {
 		this.createdTime = createdTime;
 	}
 
-	public String getUpdatedTime() {
+	public Timestamp getUpdatedTime() {
 		return updatedTime;
 	}
 
-	public void setUpdatedTime(String updatedTime) {
+	public void setUpdatedTime(Timestamp updatedTime) {
 		this.updatedTime = updatedTime;
 	}
 
 	@Override
 	public String toString() {
 		return "EmotionRecord [emotionRecordId=" + emotionRecordId + ", userId=" + userId + ", emotionDetailId="
-				+ emotionDetailId + ", diaryEntry=" + diaryEntry + ", createdTime=" + createdTime + ", updatedTime="
-				+ updatedTime + "]";
+				+ emotionDetailId + ", diaryEntry=" + diaryEntry + ", emotionRecordType=" + emotionRecordType
+				+ ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
 	}
+
+	
 	
 }

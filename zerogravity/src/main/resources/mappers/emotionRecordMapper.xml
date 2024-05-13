@@ -12,14 +12,15 @@
     </select>
 
     <insert id="createEmotionRecord" parameterType="EmotionRecord">
-        INSERT INTO emotion_record (emotion_record_id, user_id, emotion_detail_id, diary_entry)
-        VALUES (#{emotionRecordId}, #{userId}, #{emotionDetailId}, #{diaryEntry})
+        INSERT INTO emotion_record (emotion_record_id, user_id, emotion_detail_id, emotion_record_type, diary_entry)
+        VALUES (#{emotionRecordId}, #{userId}, #{emotionDetailId}, #{emotionRecordType}, #{diaryEntry})
     </insert>
 
     <update id="updateEmotionRecord" parameterType="EmotionRecord">
         UPDATE emotion_record
         SET user_id = #{userId},
             emotion_detail_id = #{emotionDetailId},
+            emotion_record_type = #{emotionRecordType},
             diary_entry = #{diaryEntry},
             updated_time = now()
         WHERE emotion_record_id = #{emotionRecordId};

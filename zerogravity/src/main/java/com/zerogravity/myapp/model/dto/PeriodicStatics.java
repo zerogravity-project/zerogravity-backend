@@ -1,5 +1,7 @@
 package com.zerogravity.myapp.model.dto;
 
+import java.sql.Timestamp;
+
 public class PeriodicStatics {
 	
 	private String periodicStaticsId;
@@ -9,12 +11,12 @@ public class PeriodicStatics {
 	private int count; 
 	private int sumScore;
 	private double averageScore; 
-	private String createdTime;
-	private String updatedTime;
+	private Timestamp createdTime;
+	private Timestamp updatedTime;
 	
 	public PeriodicStatics() {}
 
-	public PeriodicStatics(String periodicStaticsId, long userId, String periodEnd, String periodType, int sumScore, int count, double averageScore, String createdTime, String updatedTime) {
+	public PeriodicStatics(String periodicStaticsId, long userId, String periodEnd, String periodType, int sumScore, int count, double averageScore, Timestamp createdTime, Timestamp updatedTime) {
 		this.periodicStaticsId = periodicStaticsId;
 		this.userId = userId;
 		this.periodEnd = periodEnd;
@@ -82,19 +84,19 @@ public class PeriodicStatics {
 		this.averageScore = averageScore;
 	}
 
-	public String getCreatedTime() {
+	public Timestamp getCreatedTime() {
 		return createdTime;
 	}
 
-	public void setCreatedTime(String createdTime) {
+	public void setCreatedTime(Timestamp createdTime) {
 		this.createdTime = createdTime;
 	}
 
-	public String getUpdatedTime() {
+	public Timestamp getUpdatedTime() {
 		return updatedTime;
 	}
 
-	public void setUpdatedTime(String updatedTime) {
+	public void setUpdatedTime(Timestamp updatedTime) {
 		this.updatedTime = updatedTime;
 	}
 

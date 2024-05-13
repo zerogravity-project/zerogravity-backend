@@ -8,6 +8,6 @@ public interface EmotionRecordDao {
 	
 	public abstract List<EmotionRecord> selectEmotionRecordByEmotionId(long userId);
 	public abstract int createEmotionRecord(EmotionRecord record);
-	boolean updateEmotionRecord(EmotionRecord record);
+	public abstract boolean updateEmotionRecord(EmotionRecord record);
 
 }
