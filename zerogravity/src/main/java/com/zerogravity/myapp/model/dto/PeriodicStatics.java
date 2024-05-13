@@ -6,7 +6,8 @@ public class PeriodicStatics {
 	
 	private String periodicStaticsId;
 	private long userId;
-	private String periodEnd;
+	private Timestamp periodStart;
+	private Timestamp periodEnd;
 	private String periodType;
 	private int count; 
 	private int sumScore;
@@ -16,9 +17,10 @@ public class PeriodicStatics {
 	
 	public PeriodicStatics() {}
 
-	public PeriodicStatics(String periodicStaticsId, long userId, String periodEnd, String periodType, int sumScore, int count, double averageScore, Timestamp createdTime, Timestamp updatedTime) {
+	public PeriodicStatics(String periodicStaticsId, long userId, Timestamp periodStart, Timestamp periodEnd, String periodType, int count, int sumScore, double averageScore, Timestamp createdTime, Timestamp updatedTime) {
 		this.periodicStaticsId = periodicStaticsId;
 		this.userId = userId;
+		this.periodStart = periodStart;
 		this.periodEnd = periodEnd;
 		this.periodType = periodType;
 		this.count = count;
@@ -44,11 +46,19 @@ public class PeriodicStatics {
 		this.userId = userId;
 	}
 
-	public String getPeriodEnd() {
+	public Timestamp getPeriodStart() {
+		return periodStart;
+	}
+
+	public void setPeriodStart(Timestamp periodStart) {
+		this.periodStart = periodStart;
+	}
+
+	public Timestamp getPeriodEnd() {
 		return periodEnd;
 	}
 
-	public void setPeriodEnd(String periodEnd) {
+	public void setPeriodEnd(Timestamp periodEnd) {
 		this.periodEnd = periodEnd;
 	}
 
@@ -102,10 +112,11 @@ public class PeriodicStatics {
 
 	@Override
 	public String toString() {
-		return "PeriodicStatics [periodicStaticsId=" + periodicStaticsId + ", userId=" + userId + ", periodEnd="
-				+ periodEnd + ", periodType=" + periodType + ", count=" + count + ", sumScore=" + sumScore
-				+ ", averageScore=" + averageScore + ", createdTime=" + createdTime + ", updatedTime=" + updatedTime
-				+ "]";
+		return "PeriodicStatics [periodicStaticsId=" + periodicStaticsId + ", userId=" + userId + ", periodStart="
+				+ periodStart + ", periodEnd=" + periodEnd + ", periodType=" + periodType + ", count=" + count
+				+ ", sumScore=" + sumScore + ", averageScore=" + averageScore + ", createdTime=" + createdTime
+				+ ", updatedTime=" + updatedTime + "]";
 	}
 
+	
 }

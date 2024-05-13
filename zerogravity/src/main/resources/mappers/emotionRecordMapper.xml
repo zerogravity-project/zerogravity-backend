@@ -5,10 +5,16 @@
   
 <mapper namespace="com.zerogravity.myapp.model.dao.EmotionRecordDao">
 
-    <select id="selectEmotionRecordByEmotionId" parameterType="long">
+    <select id="selectEmotionRecordByUserId" parameterType="long" resultType="EmotionRecord">
         SELECT *
         FROM emotion_record
         WHERE user_id = #{userId}
+    </select>
+    
+    <select id="selectCreatedTimeByEmotionRecordId" parameterType="String" resultType="java.sql.Timestamp">
+        SELECT created_time
+        FROM emotion_record
+        WHERE emotion_record_id = #{emotionRecordId}
     </select>
 
     <insert id="createEmotionRecord" parameterType="EmotionRecord">

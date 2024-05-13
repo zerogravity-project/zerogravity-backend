@@ -9,10 +9,16 @@
         SELECT * FROM daily_statics WHERE user_id = #{userId}    
     </select>
     
+    <!-- 특정 날짜와 사용자 ID에 대한 일일 감정 기록 ID 조회 -->
+    <select id="findDailyStaticsByDateAndUserId" parameterType="map">
+        SELECT * FROM daily_statics
+        WHERE DATE(created_time) = DATE(#{createdTime}) AND user_id = #{userId}
+    </select>
+    
     <!-- 일일 감정 기록 삽입 -->
     <insert id="insertDailyStatics" parameterType="DailyStatics">
         INSERT INTO daily_statics (daily_statics_id, user_id, daily_sum, created_time, updated_time)
-        VALUES (#{dailyStaticsId}, #{userId}, #{dailySum}, NOW(), NOW())
+        VALUES (#{dailyStaticsId}, #{userId}, #{dailySum}, #{createdTime}, #{createdTime})
     </insert>
     
     <!-- 일일 감정 기록 업데이트 -->
@@ -22,10 +28,5 @@
         WHERE DATE(created_time) = DATE(#{createdTime}) AND user_id = #{userId}
     </update>
 
-    <!-- 특정 날짜와 사용자 ID에 대한 일일 감정 기록 ID 조회 -->
-    <select id="findIdByDateAndUserId" parameterType="map" resultType="String">
-        SELECT daily_statics_id FROM daily_statics
-        WHERE DATE(created_time) = DATE(#{createdTime}) AND user_id = #{userId}
-    </select>
     
 </mapper>

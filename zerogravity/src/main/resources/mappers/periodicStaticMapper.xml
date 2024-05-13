@@ -9,19 +9,25 @@
         WHERE user_id = #{userId} AND period_type = #{periodType}
     </select>
     
+
+    <select id="findByPeriodAndUserId" parameterType="map" resultType="PeriodicStatics">
+        SELECT *
+        FROM periodic_statics
+        WHERE user_id = #{userId}
+          AND period_start <![CDATA[ >= ]]> #{periodStart}
+          AND period_end <![CDATA[ <= ]]> #{periodEnd}
+    </select>
+    
     <!-- 새 주기 통계 삽입 -->
     <insert id="insertPeriodicStatics" parameterType="PeriodicStatics">
-        INSERT INTO periodic_statics (user_id, period_end, period_type, sum_score, count, average_score)
-        VALUES (#{userId}, #{periodEnd}, #{periodType}, #{sumScore}, 1, #{averageScore})
-        <selectKey keyProperty="periodicStaticsId" resultType="String" order="AFTER">
-            SELECT LAST_INSERT_ID() AS periodicStaticsId
-        </selectKey>
+        INSERT INTO periodic_statics (periodic_statics_id, user_id, period_start, period_end, period_type, sum_score, count, average_score)
+        VALUES (#{periodicStaticsId}, #{userId}, #{periodStart}, #{periodEnd}, #{periodType}, #{sumScore}, 1, #{averageScore})
     </insert>
     
     <!-- 기존 주기 통계 업데이트 -->
     <update id="updatePeriodicStatics" parameterType="PeriodicStatics">
         UPDATE periodic_statics
-        SET period_end = #{periodEnd}, sum_score = #{sumScore}, count = #{count}, average_score = #{averageScore}
+        SET period_end = #{periodEnd}, sum_score = #{sumScore}, count = #{count}, average_score = #{averageScore}, updated_time = now()
         WHERE user_id = #{userId} AND period_type = #{periodType}
     </update>
 

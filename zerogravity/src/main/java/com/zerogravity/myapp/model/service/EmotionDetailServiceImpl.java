@@ -10,7 +10,6 @@ import com.zerogravity.myapp.model.dao.EmotionDetailDao;
 import com.zerogravity.myapp.model.dto.EmotionDetail;
 
 @Service
-@Transactional
 public class EmotionDetailServiceImpl implements EmotionDetailService {
 	
 	private final EmotionDetailDao emotionDetailDao;

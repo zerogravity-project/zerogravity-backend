@@ -31,8 +31,9 @@ public class PeriodicStaticsServiceImpl implements PeriodicStaticsService {
 
     @Override
     @Transactional
-    public boolean updateOrCreatePeriodicStatics(EmotionRecord emotionRecord) {
-        Timestamp recordDateTime = emotionRecord.getCreatedTime();
+    public boolean updateOrCreatePeriodicStatics(EmotionRecord emotionRecord, Timestamp createdTime) {
+        Timestamp recordDateTime = createdTime;
+        LocalDateTime dateTime = createdTime.toLocalDateTime();
         
         long userId = emotionRecord.getUserId();
         int scoreToAdd = emotionRecord.getEmotionRecordType(); 
@@ -59,13 +60,15 @@ public class PeriodicStaticsServiceImpl implements PeriodicStaticsService {
                 periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.lastDayOfYear()));
                 break;
         }
-
+        
         PeriodicStatics statics = periodicStaticsDao.findByPeriodAndUserId(userId, periodStart, periodEnd);
         if (statics == null) {
             statics = new PeriodicStatics();
-            statics.setPeriodicStaticsId(UUID.randomUUID().toString()); 
+            String newId = UUID.randomUUID().toString();
+            statics.setPeriodicStaticsId(newId); 
             statics.setUserId(userId);
-            statics.setPeriodEnd(periodEnd.toString());
+            statics.setPeriodStart(periodStart);
+            statics.setPeriodEnd(periodEnd);
             statics.setPeriodType(periodType);
             statics.setCount(1);
             statics.setSumScore(scoreToAdd);
@@ -75,6 +78,7 @@ public class PeriodicStaticsServiceImpl implements PeriodicStaticsService {
             int newCount = statics.getCount() + 1;
             int newSumScore = statics.getSumScore() + scoreToAdd;
             double newAverageScore = (double) newSumScore / newCount;
+            statics.setPeriodicStaticsId(statics.getPeriodicStaticsId());
             statics.setCount(newCount);
             statics.setSumScore(newSumScore);
             statics.setAverageScore(newAverageScore);
