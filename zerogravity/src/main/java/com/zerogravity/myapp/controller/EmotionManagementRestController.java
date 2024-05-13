@@ -1,9 +1,10 @@
 package com.zerogravity.myapp.controller;
 
+import java.sql.Timestamp;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,21 +31,26 @@ public class EmotionManagementRestController {
     }
 
     @PostMapping("/records")
-    @Transactional
     public ResponseEntity<?> createAndManageRecords(@RequestBody EmotionRecord emotionRecord) {
+    	// Emotion Record 생성 
         int created = emotionRecordService.createEmotionRecord(emotionRecord);
-
+        
+        // 기록을 생성하는 시점에 대한 날짜 및 시간 정보 
+        Timestamp createdTime = emotionRecordService.getCreatedTimeByEmotionRecordId(emotionRecord.getEmotionRecordId());
+        
         if (created == 0) {
             throw new RuntimeException("Failed to create emotion record");
         } else {
-        	boolean dailyStaticsUpdated = dailyStaticsService.updateOrCreateDailyStatics(emotionRecord);
+        	// Daily Statics 생성 
+        	boolean dailyStaticsUpdated = dailyStaticsService.updateOrCreateDailyStatics(emotionRecord, createdTime);
         	if (!dailyStaticsUpdated) {
         		throw new RuntimeException("Failed to update daily statics");
         	}
-//        	boolean periodicStaticsUpdated = periodicStaticsService.updateOrCreatePeriodicStatics(emotionRecord);
-//        	if (!periodicStaticsUpdated) {
-//        		throw new RuntimeException("Failed to update periodic statics");
-//        	}
+	    	// Periodic Statics 생성 
+        	boolean periodicStaticsUpdated = periodicStaticsService.updateOrCreatePeriodicStatics(emotionRecord, createdTime);
+	    	if (!periodicStaticsUpdated) {
+	    		throw new RuntimeException("Failed to update periodic statics");
+	    	}
         }
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
