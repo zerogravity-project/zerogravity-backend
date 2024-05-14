@@ -1,15 +1,17 @@
 package com.zerogravity.myapp.model.service;
 
+import java.sql.Timestamp;
 import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.zerogravity.myapp.model.dao.PeriodicStaticsDao;
+import com.zerogravity.myapp.model.dto.EmotionRecord;
 import com.zerogravity.myapp.model.dto.PeriodicStatics;
 
 @Service
@@ -29,60 +31,78 @@ public class PeriodicStaticsServiceImpl implements PeriodicStaticsService {
 
     @Override
     @Transactional
-    public boolean upsertPeriodicStatics(PeriodicStatics periodicStatics) {
-        if (!isValidInput(periodicStatics)) {
-            return false;
-        }
+    public boolean createOrModifyPeriodicStatics(EmotionRecord emotionRecord, Timestamp createdTime) {
+    	
+        Timestamp recordDateTime = createdTime;
+        
+        long userId = emotionRecord.getUserId();
+        int scoreToAdd = emotionRecord.getEmotionRecordType(); 
 
-        PeriodicStatics existingStatics = periodicStaticsDao.selectPeriodicStaticsByUserAndType(
-                periodicStatics.getUserId(), periodicStatics.getPeriodType());
+        boolean weeklySuccess = processPeriodicStatics(userId, recordDateTime, "weekly", scoreToAdd);
+        boolean monthlySuccess = processPeriodicStatics(userId, recordDateTime, "monthly", scoreToAdd);
+        boolean yearlySuccess = processPeriodicStatics(userId, recordDateTime, "yearly", scoreToAdd);
 
-        if (existingStatics == null || shouldStartNewRecord(existingStatics, periodicStatics.getPeriodType())) {
-            return periodicStaticsDao.insertPeridodicStatics(periodicStatics) == 1;
-        } else {
-            return updateExistingStatics(existingStatics, periodicStatics);
-        }
+        return weeklySuccess && monthlySuccess && yearlySuccess;
     }
-
-    private boolean isValidInput(PeriodicStatics periodicStatics) {
-        if (periodicStatics == null || periodicStatics.getPeriodType() == null) {
-            return false;
-        }
-        return periodicStatics.getPeriodType().equals("weekly") ||
-               periodicStatics.getPeriodType().equals("monthly") ||
-               periodicStatics.getPeriodType().equals("yearly");
-    }
-
-    private boolean shouldStartNewRecord(PeriodicStatics existingStatics, String periodType) {
-        LocalDate today = LocalDate.now();
-        LocalDate lastPeriodEnd = parseDate(existingStatics.getPeriodEnd());
-
+    
+    // 사용자 ID, 기록 생성 시점, 기록 타입, 넣어줄 감정 레벨에 따른 *기간 시작 시점 및 종료 시점 반환 메서드 
+    // *기록 시점을 기준으로 해당 주/월/연도의 시작 기간 및 종료 기간 
+    private boolean processPeriodicStatics(long userId, Timestamp recordDateTime, String periodType, int scoreToAdd) {
+    	
+        LocalDateTime dateTime = recordDateTime.toLocalDateTime();
+        Timestamp periodStart = null;
+        Timestamp periodEnd = null;
+        
         switch (periodType) {
             case "weekly":
-                return lastPeriodEnd.with(TemporalAdjusters.next(DayOfWeek.MONDAY)).isBefore(today);
+                periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).toLocalDate().atStartOfDay());
+                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).toLocalDate().atStartOfDay());
+                break;
             case "monthly":
-                return lastPeriodEnd.with(TemporalAdjusters.firstDayOfNextMonth()).isBefore(today);
+                periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.firstDayOfMonth()).toLocalDate().atStartOfDay());
+                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.lastDayOfMonth()).toLocalDate().atStartOfDay());
+                break;
             case "yearly":
-                return lastPeriodEnd.with(TemporalAdjusters.firstDayOfNextYear()).isBefore(today);
-            default:
-                return false;
+                periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.firstDayOfYear()).toLocalDate().atStartOfDay());
+                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.lastDayOfYear()).toLocalDate().atStartOfDay());
+                break;
         }
-    }
-
-    private LocalDate parseDate(String dateString) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        return LocalDate.parse(dateString, formatter);
-    }
-
-    private boolean updateExistingStatics(PeriodicStatics existingStatics, PeriodicStatics newStatics) {
-        int newCount = existingStatics.getCount() + 1;
-        int newSumScore = existingStatics.getSumScore() + newStatics.getSumScore();
-        double newAverage = (double) newSumScore / newCount;
-
-        existingStatics.setSumScore(newSumScore);
-        existingStatics.setCount(newCount);
-        existingStatics.setAverageScore(newAverage);
-
-        return periodicStaticsDao.updatePeriodiccStatics(existingStatics) == 1;
+        
+        // 기간 시작 시점, 종료 시점, 사용자 ID로 감정 통계 기록 조회 
+        PeriodicStatics statics = periodicStaticsDao.selectPeriodicStaticsByPeriodAndUserId(userId, periodStart, periodEnd);
+        
+        // 기록 시점을 기준으로 weekly/monthly/yearly 데이터가 없으면 생성  
+        if (statics == null) {
+        	
+            statics = new PeriodicStatics();
+            // 새로운 고유 ID 부여 
+            String newId = UUID.randomUUID().toString();
+            
+            statics.setPeriodicStaticsId(newId); 
+            statics.setUserId(userId);
+            statics.setPeriodStart(periodStart);
+            statics.setPeriodEnd(periodEnd);
+            statics.setPeriodType(periodType);
+            statics.setPeriodicCount(1);
+            statics.setPeriodicSum(scoreToAdd);
+            statics.setPeriodicAverage(scoreToAdd);
+            
+            periodicStaticsDao.insertPeriodicStatics(statics);
+        
+        // 기록 시점을 기준으로 weekly/monthly/yearly 데이터가 있으면 업데이트 
+        } else {
+        	
+            int newCount = statics.getPeriodicSum() + 1;
+            int newSumScore = statics.getPeriodicSum() + scoreToAdd;
+            double newAverageScore = (double) newSumScore / newCount;
+            
+            statics.setPeriodicStaticsId(statics.getPeriodicStaticsId());
+            statics.setPeriodicCount(newCount);
+            statics.setPeriodicSum(newSumScore);
+            statics.setPeriodicAverage(newAverageScore);
+            
+            periodicStaticsDao.updatePeriodicStatics(statics);
+        }
+        return true;
     }
 }

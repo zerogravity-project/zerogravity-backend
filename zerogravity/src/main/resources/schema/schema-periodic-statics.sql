@@ -5,12 +5,14 @@ USE zerogravity;
 
 CREATE TABLE periodic_statics (
 	periodic_statics_id VARCHAR(36) PRIMARY KEY,
-    user_id BIGINT,
-    period_end DATETIME,
-    period_type VARCHAR(10),
-    sum_score INT,
-    average_score DOUBLE,
-    created_time DATETIME,
-    updated_time DATETIME,
+    user_id BIGINT NOT NULL,
+    period_start DATETIME NOT NULL,
+    period_end DATETIME NOT NULL,
+    period_type VARCHAR(10) NOT NULL,
+    periodic_sum INT NOT NULL,
+    periodic_count INT NOT NULL,
+    periodic_average DOUBLE NOT NULL,
+    created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );

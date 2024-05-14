@@ -1,5 +1,6 @@
 package com.zerogravity.myapp.model.service;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -9,7 +10,6 @@ import com.zerogravity.myapp.model.dao.EmotionRecordDao;
 import com.zerogravity.myapp.model.dto.EmotionRecord;
 
 @Service
-@Transactional
 public class EmotionRecordServiceImpl implements EmotionRecordService {
 	
     private EmotionRecordDao emotionRecordDao;
@@ -20,15 +20,22 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 
 	@Override
 	public List<EmotionRecord> getEmotionRecordsByUserId(long userId) {
-		return emotionRecordDao.selectEmotionRecordByEmotionId(userId);
+		return emotionRecordDao.selectEmotionRecordByUserId(userId);
 	}
 
 	@Override
+	public Timestamp getCreatedTimeByEmotionRecordId(String emotionRecordId) {
+		return emotionRecordDao.selectCreatedTimeByEmotionRecordId(emotionRecordId);
+	}
+	
+	@Override
+	@Transactional
 	public int createEmotionRecord(EmotionRecord record) {
 		return emotionRecordDao.createEmotionRecord(record);
 	}
 
 	@Override
+	@Transactional
 	public boolean updateEmotionRecord(EmotionRecord record) {
 		return emotionRecordDao.updateEmotionRecord(record);
 	}

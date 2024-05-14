@@ -23,7 +23,6 @@ public class EmotionRestController {
 		this.emotionService = emotionService;
 	}
 	
-	// GET Emotion 
 	@GetMapping
 	public ResponseEntity<?> getEmotionList() {
 		List<Emotion> emotionList = emotionService.getEmotionList();
