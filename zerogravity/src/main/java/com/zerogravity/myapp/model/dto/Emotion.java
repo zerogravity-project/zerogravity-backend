@@ -1,5 +1,7 @@
 package com.zerogravity.myapp.model.dto;
 
+import java.time.LocalDateTime;
+
 public class Emotion {
 	
 	private String emotionId;
@@ -7,12 +9,12 @@ public class Emotion {
 	private int emotionLevel;
 	private String colorScheme;
 	private String shapeName;
-	private String createdTime;
-	private String updatedTime;
+	private LocalDateTime createdTime;
+	private LocalDateTime updatedTime;
 	
 	public Emotion() {}
 
-	public Emotion(String emotionId, String emotionType, int emotionLevle, String colorScheme, String shapeName, String createdTime, String updatedTime) {
+	public Emotion(String emotionId, String emotionType, int emotionLevle, String colorScheme, String shapeName, LocalDateTime createdTime, LocalDateTime updatedTime) {
 		this.emotionId = emotionId;
 		this.emotionType = emotionType;
 		this.emotionLevel = emotionLevle;
@@ -62,19 +64,19 @@ public class Emotion {
 		this.shapeName = shapeName;
 	}
 
-	public String getCreatedTime() {
+	public LocalDateTime getCreatedTime() {
 		return createdTime;
 	}
 
-	public void setCreatedTime(String createdTime) {
+	public void setCreatedTime(LocalDateTime createdTime) {
 		this.createdTime = createdTime;
 	}
 
-	public String getUpdatedTime() {
+	public LocalDateTime getUpdatedTime() {
 		return updatedTime;
 	}
 
-	public void setUpdatedTime(String updatedTime) {
+	public void setUpdatedTime(LocalDateTime updatedTime) {
 		this.updatedTime = updatedTime;
 	}
 

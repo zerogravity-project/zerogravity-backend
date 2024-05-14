@@ -8,6 +8,7 @@ CREATE TABLE emotion_record (
     emotion_record_id VARCHAR(36) NOT NULL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     emotion_detail_id VARCHAR(36) NOT NULL,
+    emotion_record_type INT NOT NULL,
     diary_entry TEXT NULL,
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

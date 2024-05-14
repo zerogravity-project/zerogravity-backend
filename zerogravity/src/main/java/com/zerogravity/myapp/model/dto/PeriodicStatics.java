@@ -1,27 +1,31 @@
 package com.zerogravity.myapp.model.dto;
 
+import java.sql.Timestamp;
+
 public class PeriodicStatics {
 	
 	private String periodicStaticsId;
 	private long userId;
-	private String periodEnd;
+	private Timestamp periodStart;
+	private Timestamp periodEnd;
 	private String periodType;
-	private int count; 
-	private int sumScore;
-	private double averageScore; 
-	private String createdTime;
-	private String updatedTime;
+	private int periodicCount; 
+	private int periodicSum;
+	private double periodicAverage; 
+	private Timestamp createdTime;
+	private Timestamp updatedTime;
 	
 	public PeriodicStatics() {}
 
-	public PeriodicStatics(String periodicStaticsId, long userId, String periodEnd, String periodType, int sumScore, int count, double averageScore, String createdTime, String updatedTime) {
+	public PeriodicStatics(String periodicStaticsId, long userId, Timestamp periodStart, Timestamp periodEnd, String periodType, int periodicCount, int periodicSum, double periodicAverage, Timestamp createdTime, Timestamp updatedTime) {
 		this.periodicStaticsId = periodicStaticsId;
 		this.userId = userId;
+		this.periodStart = periodStart;
 		this.periodEnd = periodEnd;
 		this.periodType = periodType;
-		this.count = count;
-		this.sumScore = sumScore;
-		this.averageScore = averageScore;
+		this.periodicCount = periodicCount;
+		this.periodicSum = periodicSum;
+		this.periodicAverage = periodicAverage;
 		this.createdTime = createdTime;
 		this.updatedTime = updatedTime;
 	}
@@ -42,11 +46,19 @@ public class PeriodicStatics {
 		this.userId = userId;
 	}
 
-	public String getPeriodEnd() {
+	public Timestamp getPeriodStart() {
+		return periodStart;
+	}
+
+	public void setPeriodStart(Timestamp periodStart) {
+		this.periodStart = periodStart;
+	}
+
+	public Timestamp getPeriodEnd() {
 		return periodEnd;
 	}
 
-	public void setPeriodEnd(String periodEnd) {
+	public void setPeriodEnd(Timestamp periodEnd) {
 		this.periodEnd = periodEnd;
 	}
 
@@ -58,52 +70,52 @@ public class PeriodicStatics {
 		this.periodType = periodType;
 	}
 
-	public int getCount() {
-		return count;
+	public int getPeriodicCount() {
+		return periodicCount;
 	}
 
-	public void setCount(int count) {
-		this.count = count;
+	public void setPeriodicCount(int periodicCount) {
+		this.periodicCount = periodicCount;
 	}
 
-	public int getSumScore() {
-		return sumScore;
+	public int getPeriodicSum() {
+		return periodicSum;
 	}
 
-	public void setSumScore(int sumScore) {
-		this.sumScore = sumScore;
+	public void setPeriodicSum(int periodicSum) {
+		this.periodicSum = periodicSum;
 	}
 
-	public double getAverageScore() {
-		return averageScore;
+	public double getPeriodicAverage() {
+		return periodicAverage;
 	}
 
-	public void setAverageScore(double averageScore) {
-		this.averageScore = averageScore;
+	public void setPeriodicAverage(double periodicAverage) {
+		this.periodicAverage = periodicAverage;
 	}
 
-	public String getCreatedTime() {
+	public Timestamp getCreatedTime() {
 		return createdTime;
 	}
 
-	public void setCreatedTime(String createdTime) {
+	public void setCreatedTime(Timestamp createdTime) {
 		this.createdTime = createdTime;
 	}
 
-	public String getUpdatedTime() {
+	public Timestamp getUpdatedTime() {
 		return updatedTime;
 	}
 
-	public void setUpdatedTime(String updatedTime) {
+	public void setUpdatedTime(Timestamp updatedTime) {
 		this.updatedTime = updatedTime;
 	}
 
 	@Override
 	public String toString() {
-		return "PeriodicStatics [periodicStaticsId=" + periodicStaticsId + ", userId=" + userId + ", periodEnd="
-				+ periodEnd + ", periodType=" + periodType + ", count=" + count + ", sumScore=" + sumScore
-				+ ", averageScore=" + averageScore + ", createdTime=" + createdTime + ", updatedTime=" + updatedTime
-				+ "]";
+		return "PeriodicStatics [periodicStaticsId=" + periodicStaticsId + ", userId=" + userId + ", periodStart="
+				+ periodStart + ", periodEnd=" + periodEnd + ", periodType=" + periodType + ", periodicCount="
+				+ periodicCount + ", periodicSum=" + periodicSum + ", periodicAverage=" + periodicAverage
+				+ ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
 	}
 
 }
