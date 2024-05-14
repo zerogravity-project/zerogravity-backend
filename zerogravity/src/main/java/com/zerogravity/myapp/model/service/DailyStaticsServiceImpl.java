@@ -50,8 +50,15 @@ public class DailyStaticsServiceImpl implements DailyStaticsService {
             
         // 오늘 날짜의 기록이 있으면 업데이트
         } else {
+        	int scoreToAdd = emotionRecord.getEmotionRecordType(); 
+            int newCount = existingStatics.getDailyCount() + 1;
+            int newSumScore = existingStatics.getDailySum() + scoreToAdd;
+            double newAverageScore = (double) newSumScore / newCount;
+            
         	existingStatics.setDailyStaticsId(existingStatics.getDailyStaticsId());
-            existingStatics.setDailySum(emotionType);
+            existingStatics.setDailySum(newSumScore);
+            existingStatics.setDailyCount(newCount);
+            existingStatics.setDailyAverage(newAverageScore);
             existingStatics.setUpdatedTime(Timestamp.from(Instant.now()));
             return dailyStaticsDao.updateDailyStatics(existingStatics) == 1;
         }

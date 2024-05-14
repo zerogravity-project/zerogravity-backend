@@ -9,23 +9,23 @@ public class PeriodicStatics {
 	private Timestamp periodStart;
 	private Timestamp periodEnd;
 	private String periodType;
-	private int count; 
-	private int sumScore;
-	private double averageScore; 
+	private int periodicCount; 
+	private int periodicSum;
+	private double periodicAverage; 
 	private Timestamp createdTime;
 	private Timestamp updatedTime;
 	
 	public PeriodicStatics() {}
 
-	public PeriodicStatics(String periodicStaticsId, long userId, Timestamp periodStart, Timestamp periodEnd, String periodType, int count, int sumScore, double averageScore, Timestamp createdTime, Timestamp updatedTime) {
+	public PeriodicStatics(String periodicStaticsId, long userId, Timestamp periodStart, Timestamp periodEnd, String periodType, int periodicCount, int periodicSum, double periodicAverage, Timestamp createdTime, Timestamp updatedTime) {
 		this.periodicStaticsId = periodicStaticsId;
 		this.userId = userId;
 		this.periodStart = periodStart;
 		this.periodEnd = periodEnd;
 		this.periodType = periodType;
-		this.count = count;
-		this.sumScore = sumScore;
-		this.averageScore = averageScore;
+		this.periodicCount = periodicCount;
+		this.periodicSum = periodicSum;
+		this.periodicAverage = periodicAverage;
 		this.createdTime = createdTime;
 		this.updatedTime = updatedTime;
 	}
@@ -70,28 +70,28 @@ public class PeriodicStatics {
 		this.periodType = periodType;
 	}
 
-	public int getCount() {
-		return count;
+	public int getPeriodicCount() {
+		return periodicCount;
 	}
 
-	public void setCount(int count) {
-		this.count = count;
+	public void setPeriodicCount(int periodicCount) {
+		this.periodicCount = periodicCount;
 	}
 
-	public int getSumScore() {
-		return sumScore;
+	public int getPeriodicSum() {
+		return periodicSum;
 	}
 
-	public void setSumScore(int sumScore) {
-		this.sumScore = sumScore;
+	public void setPeriodicSum(int periodicSum) {
+		this.periodicSum = periodicSum;
 	}
 
-	public double getAverageScore() {
-		return averageScore;
+	public double getPeriodicAverage() {
+		return periodicAverage;
 	}
 
-	public void setAverageScore(double averageScore) {
-		this.averageScore = averageScore;
+	public void setPeriodicAverage(double periodicAverage) {
+		this.periodicAverage = periodicAverage;
 	}
 
 	public Timestamp getCreatedTime() {
@@ -113,10 +113,9 @@ public class PeriodicStatics {
 	@Override
 	public String toString() {
 		return "PeriodicStatics [periodicStaticsId=" + periodicStaticsId + ", userId=" + userId + ", periodStart="
-				+ periodStart + ", periodEnd=" + periodEnd + ", periodType=" + periodType + ", count=" + count
-				+ ", sumScore=" + sumScore + ", averageScore=" + averageScore + ", createdTime=" + createdTime
-				+ ", updatedTime=" + updatedTime + "]";
+				+ periodStart + ", periodEnd=" + periodEnd + ", periodType=" + periodType + ", periodicCount="
+				+ periodicCount + ", periodicSum=" + periodicSum + ", periodicAverage=" + periodicAverage
+				+ ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
 	}
 
-	
 }

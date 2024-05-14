@@ -15,8 +15,7 @@ public class EmotionRecord {
 	
 	public EmotionRecord() {}
 
-	public EmotionRecord(String emotionRecordId, long userId, String emotionDetailId, String diaryEntry,
-			int emotionRecordType, Timestamp createdTime, Timestamp updatedTime) {
+	public EmotionRecord(String emotionRecordId, long userId, String emotionDetailId, String diaryEntry, int emotionRecordType, Timestamp createdTime, Timestamp updatedTime) {
 		this.emotionRecordId = emotionRecordId;
 		this.userId = userId;
 		this.emotionDetailId = emotionDetailId;
