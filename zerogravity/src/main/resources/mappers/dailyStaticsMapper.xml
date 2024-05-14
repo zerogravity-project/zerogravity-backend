@@ -17,14 +17,14 @@
     
     <!-- 일일 감정 기록 삽입 -->
     <insert id="insertDailyStatics" parameterType="DailyStatics">
-        INSERT INTO daily_statics (daily_statics_id, user_id, daily_sum, created_time, updated_time)
-        VALUES (#{dailyStaticsId}, #{userId}, #{dailySum}, #{createdTime}, #{createdTime})
+        INSERT INTO daily_statics (daily_statics_id, user_id, daily_sum, daily_count, daily_average, created_time, updated_time)
+        VALUES (#{dailyStaticsId}, #{userId}, #{dailySum}, 1, #{dailyAverage}, #{createdTime}, #{createdTime})
     </insert>
     
     <!-- 일일 감정 기록 업데이트 -->
     <update id="updateDailyStatics" parameterType="DailyStatics">
         UPDATE daily_statics
-        SET daily_sum = daily_sum + #{dailySum}, updated_time = NOW()
+        SET daily_sum = #{dailySum}, daily_count = #{dailyCount}, daily_average = #{dailyAverage}, updated_time = NOW()
         WHERE DATE(created_time) = DATE(#{createdTime}) AND user_id = #{userId}
     </update>
 

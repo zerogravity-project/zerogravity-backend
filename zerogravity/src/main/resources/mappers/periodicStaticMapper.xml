@@ -4,7 +4,7 @@
 
     <!-- 주기 유형 및 사용자 ID에 따른 기존 통계 조회 -->
     <select id="selectPeriodicStaticsByUserAndType" parameterType="map" resultType="PeriodicStatics">
-        SELECT user_id, period_end, period_type, sum_score, count, average_score
+        SELECT user_id, period_end, period_type, periodic_sum, periodic_count, periodic_average
         FROM periodic_statics
         WHERE user_id = #{userId} AND period_type = #{periodType}
     </select>
@@ -21,14 +21,14 @@
     
     <!-- 새 주기 통계 삽입 -->
     <insert id="insertPeriodicStatics" parameterType="PeriodicStatics">
-        INSERT INTO periodic_statics (periodic_statics_id, user_id, period_start, period_end, period_type, sum_score, count, average_score)
-        VALUES (#{periodicStaticsId}, #{userId}, #{periodStart}, #{periodEnd}, #{periodType}, #{sumScore}, 1, #{averageScore})
+        INSERT INTO periodic_statics (periodic_statics_id, user_id, period_start, period_end, period_type, periodic_sum, periodic_count, periodic_average)
+        VALUES (#{periodicStaticsId}, #{userId}, #{periodStart}, #{periodEnd}, #{periodType}, #{periodicSum}, 1, #{periodicAverage})
     </insert>
     
     <!-- 기존 주기 통계 업데이트 -->
     <update id="updatePeriodicStatics" parameterType="PeriodicStatics">
         UPDATE periodic_statics
-        SET period_end = #{periodEnd}, sum_score = #{sumScore}, count = #{count}, average_score = #{averageScore}, updated_time = now()
+        SET period_end = #{periodEnd}, periodic_sum = #{periodicSum}, periodic_count = #{periodicCount}, periodic_average = #{periodicAverage}, updated_time = now()
         WHERE user_id = #{userId} AND period_type = #{periodType}
     </update>
 

@@ -83,23 +83,23 @@ public class PeriodicStaticsServiceImpl implements PeriodicStaticsService {
             statics.setPeriodStart(periodStart);
             statics.setPeriodEnd(periodEnd);
             statics.setPeriodType(periodType);
-            statics.setCount(1);
-            statics.setSumScore(scoreToAdd);
-            statics.setAverageScore(scoreToAdd);
+            statics.setPeriodicCount(1);
+            statics.setPeriodicSum(scoreToAdd);
+            statics.setPeriodicAverage(scoreToAdd);
             
             periodicStaticsDao.insertPeriodicStatics(statics);
         
         // 기록 시점을 기준으로 weekly/monthly/yearly 데이터가 있으면 업데이트 
         } else {
         	
-            int newCount = statics.getCount() + 1;
-            int newSumScore = statics.getSumScore() + scoreToAdd;
+            int newCount = statics.getPeriodicSum() + 1;
+            int newSumScore = statics.getPeriodicSum() + scoreToAdd;
             double newAverageScore = (double) newSumScore / newCount;
             
             statics.setPeriodicStaticsId(statics.getPeriodicStaticsId());
-            statics.setCount(newCount);
-            statics.setSumScore(newSumScore);
-            statics.setAverageScore(newAverageScore);
+            statics.setPeriodicCount(newCount);
+            statics.setPeriodicSum(newSumScore);
+            statics.setPeriodicAverage(newAverageScore);
             
             periodicStaticsDao.updatePeriodicStatics(statics);
         }
