@@ -2,9 +2,9 @@ package com.zerogravity.myapp.model.dto;
 
 import java.sql.Timestamp;
 
-public class PeriodicStatics {
+public class PeriodicChart {
 	
-	private String periodicStaticsId;
+	private String periodicChartId;
 	private long userId;
 	private Timestamp periodStart;
 	private Timestamp periodEnd;
@@ -15,10 +15,10 @@ public class PeriodicStatics {
 	private Timestamp createdTime;
 	private Timestamp updatedTime;
 	
-	public PeriodicStatics() {}
+	public PeriodicChart() {}
 
-	public PeriodicStatics(String periodicStaticsId, long userId, Timestamp periodStart, Timestamp periodEnd, String periodType, int periodicCount, int periodicSum, double periodicAverage, Timestamp createdTime, Timestamp updatedTime) {
-		this.periodicStaticsId = periodicStaticsId;
+	public PeriodicChart(String periodicChartId, long userId, Timestamp periodStart, Timestamp periodEnd, String periodType, int periodicCount, int periodicSum, double periodicAverage, Timestamp createdTime, Timestamp updatedTime) {
+		this.periodicChartId = periodicChartId;
 		this.userId = userId;
 		this.periodStart = periodStart;
 		this.periodEnd = periodEnd;
@@ -30,12 +30,12 @@ public class PeriodicStatics {
 		this.updatedTime = updatedTime;
 	}
 
-	public String getPeriodicStaticsId() {
-		return periodicStaticsId;
+	public String getPeriodicChartId() {
+		return periodicChartId;
 	}
 
-	public void setPeriodicStaticsId(String periodicStaticsId) {
-		this.periodicStaticsId = periodicStaticsId;
+	public void setPeriodicChartId(String periodicChartId) {
+		this.periodicChartId = periodicChartId;
 	}
 
 	public long getUserId() {
@@ -112,7 +112,7 @@ public class PeriodicStatics {
 
 	@Override
 	public String toString() {
-		return "PeriodicStatics [periodicStaticsId=" + periodicStaticsId + ", userId=" + userId + ", periodStart="
+		return "PeriodicChart [periodicChartId=" + periodicChartId + ", userId=" + userId + ", periodStart="
 				+ periodStart + ", periodEnd=" + periodEnd + ", periodType=" + periodType + ", periodicCount="
 				+ periodicCount + ", periodicSum=" + periodicSum + ", periodicAverage=" + periodicAverage
 				+ ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
