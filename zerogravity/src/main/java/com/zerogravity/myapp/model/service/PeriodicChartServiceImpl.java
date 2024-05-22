@@ -10,44 +10,44 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.zerogravity.myapp.model.dao.PeriodicStaticsDao;
+import com.zerogravity.myapp.model.dao.PeriodicChartDao;
 import com.zerogravity.myapp.model.dto.EmotionRecord;
-import com.zerogravity.myapp.model.dto.PeriodicStatics;
+import com.zerogravity.myapp.model.dto.PeriodicChart;
 
 @Service
-public class PeriodicStaticsServiceImpl implements PeriodicStaticsService {
+public class PeriodicChartServiceImpl implements PeriodicChartService {
 
-    private final PeriodicStaticsDao periodicStaticsDao;
+    private final PeriodicChartDao periodicChartDao;
 
     @Autowired
-    public PeriodicStaticsServiceImpl(PeriodicStaticsDao periodicStaticsDao) {
-        this.periodicStaticsDao = periodicStaticsDao;
+    public PeriodicChartServiceImpl(PeriodicChartDao periodicChartDao) {
+        this.periodicChartDao = periodicChartDao;
     }
 
     @Override
-    public PeriodicStatics getPeriodicStaticsByUserId(long userId) {
-        return periodicStaticsDao.selectPeriodicStatics(userId);
+    public PeriodicChart getPeriodicChartByUserId(long userId) {
+        return periodicChartDao.selectPeriodicChart(userId);
     }
-
+    
     @Override
     @Transactional
-    public boolean createOrModifyPeriodicStatics(EmotionRecord emotionRecord, Timestamp createdTime) {
+    public boolean createOrModifyPeriodicChart(EmotionRecord emotionRecord, Timestamp createdTime) {
     	
         Timestamp recordDateTime = createdTime;
         
         long userId = emotionRecord.getUserId();
-        int scoreToAdd = emotionRecord.getEmotionRecordType(); 
+        int scoreToAdd = emotionRecord.getEmotionRecordLevel();
 
-        boolean weeklySuccess = processPeriodicStatics(userId, recordDateTime, "weekly", scoreToAdd);
-        boolean monthlySuccess = processPeriodicStatics(userId, recordDateTime, "monthly", scoreToAdd);
-        boolean yearlySuccess = processPeriodicStatics(userId, recordDateTime, "yearly", scoreToAdd);
+        boolean weeklySuccess = processPeriodicChart(userId, recordDateTime, "weekly", scoreToAdd);
+        boolean monthlySuccess = processPeriodicChart(userId, recordDateTime, "monthly", scoreToAdd);
+        boolean yearlySuccess = processPeriodicChart(userId, recordDateTime, "yearly", scoreToAdd);
 
         return weeklySuccess && monthlySuccess && yearlySuccess;
     }
     
     // 사용자 ID, 기록 생성 시점, 기록 타입, 넣어줄 감정 레벨에 따른 *기간 시작 시점 및 종료 시점 반환 메서드 
     // *기록 시점을 기준으로 해당 주/월/연도의 시작 기간 및 종료 기간 
-    private boolean processPeriodicStatics(long userId, Timestamp recordDateTime, String periodType, int scoreToAdd) {
+    private boolean processPeriodicChart(long userId, Timestamp recordDateTime, String periodType, int scoreToAdd) {
     	
         LocalDateTime dateTime = recordDateTime.toLocalDateTime();
         Timestamp periodStart = null;
@@ -69,40 +69,43 @@ public class PeriodicStaticsServiceImpl implements PeriodicStaticsService {
         }
         
         // 기간 시작 시점, 종료 시점, 사용자 ID로 감정 통계 기록 조회 
-        PeriodicStatics statics = periodicStaticsDao.selectPeriodicStaticsByPeriodAndUserId(userId, periodStart, periodEnd);
+        PeriodicChart existingChart = periodicChartDao.selectPeriodicChartByPeriodAndUserId(userId, periodStart, periodEnd);
         
         // 기록 시점을 기준으로 weekly/monthly/yearly 데이터가 없으면 생성  
-        if (statics == null) {
+        if (existingChart == null) {
         	
-            statics = new PeriodicStatics();
+            PeriodicChart newChart = new PeriodicChart();
             // 새로운 고유 ID 부여 
             String newId = UUID.randomUUID().toString();
             
-            statics.setPeriodicStaticsId(newId); 
-            statics.setUserId(userId);
-            statics.setPeriodStart(periodStart);
-            statics.setPeriodEnd(periodEnd);
-            statics.setPeriodType(periodType);
-            statics.setPeriodicCount(1);
-            statics.setPeriodicSum(scoreToAdd);
-            statics.setPeriodicAverage(scoreToAdd);
+            newChart.setPeriodicChartId(newId); 
+            newChart.setUserId(userId);
+            newChart.setPeriodStart(periodStart);
+            newChart.setPeriodEnd(periodEnd);
+            newChart.setPeriodType(periodType);
+            newChart.setPeriodicCount(1);
+            newChart.setPeriodicSum(scoreToAdd);
+            newChart.setPeriodicAverage(scoreToAdd);
+            newChart.setCreatedTime(recordDateTime);
+            newChart.setUpdatedTime(recordDateTime);
             
-            periodicStaticsDao.insertPeriodicStatics(statics);
+            periodicChartDao.insertPeriodicChart(newChart);
         
         // 기록 시점을 기준으로 weekly/monthly/yearly 데이터가 있으면 업데이트 
         } else {
         	
-            int newCount = statics.getPeriodicSum() + 1;
-            int newSumScore = statics.getPeriodicSum() + scoreToAdd;
+            int newCount = existingChart.getPeriodicCount() + 1;
+            int newSumScore = existingChart.getPeriodicSum() + scoreToAdd;
             double newAverageScore = (double) newSumScore / newCount;
             
-            statics.setPeriodicStaticsId(statics.getPeriodicStaticsId());
-            statics.setPeriodicCount(newCount);
-            statics.setPeriodicSum(newSumScore);
-            statics.setPeriodicAverage(newAverageScore);
+            existingChart.setPeriodicChartId(existingChart.getPeriodicChartId());
+            existingChart.setPeriodicCount(newCount);
+            existingChart.setPeriodicSum(newSumScore);
+            existingChart.setPeriodicAverage(newAverageScore);
             
-            periodicStaticsDao.updatePeriodicStatics(statics);
+            periodicChartDao.updatePeriodicChart(existingChart);
         }
         return true;
     }
+
 }
