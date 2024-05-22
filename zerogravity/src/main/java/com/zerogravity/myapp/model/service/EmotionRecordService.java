@@ -18,5 +18,7 @@ public interface EmotionRecordService {
 	public abstract int createEmotionRecord(EmotionRecord record);
 
 	public abstract boolean updateEmotionRecord(EmotionRecord record);
+	
+	List<EmotionRecord> getEmotionRecordByYearAndMonth(long userId, int year, int month);
 
 }
