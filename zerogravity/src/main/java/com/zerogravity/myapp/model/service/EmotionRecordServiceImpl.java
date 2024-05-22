@@ -82,5 +82,16 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 		return emotionRecordDao.updateEmotionRecord(record);
 	}
 
+	@Override
+	public List<EmotionRecord> getEmotionRecordByYearAndMonth(long userId, int year, int month) {
+		LocalDateTime startDateTime = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime endDateTime = startDateTime.with(TemporalAdjusters.lastDayOfMonth()).toLocalDate().atTime(23, 59, 59);
+
+        Timestamp periodStart = Timestamp.valueOf(startDateTime);
+        Timestamp periodEnd = Timestamp.valueOf(endDateTime);
+
+        return emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
+	}
+
 
 }
