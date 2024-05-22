@@ -6,22 +6,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.zerogravity.myapp.model.dao.EmotionDetailDao;
-import com.zerogravity.myapp.model.dto.EmotionDetail;
+import com.zerogravity.myapp.model.dao.EmotionReasonDao;
+import com.zerogravity.myapp.model.dto.EmotionReason;
 
 @Service
 public class EmotionDetailServiceImpl implements EmotionDetailService {
 	
-	private final EmotionDetailDao emotionDetailDao;
+	private final EmotionReasonDao emotionReasonDao;
 	
 	@Autowired
-	public EmotionDetailServiceImpl(EmotionDetailDao emotionDetailDao) {
-		this.emotionDetailDao = emotionDetailDao;
+	public EmotionDetailServiceImpl(EmotionReasonDao emotionDetailDao) {
+		this.emotionReasonDao = emotionDetailDao;
 	}
 
 	@Override
-	public List<EmotionDetail> getEmotionDetail(String emotionId) {
-		return emotionDetailDao.selectEmotionDetailByEmotionId(emotionId);
+	public List<EmotionReason> getEmotionReason() {
+		return emotionReasonDao.selectEmotionReason();
 	}
 	
 

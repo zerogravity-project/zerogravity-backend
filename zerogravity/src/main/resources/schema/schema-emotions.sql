@@ -15,11 +15,9 @@ CREATE TABLE emotion (
 );
 
 # 감정 상세 정보
-CREATE TABLE emotion_detail (
-    emotion_detail_id VARCHAR(36) NOT NULL KEY,
-    emotion_id VARCHAR(36) NOT NULL,
-	emotion_detail VARCHAR(100) NOT NULL,
+CREATE TABLE emotion_reason (
+    emotion_reason_id VARCHAR(36) NOT NULL KEY,
+	emotion_reason VARCHAR(100) NOT NULL,
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (emotion_id) REFERENCES emotion(emotion_id) ON DELETE CASCADE ON UPDATE CASCADE
+    updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

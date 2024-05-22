@@ -3,9 +3,9 @@ package com.zerogravity.myapp.model.dto;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
-public class DailyStatics {
+public class DailyChart {
 	
-	private String dailyStaticsId;
+	private String dailyChartId;
 	private long userId;
 	private int dailySum;
 	private int dailyCount;
@@ -13,8 +13,8 @@ public class DailyStatics {
 	private Timestamp createdTime;
 	private Timestamp updatedTime;
 	
-	public DailyStatics(String dailyStaticsId, long userId, int dailySum, int dailyCount, double dailyAverage, Timestamp createdTime, Timestamp updatedTime) {
-		this.dailyStaticsId = dailyStaticsId;
+	public DailyChart(String dailyChartId, long userId, int dailySum, int dailyCount, double dailyAverage, Timestamp createdTime, Timestamp updatedTime) {
+		this.dailyChartId = dailyChartId;
 		this.userId = userId;
 		this.dailySum = dailySum;
 		this.dailyCount = dailyCount;
@@ -23,14 +23,14 @@ public class DailyStatics {
 		this.updatedTime = updatedTime;
 	}
 
-	public DailyStatics() {}
+	public DailyChart() {}
 
-	public String getDailyStaticsId() {
-		return dailyStaticsId;
+	public String getDailyChartId() {
+		return dailyChartId;
 	}
 
-	public void setDailyStaticsId(String dailyStaticsId) {
-		this.dailyStaticsId = dailyStaticsId;
+	public void setDailyChartId(String dailyChartId) {
+		this.dailyChartId = dailyChartId;
 	}
 
 	public long getUserId() {
@@ -83,7 +83,7 @@ public class DailyStatics {
 
 	@Override
 	public String toString() {
-		return "DailyStatics [dailyStaticsId=" + dailyStaticsId + ", userId=" + userId + ", dailySum=" + dailySum
+		return "DailyChart [dailyChartId=" + dailyChartId + ", userId=" + userId + ", dailySum=" + dailySum
 				+ ", dailyCount=" + dailyCount + ", dailyAverage=" + dailyAverage + ", createdTime=" + createdTime
 				+ ", updatedTime=" + updatedTime + "]";
 	}
