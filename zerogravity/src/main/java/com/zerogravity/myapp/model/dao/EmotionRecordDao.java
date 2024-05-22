@@ -12,8 +12,9 @@ public interface EmotionRecordDao {
 	
 	public abstract List<EmotionRecord> selectEmotionRecordByUserId(long userId);
 	public abstract Timestamp selectCreatedTimeByEmotionRecordId(String emotionRecordId);
-	public abstract List<EmotionRecord> selectEmotionRecordByPeriodAndUserId(@Param("userId") long userId, @Param("periodStart") Timestamp weekStart, @Param("periodEnd") Timestamp weekEnd);
+//	public abstract List<EmotionRecord> selectEmotionRecordByPeriodAndUserId(@Param("userId") long userId, @Param("periodStart") Timestamp weekStart, @Param("periodEnd") Timestamp weekEnd);
 	public abstract int createEmotionRecord(EmotionRecord emotionRecord);
 	public abstract boolean updateEmotionRecord(EmotionRecord emotionRecord);
+	public abstract List<EmotionRecord> selectEmotionRecordByPeriodAndUserId(long userId, Timestamp periodStart, Timestamp periodEnd);
 
 }
