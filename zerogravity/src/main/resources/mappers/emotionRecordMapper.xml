@@ -31,7 +31,7 @@
 	<!-- 감정 기록 생성 -->
     <insert id="createEmotionRecord" parameterType="EmotionRecord">
         INSERT INTO emotion_record (emotion_record_id, user_id, emotion_reason, emotion_record_type, emotion_record_level, emotion_record_state, diary_entry)
-        VALUES (#{emotionRecordId}, #{userId}, #{emotionReason}, #{emotionRecordType}, #{emotionRecordLevel}, 'moment', #{diaryEntry})
+        VALUES (#{emotionRecordId}, #{userId}, #{emotionReason}, #{emotionRecordType}, #{emotionRecordLevel}, #{emotionRecordState}, #{diaryEntry})
     </insert>
 	
 	<!-- 감정 기록 업데이트 -->
