@@ -45,10 +45,10 @@ public class EmotionRecordManagementRestController {
     
     @GetMapping("/records/{userId}")
     @Operation(summary = "한달 감정 기록 불러오기", description = "한달의 감정 기록을 시간 순으로 불러옵니다.")
-    public ResponseEntity<?> getWeeklyRecord(@PathVariable long userId, @RequestParam Timestamp searchDate) {
-    	List<EmotionRecord> montlyRecord = emotionRecordService.getEmotionRecordByPeriodAndUserId(userId, searchDate);
-        return new ResponseEntity<List<EmotionRecord>>(montlyRecord, HttpStatus.OK);
-    }
+	public ResponseEntity<?> getWeeklyRecord(@PathVariable long userId, @RequestParam int year, @RequestParam int month) {
+		List<EmotionRecord> montlyRecord = emotionRecordService.getEmotionRecordByYearAndMonth(userId, year, month);
+	    return new ResponseEntity<List<EmotionRecord>>(montlyRecord, HttpStatus.OK);
+	}
     
     @Transactional
     @PostMapping("/records")
