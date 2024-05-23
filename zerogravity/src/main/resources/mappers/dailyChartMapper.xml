@@ -25,8 +25,8 @@
     
     <!-- 일일 감정 기록 삽입 -->
     <insert id="insertDailyChart" parameterType="DailyChart">
-        INSERT INTO daily_chart (daily_chart_id, user_id, daily_sum, daily_count, daily_average)
-        VALUES (#{dailyChartId}, #{userId}, #{dailySum}, #{dailyCount}, #{dailyAverage})
+        INSERT INTO daily_chart (daily_chart_id, user_id, daily_sum, daily_count, daily_average, created_time)
+        VALUES (#{dailyChartId}, #{userId}, #{dailySum}, #{dailyCount}, #{dailyAverage}, #{createdTime})
     </insert>
     
     <!-- 일일 감정 기록 업데이트 -->

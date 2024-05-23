@@ -70,6 +70,52 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
         
         return emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
     }
+    
+   public List<EmotionRecord> getWeeklyEmotionRecordByPeriodAndUserId(long userId, Timestamp searchDateTime) {
+    	
+    	List<EmotionRecord> weeklyChart = searchDailyEmotionRecord(userId, searchDateTime, "weekly");
+    	
+    	return weeklyChart;
+    }
+    
+    @Override
+	public List<EmotionRecord> getMonthlyEmotionRecordByPeriodAndUserId(long userId, Timestamp searchDateTime) {
+	    
+	    List<EmotionRecord> monthlyChart = searchDailyEmotionRecord(userId, searchDateTime, "monthly");
+
+	    return monthlyChart;
+	}
+    
+    @Override
+	public List<EmotionRecord> getYearlyEmotionRecordByPeriodAndUserId(long userId, Timestamp searchDateTime) {
+	    
+	    List<EmotionRecord> yearlyChart = searchDailyEmotionRecord(userId, searchDateTime, "yearly");
+
+	    return yearlyChart;
+	}
+    
+    private List<EmotionRecord> searchDailyEmotionRecord(long userId, Timestamp searchDateTime, String periodType) {
+        LocalDateTime dateTime = searchDateTime.toLocalDateTime();
+        Timestamp periodStart = null;
+        Timestamp periodEnd = null;
+        
+        switch (periodType) {
+            case "weekly":
+                periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).toLocalDate().atStartOfDay());
+                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).toLocalDate().atStartOfDay());
+                break;
+            case "monthly":
+                periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.firstDayOfMonth()).toLocalDate().atStartOfDay());
+                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.lastDayOfMonth()).toLocalDate().atStartOfDay());
+                break;
+            case "yearly":
+                periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.firstDayOfYear()).toLocalDate().atStartOfDay());
+                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.lastDayOfYear()).toLocalDate().atStartOfDay());
+                break;
+        }
+        
+        return emotionRecordDao.selectEmotionRecordByPeriodAndUserIdForChart(userId, periodStart, periodEnd);
+    }
 	
 	@Override
 	@Transactional
@@ -92,6 +138,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 
         return emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
 	}
+	
 
 
 }
