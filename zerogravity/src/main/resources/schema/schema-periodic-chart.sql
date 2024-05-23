@@ -12,7 +12,7 @@ CREATE TABLE periodic_chart (
     periodic_sum INT NOT NULL,
     periodic_count INT NOT NULL,
     periodic_average DOUBLE NOT NULL,
-	created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, 
 	updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
