@@ -89,7 +89,7 @@ public class DailyChartServiceImpl implements DailyChartService {
 
         DailyChart existingChart = dailyChartDao.selectDailyChartByDateAndUserId(recordTime, userId);
         // 오늘 날짜의 기록이 없으면 새로 생성
-        if (existingChart == null) {
+        if(existingChart == null) {
         	
             // 새로운 고유 ID 부여 
             String newId = UUID.randomUUID().toString();
