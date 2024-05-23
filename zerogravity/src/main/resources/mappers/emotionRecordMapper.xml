@@ -27,6 +27,14 @@
 		AND created_time BETWEEN #{periodStart} AND #{periodEnd}
 		ORDER BY created_time DESC;
 	</select>
+	
+		<!-- 통계 차트에서 사용할 사용자 ID와 기간에 따른 통계 조회 -->
+    <select id="selectEmotionRecordByPeriodAndUserIdForChart" parameterType="map" resultType="EmotionRecord">
+        SELECT *
+        FROM emotion_record
+        WHERE user_id = #{userId}
+          AND created_time BETWEEN #{periodStart} AND #{periodEnd};
+    </select>
 
 
 	<!-- 감정 기록 생성 -->

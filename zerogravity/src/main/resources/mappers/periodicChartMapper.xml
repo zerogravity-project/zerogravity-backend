@@ -21,8 +21,8 @@
     
     <!-- 새 주기 통계 삽입 -->
     <insert id="insertPeriodicChart" parameterType="PeriodicChart">
-        INSERT INTO periodic_chart (periodic_chart_id, user_id, period_start, period_end, period_type, periodic_sum, periodic_count, periodic_average)
-        VALUES (#{periodicChartId}, #{userId}, #{periodStart}, #{periodEnd}, #{periodType}, #{periodicSum}, 1, #{periodicAverage})
+        INSERT INTO periodic_chart (periodic_chart_id, user_id, period_start, period_end, period_type, periodic_sum, periodic_count, periodic_average, created_time)
+        VALUES (#{periodicChartId}, #{userId}, #{periodStart}, #{periodEnd}, #{periodType}, #{periodicSum}, 1, #{periodicAverage}, #{createdTime})
     </insert>
     
     <!-- 기존 주기 통계 업데이트 -->

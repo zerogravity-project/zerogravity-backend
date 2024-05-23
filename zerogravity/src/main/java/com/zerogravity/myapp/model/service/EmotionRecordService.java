@@ -15,6 +15,12 @@ public interface EmotionRecordService {
 	
 	public abstract List<EmotionRecord> getEmotionRecordByPeriodAndUserId(long userId, Timestamp searchDateTime);
 
+	public abstract List<EmotionRecord> getMonthlyEmotionRecordByPeriodAndUserId(long userId, Timestamp searchDateTime);
+
+	public abstract List<EmotionRecord> getWeeklyEmotionRecordByPeriodAndUserId(long userId, Timestamp searchDateTime);
+
+	public abstract List<EmotionRecord> getYearlyEmotionRecordByPeriodAndUserId(long userId, Timestamp searchDateTime);
+	
 	public abstract int createEmotionRecord(EmotionRecord record);
 
 	public abstract boolean updateEmotionRecord(EmotionRecord record);
