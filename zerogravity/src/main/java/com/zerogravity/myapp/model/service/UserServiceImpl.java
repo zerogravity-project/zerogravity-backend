@@ -36,6 +36,16 @@ public class UserServiceImpl implements UserService {
 		}
 		return false;
 	}
+	
+	@Override
+	@Transactional
+	public boolean modifyUser(User user) {
+		int userResult = userDao.updateUser(user);
+		if(userResult == 1) {
+			return true;
+		}
+		return false;
+	}
 
 	@Override
 	@Transactional
@@ -43,4 +53,5 @@ public class UserServiceImpl implements UserService {
 		int result = userDao.deleteUser(userId);
 		return result == 1;
 	}
+
 }

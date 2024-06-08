@@ -4,31 +4,46 @@
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.zerogravity.myapp.model.dao.UserDao">
 	<!-- 사용자 정보 조회 -->
-	<select id="selectUserByUserId" resultType="user" parameterType="long">
+	<select id="selectUserByUserId" resultType="user"
+		parameterType="long">
 		SELECT * FROM user
 		WHERE user_id = #{userId};
 	</select>
-	
+
 	<!-- 사용자 추가 정보 조회 -->
-	<select id="selectUserInfoByUserId" resultType="UserInfo" parameterType="long">
+	<select id="selectUserInfoByUserId" resultType="UserInfo"
+		parameterType="long">
 		SELECT * FROM user_info
 		WHERE user_id = #{userId};
 	</select>
-	
-	<!-- 사용자 정보 삽입 -->
-    <insert id="insertUser" parameterType="User" keyProperty="userId">
-        INSERT INTO user (user_id, email, name, profile_nickname, profile_image_url)
-        VALUES (#{userId}, #{email}, #{name}, #{profileNickname}, #{profileImgUrl});
-    </insert>
 
-    <!-- 사용자 추가 정보 삽입 -->
-    <insert id="insertUserInfo" parameterType="UserInfo" keyProperty="userId">
-        INSERT INTO user_info (user_id, gender, age_range, birthday, birthyear)
-        VALUES (#{userId}, #{gender.name}, #{ageRange}, #{birthday}, #{birthyear});
-    </insert>
-    
-    <!-- 사용자 정보 삭제 -->
-    <delete id="deleteUser" parameterType="long">
-        DELETE FROM user WHERE user_id = #{userId}
-    </delete>
+	<!-- 사용자 정보 삽입 -->
+	<insert id="insertUser" parameterType="User"
+		keyProperty="userId">
+		INSERT INTO user (user_id, nickname, profile_image, thumbnail_image)
+		VALUES (#{userId}, #{nickname}, #{profileImage}, #{thumbnailImage});
+	</insert>
+
+	<!-- 사용자 정보 업데이트 -->
+	<update id="updateUser" parameterType="User">
+		UPDATE user
+		SET nickname = #{nickname}, profile_image = #{profileImage}, thumbnail_image = #{thumbnailImage}
+		WHERE user_id = #{userId};
+	</update>
+
+	<!-- 사용자 추가 정보 삽입 -->
+	<insert id="insertUserInfo" parameterType="UserInfo"
+		keyProperty="userId">
+		INSERT INTO user_info (user_id, gender, age_range,
+		birthday, birthyear)
+		VALUES (#{userId}, #{gender.name}, #{ageRange},
+		#{birthday},
+		#{birthyear});
+	</insert>
+
+	<!-- 사용자 정보 삭제 -->
+	<delete id="deleteUser" parameterType="long">
+		DELETE FROM user WHERE
+		user_id = #{userId}
+	</delete>
 </mapper>
