@@ -59,25 +59,26 @@ public class DailyChartServiceImpl implements DailyChartService {
         LocalDateTime dateTime = searchDateTime.toLocalDateTime();
         Timestamp periodStart = null;
         Timestamp periodEnd = null;
-        
+
         switch (periodType) {
-            case "weekly":
-                periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).toLocalDate().atStartOfDay());
-                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).toLocalDate().atStartOfDay());
-                break;
+        case "weekly":
+        	periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY)).toLocalDate().atStartOfDay());
+        	periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).toLocalDate().plusDays(1).atStartOfDay().minusNanos(1));
+        	break;
             case "monthly":
                 periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.firstDayOfMonth()).toLocalDate().atStartOfDay());
-                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.lastDayOfMonth()).toLocalDate().atStartOfDay());
+                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.lastDayOfMonth()).toLocalDate().plusDays(1).atStartOfDay().minusNanos(1));
                 break;
             case "yearly":
                 periodStart = Timestamp.valueOf(dateTime.with(TemporalAdjusters.firstDayOfYear()).toLocalDate().atStartOfDay());
-                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.lastDayOfYear()).toLocalDate().atStartOfDay());
+                periodEnd = Timestamp.valueOf(dateTime.with(TemporalAdjusters.lastDayOfYear()).toLocalDate().plusDays(1).atStartOfDay().minusNanos(1));
                 break;
         }
-        
+
         return dailyChartDao.selectDailyChartByPeriodAndUserId(userId, periodStart, periodEnd);
     }
-    
+
+
     @Override
     @Transactional
     public boolean createOrModifyDailyChart(EmotionRecord emotionRecord, Timestamp createdTime) {
