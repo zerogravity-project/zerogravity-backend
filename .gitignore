@@ -11,6 +11,8 @@
 .springBeans
 .sts4-cache
 
+# Ignore application-secure.properties
+application-secure.properties
 
 # Created by https://www.gitignore.io/api/git,java,maven,eclipse,windows
 
