@@ -7,17 +7,14 @@ public class User {
 	@Schema(description = "사용자 ID", example = "1")
 	private long userId;
 	
-	@Schema(description = "사용자 이메일", example = "user@example.com")
-	private String email;
-	
-	@Schema(description = "사용자 이름", example = "표다영")
-	private String name;
-	
 	@Schema(description = "사용자 별명", example = "데이지")
-	private String profileNickname;
+	private String nickname;
 	
 	@Schema(description = "프로필 이미지 URL", example = "https://example.com/profiles/daisy.jpg")
-	private String profileImgUrl;
+	private String profileImage;
+	
+	@Schema(description = "프로필 이미지 URL", example = "https://example.com/profiles/daisy.jpg")
+	private String thumbnailImage;
 	
 	@Schema(description = "생성 시간", example = "2021-10-01T12:00:00Z")
 	private String createdTime;
@@ -28,16 +25,13 @@ public class User {
 	public User() {
 		
 	}
-	
-	public User(long userId, String email, String name, String profileNickname, String profileImgUrl,
-			String createdTime, String updatedTime) {
+
+	public User(long userId, String nickname, String profileImage, String thumbnailImage) {
+		super();
 		this.userId = userId;
-		this.email = email;
-		this.name = name;
-		this.profileNickname = profileNickname;
-		this.profileImgUrl = profileImgUrl;
-		this.createdTime = createdTime;
-		this.updatedTime = updatedTime;
+		this.nickname = nickname;
+		this.profileImage = profileImage;
+		this.thumbnailImage = thumbnailImage;
 	}
 
 	public long getUserId() {
@@ -48,36 +42,28 @@ public class User {
 		this.userId = userId;
 	}
 
-	public String getEmail() {
-		return email;
+	public String getNickname() {
+		return nickname;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
 	}
 
-	public String getName() {
-		return name;
+	public String getProfileImage() {
+		return profileImage;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setProfileImage(String profileImage) {
+		this.profileImage = profileImage;
 	}
 
-	public String getProfileNickname() {
-		return profileNickname;
+	public String getThumbnailImage() {
+		return thumbnailImage;
 	}
 
-	public void setProfileNickname(String profileNickname) {
-		this.profileNickname = profileNickname;
-	}
-
-	public String getProfileImgUrl() {
-		return profileImgUrl;
-	}
-
-	public void setProfileImgUrl(String profileImgUrl) {
-		this.profileImgUrl = profileImgUrl;
+	public void setThumbnailImage(String thumbnailImage) {
+		this.thumbnailImage = thumbnailImage;
 	}
 
 	public String getCreatedTime() {
@@ -98,8 +84,8 @@ public class User {
 
 	@Override
 	public String toString() {
-		return "User [userId=" + userId + ", email=" + email + ", name=" + name + ", profileNickname=" + profileNickname
-				+ ", profileImgUrl=" + profileImgUrl + ", createdTime=" + createdTime + ", updatedTime=" + updatedTime
+		return "User [userId=" + userId + ", nickname=" + nickname + ", profileImage=" + profileImage
+				+ ", thumbnailImage=" + thumbnailImage + ", createdTime=" + createdTime + ", updatedTime=" + updatedTime
 				+ "]";
 	}
 }
