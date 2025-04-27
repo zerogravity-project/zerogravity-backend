@@ -1,8 +1,3 @@
-DROP DATABASE IF EXISTS zerogravity;
-CREATE DATABASE zerogravity DEFAULT CHARACTER SET utf8mb4;
-
-USE zerogravity;
-
 CREATE TABLE periodic_chart (
 	periodic_chart_id VARCHAR(36) PRIMARY KEY,
     user_id BIGINT NOT NULL,
