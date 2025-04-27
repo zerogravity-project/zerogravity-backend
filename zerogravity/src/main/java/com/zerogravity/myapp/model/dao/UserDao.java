@@ -12,7 +12,10 @@ public interface UserDao {
 
 	// 사용자 정보 삽입
 	public abstract int insertUser(User user);
-	
+
+	// 사용자 정보 삽입
+	public abstract int updateUser(User user);
+
 	// 사용자 추가 정보 삽입
 	public abstract int insertUserInfo(UserInfo userInfo);
 
