@@ -1,8 +1,3 @@
-DROP DATABASE IF EXISTS zerogravity;
-CREATE DATABASE zerogravity DEFAULT CHARACTER SET utf8mb4;
-
-USE zerogravity;
-
 # 사용자 기본 정보
 CREATE TABLE user (
     user_id BIGINT NOT NULL PRIMARY KEY,
