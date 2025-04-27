@@ -1,10 +1,9 @@
-# 사용자 기본 정보
+# 사용자 기본 정보 (카카오 로그인에 기반함)
 CREATE TABLE user (
     user_id BIGINT NOT NULL PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    profile_nickname VARCHAR(255) NOT NULL,
-    profile_image_url VARCHAR(255),
+    nickname VARCHAR(255) NOT NULL,
+    profile_image VARCHAR(255),
+    thumbnail_image VARCHAR(255),
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
