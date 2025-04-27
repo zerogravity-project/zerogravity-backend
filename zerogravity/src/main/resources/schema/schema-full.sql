@@ -16,10 +16,9 @@ CREATE TABLE scene_object (
 -- 2. user 테이블
 CREATE TABLE user (
     user_id BIGINT NOT NULL PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    profile_nickname VARCHAR(255) NOT NULL,
-    profile_image_url VARCHAR(255),
+    nickname VARCHAR(255) NOT NULL,
+    profile_image VARCHAR(255),
+    thumbnail_image VARCHAR(255),
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -29,8 +28,8 @@ CREATE TABLE user_info (
 	user_id BIGINT NOT NULL PRIMARY KEY,
 	gender ENUM('male', 'female'),
     age_range VARCHAR(20),
-    birthday VARCHAR(10), -- MMDD
-    birthyear VARCHAR(10), -- YYYY
+    birthday VARCHAR(10), #MMDD
+    birthyear VARCHAR(10), #YYYY
 	FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -60,7 +59,7 @@ CREATE TABLE emotion (
 
 -- 6. emotion_reason 테이블
 CREATE TABLE emotion_reason (
-    emotion_reason_id VARCHAR(36) NOT NULL PRIMARY KEY,
+    emotion_reason_id VARCHAR(36) NOT NULL KEY,
 	emotion_reason VARCHAR(100) NOT NULL,
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -80,7 +79,7 @@ CREATE TABLE daily_chart (
 
 -- 8. periodic_chart 테이블
 CREATE TABLE periodic_chart (
-	periodic_chart_id VARCHAR(36) NOT NULL PRIMARY KEY,
+	periodic_chart_id VARCHAR(36) PRIMARY KEY,
     user_id BIGINT NOT NULL,
     period_start DATETIME NOT NULL,
     period_end DATETIME NOT NULL,
