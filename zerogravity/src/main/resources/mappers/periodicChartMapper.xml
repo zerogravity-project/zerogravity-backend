@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zerogravity.myapp.model.dao.PeriodicChartDao">
+
+    <!-- 주기 유형 및 사용자 ID에 따른 기존 통계 조회 -->
+    <select id="selectPeriodicChartByUserAndType" parameterType="map" resultType="PeriodicChart">
+        SELECT user_id, period_end, period_type, periodic_sum, periodic_count, periodic_average
+        FROM periodic_chart
+        WHERE user_id = #{userId} AND period_type = #{periodType}
+    </select>
+    
+	<!-- 기간 및 사용자 ID에 따른 기존 통계 조회 -->
+    <select id="selectPeriodicChartByPeriodAndUserId" parameterType="map" resultType="PeriodicChart">
+		SELECT *
+		FROM periodic_chart
+		WHERE user_id = #{userId}
+		  AND DATE(period_start) = DATE(#{periodStart})
+		  AND DATE(period_end) = DATE(#{periodEnd})
+		LIMIT 1;
+    </select>
+    
+    <!-- 새 주기 통계 삽입 -->
+    <insert id="insertPeriodicChart" parameterType="PeriodicChart">
+        INSERT INTO periodic_chart (periodic_chart_id, user_id, period_start, period_end, period_type, periodic_sum, periodic_count, periodic_average, created_time)
+        VALUES (#{periodicChartId}, #{userId}, #{periodStart}, #{periodEnd}, #{periodType}, #{periodicSum}, 1, #{periodicAverage}, #{createdTime})
+    </insert>
+    
+    <!-- 기존 주기 통계 업데이트 -->
+    <update id="updatePeriodicChart" parameterType="PeriodicChart">
+        UPDATE periodic_chart
+        SET period_end = #{periodEnd}, periodic_sum = #{periodicSum}, periodic_count = #{periodicCount}, periodic_average = #{periodicAverage}, updated_time = now()
+        WHERE user_id = #{userId} AND period_type = #{periodType}
+    </update>
+
+</mapper>

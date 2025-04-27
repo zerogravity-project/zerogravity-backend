@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zerogravity.myapp.model.dao.SceneObjectDao">
+	<!-- 전체 3D 오브젝트 조회 -->
+	<select id="selectAllSceneObject" resultType="SceneObject">
+		SELECT * 
+		FROM scene_object;
+	</select>
+</mapper>
