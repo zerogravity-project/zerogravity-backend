@@ -1,8 +1,3 @@
-DROP DATABASE IF EXISTS zerogravity;
-CREATE DATABASE zerogravity DEFAULT CHARACTER SET utf8mb4;
-
-USE zerogravity;
-
 # 감정 기록 정보
 CREATE TABLE emotion_record (
     emotion_record_id VARCHAR(36) NOT NULL PRIMARY KEY,
