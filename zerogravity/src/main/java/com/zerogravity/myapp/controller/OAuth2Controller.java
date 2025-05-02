@@ -60,7 +60,7 @@ public class OAuth2Controller {
         params.add("redirect_uri", kakaoRedirectUri);
         params.add("code", code);
         params.add("client_secret", kakaoClientSecret);
-		
+
 		HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, httpHeaders);
 		RestTemplate restTemplate = new RestTemplate();
 		ResponseEntity<Map> tokenResponse;
@@ -125,10 +125,8 @@ public class OAuth2Controller {
 
 		response.addCookie(jwtCookie);
 
-		String redirectUrl = "http://localhost:5173";
-
 		// 사용자 정보와 JWT 반환
-		return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(redirectUrl)).build();
+		return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/")).build();
 
 	}
 }
