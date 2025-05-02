@@ -2,6 +2,7 @@ package com.zerogravity.myapp.security;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Optional;
 
 import javax.crypto.SecretKey;
 
@@ -29,7 +30,17 @@ public class JWTUtil {
     public Boolean isExpired(String token) {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
-	
+
+    public Optional<Long> extractUserId(String token) {
+        if (token == null || isExpired(token)) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(getUserId(token));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
     
     public String createJwt(long userId, long expiredMs) {
 
