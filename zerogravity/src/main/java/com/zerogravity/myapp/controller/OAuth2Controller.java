@@ -3,6 +3,7 @@ package com.zerogravity.myapp.controller;
 import java.net.URI;
 import java.util.Map;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -48,7 +49,7 @@ public class OAuth2Controller {
 	}
 
 	@GetMapping("/kakao")
-	public ResponseEntity<?> getAccessToken(@RequestParam("code") String code, HttpServletResponse response) {
+	public ResponseEntity<?> getAccessToken(@RequestParam("code") String code, HttpServletRequest request, HttpServletResponse response) {
 
 		// 1. 토큰 받기
 		HttpHeaders httpHeaders = new HttpHeaders();
@@ -125,8 +126,17 @@ public class OAuth2Controller {
 
 		response.addCookie(jwtCookie);
 
-		// 사용자 정보와 JWT 반환
-		return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("/")).build();
+		String redirectBase;
 
+		if (request.getServerName().contains("localhost")) {
+			redirectBase = "http://localhost:5173";
+		} else if (request.getServerName().contains("devapi.zerogv.com")) {
+			redirectBase = "https://dev.zerogv.com";
+		} else {
+			redirectBase = "https://zerogv.com";
+		}
+
+		// 사용자 정보와 JWT 반환
+		return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(redirectBase)).build();
 	}
 }
