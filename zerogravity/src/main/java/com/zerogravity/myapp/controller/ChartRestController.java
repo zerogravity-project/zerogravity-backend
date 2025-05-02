@@ -3,15 +3,13 @@ package com.zerogravity.myapp.controller;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import com.zerogravity.myapp.security.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.zerogravity.myapp.model.dto.DailyChart;
 import com.zerogravity.myapp.model.dto.EmotionRecord;
@@ -27,24 +25,39 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/api-zerogravity/chart")
 @Tag(name = "Chart Record Management", description = "차트 관련 기록 관리 API")
 public class ChartRestController {
-	
-	private final EmotionRecordService emotionRecordService;
+
+    private final EmotionRecordService emotionRecordService;
     private final DailyChartService dailyChartService;
+    private final JWTUtil jwtUtil;
 
     @Autowired
-    public ChartRestController(EmotionRecordService emotionRecordService, DailyChartService dailyChartService) {
-    	this.emotionRecordService = emotionRecordService;
-    	this.dailyChartService = dailyChartService;
+    public ChartRestController(EmotionRecordService emotionRecordService,
+                               DailyChartService dailyChartService,
+                               JWTUtil jwtUtil) {
+        this.emotionRecordService = emotionRecordService;
+        this.dailyChartService = dailyChartService;
+        this.jwtUtil = jwtUtil;
     }
 
-    @GetMapping("/level/{userId}")
-    @Operation(summary = "기간별 통계 데이터 조회" , description = "기간별(주/월/년) 통계 데이터를 조회합니다.")
-	@ApiResponses(value = { 
-			@ApiResponse(responseCode = "200", description = "해당 기간에 대한 통계 데이터를 찾음"),
-			@ApiResponse(responseCode = "204", description = "해당 기간에 대한 통계 데이터가 없음"),
-			@ApiResponse(responseCode = "400", description = "잘못된 요청으로 인해 해당 기간에 대한 통계 데이터를 조회할 수 없음") 
-	})
-    public ResponseEntity<?> getLevelRecords(@PathVariable long userId, @RequestParam String period, @RequestParam Timestamp searchDate) {
+    @GetMapping("/level")
+    @Operation(summary = "기간별 통계 데이터 조회", description = "기간별(주/월/년) 통계 데이터를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "해당 기간에 대한 통계 데이터를 찾음"),
+            @ApiResponse(responseCode = "204", description = "해당 기간에 대한 통계 데이터가 없음"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    public ResponseEntity<?> getLevelRecords(
+            @CookieValue(value = "token", required = false) String token,
+            @RequestParam String period,
+            @RequestParam Timestamp searchDate
+    ) {
+        Optional<Long> userIdOpt = jwtUtil.extractUserId(token);
+        if (userIdOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        long userId = userIdOpt.get();
+
         List<DailyChart> records;
         switch (period.toLowerCase()) {
             case "weekly":
@@ -66,15 +79,26 @@ public class ChartRestController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
     }
-    
-    @GetMapping("/count/{userId}")
-    @Operation(summary = "기간별 감정 데이터 조회" , description = "기간별(주/월/년) 감정 데이터를 조회합니다.")
-	@ApiResponses(value = { 
-			@ApiResponse(responseCode = "200", description = "해당 기간에 대한 감정 데이터를 찾음"),
-			@ApiResponse(responseCode = "204", description = "해당 기간에 대한 감정 데이터가 없음"),
-			@ApiResponse(responseCode = "400", description = "잘못된 요청으로 인해 해당 기간에 대한 감정 데이터를 조회할 수 없음") 
-	})
-    public ResponseEntity<?> getCountRecords(@PathVariable long userId, @RequestParam String period, @RequestParam Timestamp searchDate) {
+
+    @GetMapping("/count")
+    @Operation(summary = "기간별 감정 데이터 조회", description = "기간별(주/월/년) 감정 데이터를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "해당 기간에 대한 감정 데이터를 찾음"),
+            @ApiResponse(responseCode = "204", description = "해당 기간에 대한 감정 데이터가 없음"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "401", description = "인증 실패")
+    })
+    public ResponseEntity<?> getCountRecords(
+            @CookieValue(value = "token", required = false) String token,
+            @RequestParam String period,
+            @RequestParam Timestamp searchDate
+    ) {
+        Optional<Long> userIdOpt = jwtUtil.extractUserId(token);
+        if (userIdOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        long userId = userIdOpt.get();
+
         List<EmotionRecord> records;
         switch (period.toLowerCase()) {
             case "weekly":
@@ -96,6 +120,4 @@ public class ChartRestController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
     }
-    
-
 }
