@@ -1,6 +1,8 @@
 package com.zerogravity.myapp.controller;
 
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,7 +51,7 @@ public class OAuth2Controller {
 	}
 
 	@GetMapping("/kakao")
-	public ResponseEntity<?> getAccessToken(@RequestParam("code") String code, HttpServletRequest request, HttpServletResponse response) {
+	public ResponseEntity<?> getAccessToken(@RequestParam("redirect") String redirect, @RequestParam("code") String code, HttpServletRequest request, HttpServletResponse response) {
 
 		// 1. 토큰 받기
 		HttpHeaders httpHeaders = new HttpHeaders();
@@ -126,17 +128,9 @@ public class OAuth2Controller {
 
 		response.addCookie(jwtCookie);
 
-		String redirectBase;
-
-		if (request.getServerName().contains("localhost")) {
-			redirectBase = "http://localhost:5173";
-		} else if (request.getServerName().contains("devapi.zerogv.com")) {
-			redirectBase = "https://dev.zerogv.com";
-		} else {
-			redirectBase = "https://zerogv.com";
-		}
+		String decodedRedirect = URLDecoder.decode(redirect, StandardCharsets.UTF_8);
 
 		// 사용자 정보와 JWT 반환
-		return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(redirectBase)).build();
+		return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("https://zerogv.com")).build();
 	}
 }
