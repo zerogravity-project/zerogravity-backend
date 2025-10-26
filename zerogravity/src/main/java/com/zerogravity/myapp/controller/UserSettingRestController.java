@@ -1,6 +1,6 @@
 package com.zerogravity.myapp.controller;
 
-import com.zerogravity.myapp.security.JWTUtil;
+import com.zerogravity.myapp.security.AuthUserId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,20 +17,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import java.util.Optional;
-
 @RestController
 @RequestMapping("/api-zerogravity/users")
 @Tag(name = "User Setting Management", description = "사용자 설정 관리 API")
 public class UserSettingRestController {
 
 	private final UserSettingService userSettingService;
-	private final JWTUtil jwtUtil;
 
 	@Autowired
-	public UserSettingRestController(UserSettingService userSettingService, JWTUtil jwtUtil) {
+	public UserSettingRestController(UserSettingService userSettingService) {
 		this.userSettingService = userSettingService;
-		this.jwtUtil = jwtUtil;
 	}
 
 	@GetMapping("/settings")
@@ -40,11 +36,7 @@ public class UserSettingRestController {
 			@ApiResponse(responseCode = "401", description = "로그인 필요"),
 			@ApiResponse(responseCode = "404", description = "해당 사용자의 설정 정보를 찾을 수 없습니다.")
 	})
-	public ResponseEntity<?> getUserSettingByUserId(@CookieValue(value = "token", required = false) String token) {
-		Optional<Long> userIdOpt = jwtUtil.extractUserId(token);
-		if (userIdOpt.isEmpty()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
-		long userId = userIdOpt.get();
+	public ResponseEntity<?> getUserSettingByUserId(@AuthUserId Long userId) {
 		UserSetting userSetting = userSettingService.getUserSettingByUserId(userId);
 		if (userSetting != null) {
 			return new ResponseEntity<>(userSetting, HttpStatus.OK);
@@ -61,13 +53,10 @@ public class UserSettingRestController {
 			@ApiResponse(responseCode = "401", description = "로그인 필요")
 	})
 	public ResponseEntity<Void> createUserSetting(
-			@CookieValue(value = "token", required = false) String token,
+			@AuthUserId Long userId,
 			@Parameter(description = "사용자 설정") @RequestBody UserSetting userSetting
 	) {
-		Optional<Long> userIdOpt = jwtUtil.extractUserId(token);
-		if (userIdOpt.isEmpty()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
-		userSetting.setUserId(userIdOpt.get());
+		userSetting.setUserId(userId);
 
 		if (isValidUserSetting(userSetting)) {
 			boolean isCreated = userSettingService.createUserSetting(userSetting);
@@ -85,13 +74,9 @@ public class UserSettingRestController {
 			@ApiResponse(responseCode = "404", description = "설정을 찾을 수 없음")
 	})
 	public ResponseEntity<Void> updateUserSetting(
-			@CookieValue(value = "token", required = false) String token,
+			@AuthUserId Long userId,
 			@Parameter(description = "사용자 설정") @RequestBody UserSetting userSetting
 	) {
-		Optional<Long> userIdOpt = jwtUtil.extractUserId(token);
-		if (userIdOpt.isEmpty()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
-		long userId = userIdOpt.get();
 		userSetting.setUserId(userId);
 
 		if (isValidUserSetting(userSetting)) {
