@@ -2,10 +2,8 @@ package com.zerogravity.myapp.controller;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
-import com.zerogravity.myapp.security.JWTUtil;
+import com.zerogravity.myapp.security.AuthUserId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,15 +26,12 @@ public class ChartRestController {
 
     private final EmotionRecordService emotionRecordService;
     private final DailyChartService dailyChartService;
-    private final JWTUtil jwtUtil;
 
     @Autowired
     public ChartRestController(EmotionRecordService emotionRecordService,
-                               DailyChartService dailyChartService,
-                               JWTUtil jwtUtil) {
+                               DailyChartService dailyChartService) {
         this.emotionRecordService = emotionRecordService;
         this.dailyChartService = dailyChartService;
-        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping("/level")
@@ -48,16 +43,10 @@ public class ChartRestController {
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     public ResponseEntity<?> getLevelRecords(
-            @CookieValue(value = "token", required = false) String token,
+            @AuthUserId Long userId,
             @RequestParam String period,
             @RequestParam Timestamp searchDate
     ) {
-        Optional<Long> userIdOpt = jwtUtil.extractUserId(token);
-        if (userIdOpt.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-        long userId = userIdOpt.get();
-
         List<DailyChart> records;
         switch (period.toLowerCase()) {
             case "weekly":
@@ -89,16 +78,10 @@ public class ChartRestController {
             @ApiResponse(responseCode = "401", description = "인증 실패")
     })
     public ResponseEntity<?> getCountRecords(
-            @CookieValue(value = "token", required = false) String token,
+            @AuthUserId Long userId,
             @RequestParam String period,
             @RequestParam Timestamp searchDate
     ) {
-        Optional<Long> userIdOpt = jwtUtil.extractUserId(token);
-        if (userIdOpt.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-        long userId = userIdOpt.get();
-
         List<EmotionRecord> records;
         switch (period.toLowerCase()) {
             case "weekly":

@@ -2,6 +2,7 @@ package com.zerogravity.myapp.controller;
 
 import java.util.Map;
 
+import com.zerogravity.myapp.security.AuthUserId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.zerogravity.myapp.model.dto.User;
 import com.zerogravity.myapp.model.dto.UserInfo;
 import com.zerogravity.myapp.model.service.UserService;
-import com.zerogravity.myapp.security.JWTUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,22 +30,15 @@ import jakarta.servlet.http.HttpServletResponse;
 public class UserRestController {
 
 	private final UserService userService;
-	private final JWTUtil jwtUtil;
 
 	@Autowired
-	public UserRestController(UserService userService, JWTUtil jwtUtil) {
+	public UserRestController(UserService userService) {
 		this.userService = userService;
-		this.jwtUtil = jwtUtil;
 	}
 
 	@GetMapping("/me")
 	@Operation(summary = "사용자 정보 조회", description = "현재 로그인된 사용자의 정보를 조회합니다.")
-	public ResponseEntity<?> getProfile(@CookieValue(value = "token", required = false) String token) {
-		if (token == null || jwtUtil.isExpired(token)) {
-			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-		}
-
-		Long userId = jwtUtil.getUserId(token);
+	public ResponseEntity<?> getProfile(@AuthUserId Long userId) {
 		User user = userService.getUserByUserId(userId);
 		if (user != null) {
 			Map<String, Object> userProfile = Map.of(
@@ -62,12 +55,7 @@ public class UserRestController {
 
 	@GetMapping("/info")
 	@Operation(summary = "사용자 추가 정보 조회", description = "현재 로그인된 사용자의 추가 정보를 조회합니다.")
-	public ResponseEntity<?> getUserInfoByToken(@CookieValue(value = "token", required = false) String token) {
-		if (token == null || jwtUtil.isExpired(token)) {
-			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-		}
-
-		Long userId = jwtUtil.getUserId(token);
+	public ResponseEntity<?> getUserInfoByToken(@AuthUserId Long userId) {
 		UserInfo userInfo = userService.getUserInfoByUserId(userId);
 		if (userInfo != null) {
 			return new ResponseEntity<>(userInfo, HttpStatus.OK);
@@ -91,12 +79,7 @@ public class UserRestController {
 
 	@DeleteMapping("/me")
 	@Operation(summary = "사용자 삭제", description = "현재 로그인된 사용자를 삭제합니다.")
-	public ResponseEntity<Void> removeUser(@CookieValue(value = "token", required = false) String token, HttpServletResponse response) {
-		if (token == null || jwtUtil.isExpired(token)) {
-			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-		}
-
-		Long userId = jwtUtil.getUserId(token);
+	public ResponseEntity<Void> removeUser(@AuthUserId Long userId, HttpServletResponse response) {
 		boolean isDeleted = userService.removeUser(userId);
 		if (isDeleted) {
 			Cookie jwtCookie = new Cookie("token", null);
