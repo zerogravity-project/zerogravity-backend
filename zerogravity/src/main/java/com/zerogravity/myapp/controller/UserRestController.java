@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zerogravity.myapp.model.dto.User;
-import com.zerogravity.myapp.model.dto.UserInfo;
 import com.zerogravity.myapp.model.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,17 +47,6 @@ public class UserRestController {
 					"provider", user.getProvider()
 			);
 			return new ResponseEntity<>(userProfile, HttpStatus.OK);
-		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
-	}
-
-	@GetMapping("/info")
-	@Operation(summary = "사용자 추가 정보 조회", description = "현재 로그인된 사용자의 추가 정보를 조회합니다.")
-	public ResponseEntity<?> getUserInfoByToken(@AuthUserId Long userId) {
-		UserInfo userInfo = userService.getUserInfoByUserId(userId);
-		if (userInfo != null) {
-			return new ResponseEntity<>(userInfo, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -107,9 +95,5 @@ public class UserRestController {
 
 	private boolean isValidUser(User user) {
 		return user != null;
-	}
-
-	private boolean isValidUserInfo(UserInfo userInfo) {
-		return userInfo != null;
 	}
 }

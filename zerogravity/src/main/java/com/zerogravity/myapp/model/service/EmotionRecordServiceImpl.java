@@ -120,12 +120,35 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	@Override
 	@Transactional
 	public int createEmotionRecord(EmotionRecord record) {
-		return emotionRecordDao.createEmotionRecord(record);
+		int result = emotionRecordDao.createEmotionRecord(record);
+
+		// Insert emotion reasons into junction table
+		if (record.getEmotionReasons() != null && !record.getEmotionReasons().isEmpty()) {
+			for (String reason : record.getEmotionReasons()) {
+				emotionRecordDao.insertEmotionReason(record.getEmotionRecordId(), reason);
+			}
+		}
+
+		return result;
 	}
 
 	@Override
+	@Transactional
 	public boolean updateEmotionRecord(EmotionRecord record) {
-		return emotionRecordDao.updateEmotionRecord(record);
+		boolean result = emotionRecordDao.updateEmotionRecord(record);
+
+		// Delete existing emotion reasons and insert new ones
+		if (result) {
+			emotionRecordDao.deleteEmotionReasons(record.getEmotionRecordId());
+
+			if (record.getEmotionReasons() != null && !record.getEmotionReasons().isEmpty()) {
+				for (String reason : record.getEmotionReasons()) {
+					emotionRecordDao.insertEmotionReason(record.getEmotionRecordId(), reason);
+				}
+			}
+		}
+
+		return result;
 	}
 
 	@Override

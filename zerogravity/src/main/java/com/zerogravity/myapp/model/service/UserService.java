@@ -1,25 +1,47 @@
 package com.zerogravity.myapp.model.service;
 
 import com.zerogravity.myapp.model.dto.User;
-import com.zerogravity.myapp.model.dto.UserInfo;
 
+/**
+ * Service interface for user management
+ * Handles user authentication and profile management
+ */
 public interface UserService {
-	// 사용자 정보 조회
+
+	/**
+	 * Get user by user ID
+	 * @param userId User ID
+	 * @return User object or null if not found
+	 */
 	public abstract User getUserByUserId(long userId);
 
-	// OAuth 제공자 ID와 제공자명으로 사용자 조회
+	/**
+	 * Get user by OAuth provider ID and provider name
+	 * @param providerId OAuth provider ID
+	 * @param provider Provider name (e.g., "kakao")
+	 * @return User object or null if not found
+	 */
 	public abstract User getUserByProviderIdAndProvider(String providerId, String provider);
 
-	// 사용자 추가 정보 조회
-	public abstract UserInfo getUserInfoByUserId(long userId);
-
-	// 사용자 정보 삽입
+	/**
+	 * Create a new user
+	 * @param user User object to create
+	 * @return true if creation successful, false otherwise
+	 */
 	public abstract boolean createUser(User user);
 
-	// 사용자 정보 업데이트
+	/**
+	 * Update user information
+	 * @param user User object with updated information
+	 * @return true if update successful, false otherwise
+	 */
 	public abstract boolean modifyUser(User user);
 
-	// 사용자 정보 삭제
+	/**
+	 * Delete a user by user ID
+	 * @param userId User ID to delete
+	 * @return true if deletion successful, false otherwise
+	 */
 	public abstract boolean removeUser(long userId);
 
 }

@@ -32,11 +32,11 @@ public class PeriodicChartServiceImpl implements PeriodicChartService {
     @Override
     @Transactional
     public boolean createOrModifyPeriodicChart(EmotionRecord emotionRecord, Timestamp createdTime) {
-    	
+
         Timestamp recordDateTime = createdTime;
-        
+
         long userId = emotionRecord.getUserId();
-        int scoreToAdd = emotionRecord.getEmotionRecordLevel();
+        int scoreToAdd = emotionRecord.getEmotionId();
 
         boolean weeklySuccess = processPeriodicChart(userId, recordDateTime, "weekly", scoreToAdd);
         boolean monthlySuccess = processPeriodicChart(userId, recordDateTime, "monthly", scoreToAdd);

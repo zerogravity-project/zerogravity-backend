@@ -17,13 +17,6 @@
 		WHERE provider_id = #{providerId} AND provider = #{provider};
 	</select>
 
-	<!-- 사용자 추가 정보 조회 -->
-	<select id="selectUserInfoByUserId" resultType="UserInfo"
-		parameterType="long">
-		SELECT * FROM user_info
-		WHERE user_id = #{userId};
-	</select>
-
 	<!-- 사용자 정보 삽입 (userId는 Java에서 Snowflake ID로 생성됨) -->
 	<insert id="insertUser" parameterType="User">
 		INSERT INTO user (user_id, provider_id, provider, email, name, image)
@@ -36,16 +29,6 @@
 		SET email = #{email}, name = #{name}, image = #{image}, provider = #{provider}
 		WHERE user_id = #{userId};
 	</update>
-
-	<!-- 사용자 추가 정보 삽입 -->
-	<insert id="insertUserInfo" parameterType="UserInfo"
-		keyProperty="userId">
-		INSERT INTO user_info (user_id, gender, age_range,
-		birthday, birthyear)
-		VALUES (#{userId}, #{gender.name}, #{ageRange},
-		#{birthday},
-		#{birthyear});
-	</insert>
 
 	<!-- 사용자 정보 삭제 -->
 	<delete id="deleteUser" parameterType="long">

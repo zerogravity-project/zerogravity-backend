@@ -82,11 +82,11 @@ public class DailyChartServiceImpl implements DailyChartService {
     @Override
     @Transactional
     public boolean createOrModifyDailyChart(EmotionRecord emotionRecord, Timestamp createdTime) {
-    	
+
     	Timestamp recordTime = createdTime;
 
         long userId = emotionRecord.getUserId();
-        int emotionLevel = emotionRecord.getEmotionRecordLevel();
+        int emotionLevel = emotionRecord.getEmotionId();
 
         DailyChart existingChart = dailyChartDao.selectDailyChartByDateAndUserId(recordTime, userId);
         // 오늘 날짜의 기록이 없으면 새로 생성
@@ -107,8 +107,8 @@ public class DailyChartServiceImpl implements DailyChartService {
             
         // 오늘 날짜의 기록이 있으면 업데이트
         } else {
-        	
-        	int scoreToAdd = emotionRecord.getEmotionRecordLevel(); 
+
+        	int scoreToAdd = emotionRecord.getEmotionId(); 
             int newCount = existingChart.getDailyCount() + 1;
             int newSumScore = existingChart.getDailySum() + scoreToAdd;
             double newAverageScore = (double) newSumScore / newCount;

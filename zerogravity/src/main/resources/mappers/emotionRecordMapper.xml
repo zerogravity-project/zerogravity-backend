@@ -1,64 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper
-  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper
-	namespace="com.zerogravity.myapp.model.dao.EmotionRecordDao">
+<mapper namespace="com.zerogravity.myapp.model.dao.EmotionRecordDao">
 
-	<!-- 사용자 ID에 따른 감정 기록 조회 -->
-	<select id="selectEmotionRecordByUserId" parameterType="long"
-		resultType="EmotionRecord">
+	<!-- Result map for EmotionRecord with emotion reasons collection -->
+	<resultMap id="emotionRecordResultMap" type="EmotionRecord">
+		<id property="emotionRecordId" column="emotion_record_id" />
+		<result property="userId" column="user_id" />
+		<result property="emotionId" column="emotion_id" />
+		<result property="emotionRecordType" column="emotion_record_type" typeHandler="org.apache.ibatis.type.EnumTypeHandler" />
+		<result property="diaryEntry" column="diary_entry" />
+		<result property="createdTime" column="created_time" />
+		<result property="updatedTime" column="updated_time" />
+		<collection property="emotionReasons" column="emotion_record_id" select="selectEmotionReasonsByRecordId" />
+	</resultMap>
+
+	<!-- Select emotion reasons for a specific emotion record -->
+	<select id="selectEmotionReasonsByRecordId" parameterType="String" resultType="String">
+		SELECT emotion_reason
+		FROM emotion_record_reason
+		WHERE emotion_record_id = #{emotionRecordId}
+		ORDER BY emotion_reason
+	</select>
+
+	<!-- Select emotion records by user ID -->
+	<select id="selectEmotionRecordByUserId" parameterType="long" resultMap="emotionRecordResultMap">
 		SELECT *
 		FROM emotion_record
 		WHERE user_id = #{userId}
+		ORDER BY created_time DESC
 	</select>
 
-	<!-- 감정 기록 ID에 따른 생성 시간 조회 -->
-	<select id="selectCreatedTimeByEmotionRecordId" parameterType="String" 
-		resultType="java.sql.Timestamp"> SELECT created_time FROM emotion_record 
-		WHERE emotion_record_id = #{emotionRecordId} </select> 
+	<!-- Select created time by emotion record ID -->
+	<select id="selectCreatedTimeByEmotionRecordId" parameterType="String" resultType="java.sql.Timestamp">
+		SELECT created_time
+		FROM emotion_record
+		WHERE emotion_record_id = #{emotionRecordId}
+	</select>
 
-	<select id="selectEmotionRecordByPeriodAndUserId"
-		parameterType="map" resultType="EmotionRecord">
+	<!-- Select emotion records for a specific period and user -->
+	<select id="selectEmotionRecordByPeriodAndUserId" parameterType="map" resultMap="emotionRecordResultMap">
 		SELECT *
 		FROM emotion_record
 		WHERE user_id = #{userId}
 		AND created_time BETWEEN #{periodStart} AND #{periodEnd}
-		ORDER BY created_time DESC;
+		ORDER BY created_time DESC
 	</select>
-	
-		<!-- 통계 차트에서 사용할 사용자 ID와 기간에 따른 통계 조회 -->
-    <select id="selectEmotionRecordByPeriodAndUserIdForChart" parameterType="map" resultType="EmotionRecord">
-        SELECT *
-        FROM emotion_record
-        WHERE user_id = #{userId}
-          AND created_time BETWEEN #{periodStart} AND #{periodEnd};
-    </select>
 
+	<!-- Select emotion records for chart statistics for a specific period and user -->
+	<select id="selectEmotionRecordByPeriodAndUserIdForChart" parameterType="map" resultMap="emotionRecordResultMap">
+		SELECT *
+		FROM emotion_record
+		WHERE user_id = #{userId}
+		AND created_time BETWEEN #{periodStart} AND #{periodEnd}
+		ORDER BY created_time DESC
+	</select>
 
-	<!-- 감정 기록 생성 -->
+	<!-- Create emotion record -->
 	<insert id="createEmotionRecord" parameterType="EmotionRecord">
-		INSERT INTO emotion_record (emotion_record_id, user_id, emotion_reason,
-		emotion_record_type, emotion_record_level, emotion_record_state,
-		diary_entry, created_time)
-		VALUES (#{emotionRecordId}, #{userId}, #{emotionReason},
-		#{emotionRecordType}, #{emotionRecordLevel}, #{emotionRecordState},
-		#{diaryEntry}, #{createdTime})
+		INSERT INTO emotion_record (emotion_record_id, user_id, emotion_id, emotion_record_type, diary_entry, created_time)
+		VALUES (#{emotionRecordId}, #{userId}, #{emotionId}, #{emotionRecordType}, #{diaryEntry}, #{createdTime})
 	</insert>
 
-	<!-- 감정 기록 업데이트 -->
+	<!-- Update emotion record -->
 	<update id="updateEmotionRecord" parameterType="EmotionRecord">
 		UPDATE emotion_record
-		SET emotion_reason = #{emotionReason},
+		SET emotion_id = #{emotionId},
 		emotion_record_type = #{emotionRecordType},
-		emotion_record_level = #{emotionRecordLevel},
-		emotion_record_state = #{emotionRecordState},
 		diary_entry = #{diaryEntry},
 		updated_time = now()
-		WHERE user_id = #{userId}
-		AND emotion_record_id = #{emotionRecordId};
+		WHERE emotion_record_id = #{emotionRecordId}
+		AND user_id = #{userId}
 	</update>
 
+	<!-- Insert emotion reason for emotion record (for junction table) -->
+	<insert id="insertEmotionReason">
+		INSERT INTO emotion_record_reason (emotion_record_id, emotion_reason)
+		VALUES (#{emotionRecordId}, #{emotionReason})
+	</insert>
+
+	<!-- Delete emotion reasons for emotion record -->
+	<delete id="deleteEmotionReasons" parameterType="String">
+		DELETE FROM emotion_record_reason
+		WHERE emotion_record_id = #{emotionRecordId}
+	</delete>
 
 </mapper>
