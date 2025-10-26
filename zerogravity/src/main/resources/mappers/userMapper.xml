@@ -3,11 +3,18 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.zerogravity.myapp.model.dao.UserDao">
-	<!-- 사용자 정보 조회 -->
+	<!-- 사용자 정보 조회 (userId로) -->
 	<select id="selectUserByUserId" resultType="user"
 		parameterType="long">
 		SELECT * FROM user
 		WHERE user_id = #{userId};
+	</select>
+
+	<!-- 사용자 정보 조회 (providerId + provider로) -->
+	<select id="selectUserByProviderIdAndProvider" resultType="user"
+		parameterType="map">
+		SELECT * FROM user
+		WHERE provider_id = #{providerId} AND provider = #{provider};
 	</select>
 
 	<!-- 사용자 추가 정보 조회 -->
@@ -17,17 +24,16 @@
 		WHERE user_id = #{userId};
 	</select>
 
-	<!-- 사용자 정보 삽입 -->
-	<insert id="insertUser" parameterType="User"
-		keyProperty="userId">
-		INSERT INTO user (user_id, nickname, profile_image, thumbnail_image)
-		VALUES (#{userId}, #{nickname}, #{profileImage}, #{thumbnailImage});
+	<!-- 사용자 정보 삽입 (userId는 Java에서 Snowflake ID로 생성됨) -->
+	<insert id="insertUser" parameterType="User">
+		INSERT INTO user (user_id, provider_id, provider, email, name, image)
+		VALUES (#{userId}, #{providerId}, #{provider}, #{email}, #{name}, #{image});
 	</insert>
 
 	<!-- 사용자 정보 업데이트 -->
 	<update id="updateUser" parameterType="User">
 		UPDATE user
-		SET nickname = #{nickname}, profile_image = #{profileImage}, thumbnail_image = #{thumbnailImage}
+		SET email = #{email}, name = #{name}, image = #{image}, provider = #{provider}
 		WHERE user_id = #{userId};
 	</update>
 
