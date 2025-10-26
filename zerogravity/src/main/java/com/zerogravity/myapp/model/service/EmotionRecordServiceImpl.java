@@ -2,12 +2,16 @@ package com.zerogravity.myapp.model.service;
 
 import java.sql.Timestamp;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.IsoFields;
 import java.time.temporal.TemporalAdjusters;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -162,6 +166,49 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
         return emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
 	}
 
+	@Override
+	public List<EmotionRecord> getEmotionRecordByYearMonthWeek(long userId, int year, int month, int week) {
+		// ISO 8601 주차 계산
+		WeekFields weekFields = WeekFields.of(Locale.KOREA);
 
+		// 해당 년도의 첫 날짜
+		LocalDate firstDayOfYear = LocalDate.of(year, 1, 1);
+
+		// 해당 주의 시작 날짜 (월요일) 계산
+		LocalDate startOfWeek = firstDayOfYear
+			.with(IsoFields.WEEK_OF_WEEK_BASED_YEAR, week)
+			.with(weekFields.dayOfWeek(), 1); // 월요일
+
+		LocalDate endOfWeek = startOfWeek.plusDays(6); // 일요일
+
+		// 해당 월에 포함되지 않으면 범위 조정
+		LocalDate monthStart = LocalDate.of(year, month, 1);
+		LocalDate monthEnd = monthStart.with(TemporalAdjusters.lastDayOfMonth());
+
+		if (startOfWeek.isAfter(monthEnd) || endOfWeek.isBefore(monthStart)) {
+			return new ArrayList<>(); // 해당 주가 이 달에 없음
+		}
+
+		// 범위를 월로 제한
+		if (startOfWeek.isBefore(monthStart)) {
+			startOfWeek = monthStart;
+		}
+		if (endOfWeek.isAfter(monthEnd)) {
+			endOfWeek = monthEnd;
+		}
+
+		Timestamp periodStart = Timestamp.valueOf(startOfWeek.atStartOfDay());
+		Timestamp periodEnd = Timestamp.valueOf(endOfWeek.atTime(23, 59, 59));
+
+		return emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
+	}
+
+	@Override
+	public List<EmotionRecord> getEmotionRecordByDate(long userId, LocalDate date) {
+		Timestamp periodStart = Timestamp.valueOf(date.atStartOfDay());
+		Timestamp periodEnd = Timestamp.valueOf(date.atTime(23, 59, 59));
+
+		return emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
+	}
 
 }
