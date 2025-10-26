@@ -1,11 +1,16 @@
-# 사용자 기본 정보 (카카오 로그인에 기반함)
+# 사용자 기본 정보 (OAuth 로그인에 기반함)
+# user_id: Snowflake ID (내부 DB ID, JWT용)
+# provider_id: OAuth 제공자 ID (중복 가입 방지)
 CREATE TABLE user (
     user_id BIGINT NOT NULL PRIMARY KEY,
-    nickname VARCHAR(255) NOT NULL,
-    profile_image VARCHAR(255),
-    thumbnail_image VARCHAR(255),
+    provider_id VARCHAR(255) NOT NULL,
+    provider VARCHAR(50) NOT NULL,
+    email VARCHAR(255),
+    name VARCHAR(255) NOT NULL,
+    image VARCHAR(255),
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_provider_user (provider_id, provider)
 );
 
 # 사용자 추가 동의 제공 정보
