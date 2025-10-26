@@ -1,35 +1,43 @@
 package com.zerogravity.myapp.model.dto;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
+/**
+ * Emotion type information
+ * Represents a predefined emotion type with ID (0-6), key, and display name
+ */
 public class Emotion {
-	
-	private String emotionId;
+
+	private int emotionId;
+	private String emotionKey;
 	private String emotionType;
-	private int emotionLevel;
-	private String colorScheme;
-	private String shapeName;
-	private LocalDateTime createdTime;
-	private LocalDateTime updatedTime;
-	
+	private Timestamp createdTime;
+	private Timestamp updatedTime;
+
 	public Emotion() {}
 
-	public Emotion(String emotionId, String emotionType, int emotionLevle, String colorScheme, String shapeName, LocalDateTime createdTime, LocalDateTime updatedTime) {
+	public Emotion(int emotionId, String emotionKey, String emotionType, Timestamp createdTime, Timestamp updatedTime) {
 		this.emotionId = emotionId;
+		this.emotionKey = emotionKey;
 		this.emotionType = emotionType;
-		this.emotionLevel = emotionLevle;
-		this.colorScheme = colorScheme;
-		this.shapeName = shapeName;
 		this.createdTime = createdTime;
 		this.updatedTime = updatedTime;
 	}
 
-	public String getEmotionId() {
+	public int getEmotionId() {
 		return emotionId;
 	}
 
-	public void setEmotionId(String emotionId) {
+	public void setEmotionId(int emotionId) {
 		this.emotionId = emotionId;
+	}
+
+	public String getEmotionKey() {
+		return emotionKey;
+	}
+
+	public void setEmotionKey(String emotionKey) {
+		this.emotionKey = emotionKey;
 	}
 
 	public String getEmotionType() {
@@ -40,53 +48,26 @@ public class Emotion {
 		this.emotionType = emotionType;
 	}
 
-	public int getEmotionLevel() {
-		return emotionLevel;
-	}
-
-	public void setEmotionLevel(int emotionLevel) {
-		this.emotionLevel = emotionLevel;
-	}
-
-	public String getColorScheme() {
-		return colorScheme;
-	}
-
-	public void setColorScheme(String colorScheme) {
-		this.colorScheme = colorScheme;
-	}
-
-	public String getShapeName() {
-		return shapeName;
-	}
-
-	public void setShapeName(String shapeName) {
-		this.shapeName = shapeName;
-	}
-
-	public LocalDateTime getCreatedTime() {
+	public Timestamp getCreatedTime() {
 		return createdTime;
 	}
 
-	public void setCreatedTime(LocalDateTime createdTime) {
+	public void setCreatedTime(Timestamp createdTime) {
 		this.createdTime = createdTime;
 	}
 
-	public LocalDateTime getUpdatedTime() {
+	public Timestamp getUpdatedTime() {
 		return updatedTime;
 	}
 
-	public void setUpdatedTime(LocalDateTime updatedTime) {
+	public void setUpdatedTime(Timestamp updatedTime) {
 		this.updatedTime = updatedTime;
 	}
 
 	@Override
 	public String toString() {
-		return "Emotion [emotionId=" + emotionId + ", emotionType=" + emotionType + ", emotionLevel=" + emotionLevel
-				+ ", colorScheme=" + colorScheme + ", shapeName=" + shapeName + ", createdTime=" + createdTime
-				+ ", updatedTime=" + updatedTime + "]";
+		return "Emotion [emotionId=" + emotionId + ", emotionKey=" + emotionKey + ", emotionType=" + emotionType
+				+ ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
 	}
-	
-	
-	
+
 }

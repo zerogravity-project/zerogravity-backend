@@ -1,27 +1,47 @@
 package com.zerogravity.myapp.model.dao;
 
 import com.zerogravity.myapp.model.dto.User;
-import com.zerogravity.myapp.model.dto.UserInfo;
 
+/**
+ * DAO interface for user database operations
+ * Handles user authentication and profile management
+ */
 public interface UserDao {
-	// 사용자 정보 조회
+
+	/**
+	 * Select user by user ID
+	 * @param userId User ID
+	 * @return User object or null if not found
+	 */
 	public abstract User selectUserByUserId(long userId);
 
-	// OAuth 제공자 ID와 제공자명으로 사용자 조회
+	/**
+	 * Select user by OAuth provider ID and provider name
+	 * @param providerId OAuth provider ID
+	 * @param provider Provider name (e.g., "kakao")
+	 * @return User object or null if not found
+	 */
 	public abstract User selectUserByProviderIdAndProvider(String providerId, String provider);
 
-	// 사용자 추가 정보 조회
-	public abstract UserInfo selectUserInfoByUserId(long userId);
-
-	// 사용자 정보 삽입
+	/**
+	 * Insert a new user
+	 * @param user User object to insert
+	 * @return Number of rows affected
+	 */
 	public abstract int insertUser(User user);
 
-	// 사용자 정보 삽입
+	/**
+	 * Update user information
+	 * @param user User object with updated information
+	 * @return Number of rows affected
+	 */
 	public abstract int updateUser(User user);
 
-	// 사용자 추가 정보 삽입
-	public abstract int insertUserInfo(UserInfo userInfo);
-
-	// 사용자 정보 삭제
+	/**
+	 * Delete a user by user ID
+	 * @param userId User ID to delete
+	 * @return Number of rows affected
+	 */
 	public abstract int deleteUser(long userId);
+
 }

@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.zerogravity.myapp.model.dao.UserDao;
 import com.zerogravity.myapp.model.dto.User;
-import com.zerogravity.myapp.model.dto.UserInfo;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -25,11 +24,6 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User getUserByProviderIdAndProvider(String providerId, String provider) {
 		return userDao.selectUserByProviderIdAndProvider(providerId, provider);
-	}
-
-	@Override
-	public UserInfo getUserInfoByUserId(long userId) {
-		return userDao.selectUserInfoByUserId(userId);
 	}
 
 	@Override
