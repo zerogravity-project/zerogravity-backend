@@ -49,9 +49,10 @@ public class UserRestController {
 		User user = userService.getUserByUserId(userId);
 		if (user != null) {
 			Map<String, Object> userProfile = Map.of(
-					"nickname", user.getNickname(),
-					"profileImage", user.getProfileImage(),
-					"thumbnailImage", user.getThumbnailImage()
+					"name", user.getName(),
+					"image", user.getImage(),
+					"email", user.getEmail(),
+					"provider", user.getProvider()
 			);
 			return new ResponseEntity<>(userProfile, HttpStatus.OK);
 		} else {

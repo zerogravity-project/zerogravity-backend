@@ -23,6 +23,11 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	public User getUserByProviderIdAndProvider(String providerId, String provider) {
+		return userDao.selectUserByProviderIdAndProvider(providerId, provider);
+	}
+
+	@Override
 	public UserInfo getUserInfoByUserId(long userId) {
 		return userDao.selectUserInfoByUserId(userId);
 	}
