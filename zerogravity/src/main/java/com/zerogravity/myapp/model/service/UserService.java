@@ -7,6 +7,9 @@ public interface UserService {
 	// 사용자 정보 조회
 	public abstract User getUserByUserId(long userId);
 
+	// OAuth 제공자 ID와 제공자명으로 사용자 조회
+	public abstract User getUserByProviderIdAndProvider(String providerId, String provider);
+
 	// 사용자 추가 정보 조회
 	public abstract UserInfo getUserInfoByUserId(long userId);
 

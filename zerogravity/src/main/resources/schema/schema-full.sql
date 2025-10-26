@@ -16,11 +16,14 @@ CREATE TABLE scene_object (
 -- 2. user 테이블
 CREATE TABLE user (
     user_id BIGINT NOT NULL PRIMARY KEY,
-    nickname VARCHAR(255) NOT NULL,
-    profile_image VARCHAR(255),
-    thumbnail_image VARCHAR(255),
+    provider_id VARCHAR(255) NOT NULL,
+    provider VARCHAR(50) NOT NULL,
+    email VARCHAR(255),
+    name VARCHAR(255) NOT NULL,
+    image VARCHAR(255),
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_provider_user (provider_id, provider)
 );
 
 -- 3. user_info 테이블
