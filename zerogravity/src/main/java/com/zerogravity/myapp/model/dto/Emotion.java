@@ -11,15 +11,17 @@ public class Emotion {
 	private int emotionId;
 	private String emotionKey;
 	private String emotionType;
+	private int emotionLevel;
 	private Timestamp createdTime;
 	private Timestamp updatedTime;
 
 	public Emotion() {}
 
-	public Emotion(int emotionId, String emotionKey, String emotionType, Timestamp createdTime, Timestamp updatedTime) {
+	public Emotion(int emotionId, String emotionKey, String emotionType, int emotionLevel, Timestamp createdTime, Timestamp updatedTime) {
 		this.emotionId = emotionId;
 		this.emotionKey = emotionKey;
 		this.emotionType = emotionType;
+		this.emotionLevel = emotionLevel;
 		this.createdTime = createdTime;
 		this.updatedTime = updatedTime;
 	}
@@ -48,6 +50,14 @@ public class Emotion {
 		this.emotionType = emotionType;
 	}
 
+	public int getEmotionLevel() {
+		return emotionLevel;
+	}
+
+	public void setEmotionLevel(int emotionLevel) {
+		this.emotionLevel = emotionLevel;
+	}
+
 	public Timestamp getCreatedTime() {
 		return createdTime;
 	}
@@ -67,7 +77,7 @@ public class Emotion {
 	@Override
 	public String toString() {
 		return "Emotion [emotionId=" + emotionId + ", emotionKey=" + emotionKey + ", emotionType=" + emotionType
-				+ ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
+				+ ", emotionLevel=" + emotionLevel + ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
 	}
 
 }

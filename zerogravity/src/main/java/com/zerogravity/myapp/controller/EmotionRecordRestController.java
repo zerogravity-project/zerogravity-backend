@@ -1,6 +1,7 @@
 package com.zerogravity.myapp.controller;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.zerogravity.myapp.security.AuthUserId;
@@ -23,14 +24,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping("/api-zerogravity/emotions")
 @Tag(name = "Emotion Record Management", description = "감정 기록 및 통계 관리 API")
-public class EmotionRecordManagementRestController {
+public class EmotionRecordRestController {
 
     private final EmotionRecordService emotionRecordService;
     private final DailyChartService dailyChartService;
     private final PeriodicChartService periodicChartService;
 
     @Autowired
-    public EmotionRecordManagementRestController(EmotionRecordService emotionRecordService,
+    public EmotionRecordRestController(EmotionRecordService emotionRecordService,
                                                  DailyChartService dailyChartService,
                                                  PeriodicChartService periodicChartService) {
         this.emotionRecordService = emotionRecordService;
@@ -39,14 +40,49 @@ public class EmotionRecordManagementRestController {
     }
 
     @GetMapping("/records")
-    @Operation(summary = "한달 감정 기록 불러오기", description = "한달의 감정 기록을 시간 순으로 불러옵니다.")
-    public ResponseEntity<?> getWeeklyRecord(
+    @Operation(summary = "감정 기록 조회 (월/주 단위)", description = "월 단위 또는 주 단위로 감정 기록을 조회합니다. week 파라미터가 있으면 주 단위, 없으면 월 단위입니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 파라미터")
+    })
+    public ResponseEntity<?> getEmotionRecords(
             @AuthUserId Long userId,
+            @RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
             @RequestParam int year,
-            @RequestParam int month
+            @RequestParam int month,
+            @RequestParam(required = false) Integer week
     ) {
-        List<EmotionRecord> monthlyRecord = emotionRecordService.getEmotionRecordByYearAndMonth(userId, year, month);
-        return new ResponseEntity<>(monthlyRecord, HttpStatus.OK);
+        List<EmotionRecord> records;
+
+        if (week != null) {
+            // 주 단위 조회
+            records = emotionRecordService.getEmotionRecordByYearMonthWeek(userId, year, month, week);
+        } else {
+            // 월 단위 조회
+            records = emotionRecordService.getEmotionRecordByYearAndMonth(userId, year, month);
+        }
+
+        return new ResponseEntity<>(records, HttpStatus.OK);
+    }
+
+    @GetMapping("/records/date/{date}")
+    @Operation(summary = "특정 날짜 감정 기록 상세보기", description = "특정 날짜의 감정 기록을 모든 정보(다이어리 포함)와 함께 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 날짜 형식")
+    })
+    public ResponseEntity<?> getEmotionRecordByDate(
+            @AuthUserId Long userId,
+            @RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
+            @PathVariable String date
+    ) {
+        try {
+            LocalDate targetDate = LocalDate.parse(date);
+            List<EmotionRecord> records = emotionRecordService.getEmotionRecordByDate(userId, targetDate);
+            return new ResponseEntity<>(records, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Invalid date format. Use YYYY-MM-DD");
+        }
     }
 
     @Transactional
@@ -58,6 +94,7 @@ public class EmotionRecordManagementRestController {
     })
     public ResponseEntity<?> createAndManageRecords(
             @AuthUserId Long userId,
+            @RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
             @RequestBody EmotionRecord emotionRecord
     ) {
         // userId 설정
