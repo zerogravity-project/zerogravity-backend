@@ -5,7 +5,7 @@
 
 <mapper namespace="com.zerogravity.myapp.model.dao.EmotionRecordDao">
 
-	<!-- Result map for EmotionRecord with emotion reasons collection -->
+	<!-- Result map for EmotionRecord with emotion reasons and emotion level -->
 	<resultMap id="emotionRecordResultMap" type="EmotionRecord">
 		<id property="emotionRecordId" column="emotion_record_id" />
 		<result property="userId" column="user_id" />
@@ -27,10 +27,11 @@
 
 	<!-- Select emotion records by user ID -->
 	<select id="selectEmotionRecordByUserId" parameterType="long" resultMap="emotionRecordResultMap">
-		SELECT *
-		FROM emotion_record
-		WHERE user_id = #{userId}
-		ORDER BY created_time DESC
+		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
+		       er.diary_entry, er.created_time, er.updated_time
+		FROM emotion_record er
+		WHERE er.user_id = #{userId}
+		ORDER BY er.created_time DESC
 	</select>
 
 	<!-- Select created time by emotion record ID -->
@@ -40,22 +41,24 @@
 		WHERE emotion_record_id = #{emotionRecordId}
 	</select>
 
-	<!-- Select emotion records for a specific period and user -->
+	<!-- Select emotion records for a specific period and user with emotion level (for statistics) -->
 	<select id="selectEmotionRecordByPeriodAndUserId" parameterType="map" resultMap="emotionRecordResultMap">
-		SELECT *
-		FROM emotion_record
-		WHERE user_id = #{userId}
-		AND created_time BETWEEN #{periodStart} AND #{periodEnd}
-		ORDER BY created_time DESC
+		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
+		       er.diary_entry, er.created_time, er.updated_time
+		FROM emotion_record er
+		WHERE er.user_id = #{userId}
+		AND er.created_time BETWEEN #{periodStart} AND #{periodEnd}
+		ORDER BY er.created_time DESC
 	</select>
 
 	<!-- Select emotion records for chart statistics for a specific period and user -->
 	<select id="selectEmotionRecordByPeriodAndUserIdForChart" parameterType="map" resultMap="emotionRecordResultMap">
-		SELECT *
-		FROM emotion_record
-		WHERE user_id = #{userId}
-		AND created_time BETWEEN #{periodStart} AND #{periodEnd}
-		ORDER BY created_time DESC
+		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
+		       er.diary_entry, er.created_time, er.updated_time
+		FROM emotion_record er
+		WHERE er.user_id = #{userId}
+		AND er.created_time BETWEEN #{periodStart} AND #{periodEnd}
+		ORDER BY er.created_time DESC
 	</select>
 
 	<!-- Create emotion record -->
