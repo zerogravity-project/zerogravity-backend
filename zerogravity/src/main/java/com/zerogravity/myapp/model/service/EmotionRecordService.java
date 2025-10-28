@@ -1,11 +1,10 @@
 package com.zerogravity.myapp.model.service;
 
 import java.sql.Timestamp;
-import java.time.LocalDate;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
-import java.util.Map;
 
-import com.zerogravity.myapp.model.dto.DailyChart;
 import com.zerogravity.myapp.model.dto.EmotionRecord;
 
 /**
@@ -19,86 +18,46 @@ public interface EmotionRecordService {
 	 * @param userId User ID
 	 * @return List of emotion records
 	 */
-	public abstract List<EmotionRecord> getEmotionRecordsByUserId(long userId);
+	List<EmotionRecord> getEmotionRecordsByUserId(Long userId);
 
 	/**
 	 * Get created time of an emotion record
 	 * @param emotionRecordId Emotion record ID
 	 * @return Created timestamp
 	 */
-	public abstract Timestamp getCreatedTimeByEmotionRecordId(String emotionRecordId);
+	Timestamp getCreatedTimeByEmotionRecordId(Long emotionRecordId);
 
 	/**
-	 * Get emotion records for a period
+	 * Get emotion records for a specific period
 	 * @param userId User ID
-	 * @param searchDateTime Search date time
+	 * @param periodStart Period start instant (UTC)
+	 * @param periodEnd Period end instant (UTC)
 	 * @return List of emotion records
 	 */
-	public abstract List<EmotionRecord> getEmotionRecordByPeriodAndUserId(long userId, Timestamp searchDateTime);
+	List<EmotionRecord> getEmotionRecordByPeriodAndUserId(Long userId, Instant periodStart, Instant periodEnd);
 
 	/**
-	 * Get emotion records for monthly period
+	 * Create a new emotion record with validation
 	 * @param userId User ID
-	 * @param searchDateTime Search date time
-	 * @return List of emotion records
+	 * @param emotionId Emotion ID (0-6)
+	 * @param emotionRecordType Type (daily or moment)
+	 * @param emotionReasons List of reasons
+	 * @param diaryEntry Diary entry (nullable)
+	 * @param timezone User's timezone for daily duplicate check
+	 * @return Created emotion record ID
 	 */
-	public abstract List<EmotionRecord> getMonthlyEmotionRecordByPeriodAndUserId(long userId, Timestamp searchDateTime);
-
-	/**
-	 * Get emotion records for weekly period
-	 * @param userId User ID
-	 * @param searchDateTime Search date time
-	 * @return List of emotion records
-	 */
-	public abstract List<EmotionRecord> getWeeklyEmotionRecordByPeriodAndUserId(long userId, Timestamp searchDateTime);
-
-	/**
-	 * Get emotion records for yearly period
-	 * @param userId User ID
-	 * @param searchDateTime Search date time
-	 * @return List of emotion records
-	 */
-	public abstract List<EmotionRecord> getYearlyEmotionRecordByPeriodAndUserId(long userId, Timestamp searchDateTime);
-
-	/**
-	 * Create a new emotion record
-	 * @param record Emotion record to create
-	 * @return Number of rows affected
-	 */
-	public abstract int createEmotionRecord(EmotionRecord record);
+	Long createEmotionRecord(Long userId, Integer emotionId, String emotionRecordType,
+	                         List<String> emotionReasons, String diaryEntry, ZoneId timezone);
 
 	/**
 	 * Update an existing emotion record
-	 * @param record Emotion record to update
+	 * @param userId User ID
+	 * @param emotionRecordId Emotion record ID
+	 * @param emotionId New emotion ID
+	 * @param emotionReasons New reasons list
+	 * @param diaryEntry New diary entry
 	 * @return true if update successful, false otherwise
 	 */
-	public abstract boolean updateEmotionRecord(EmotionRecord record);
-
-	/**
-	 * Get emotion records for a specific year and month
-	 * @param userId User ID
-	 * @param year Year
-	 * @param month Month
-	 * @return List of emotion records
-	 */
-	public abstract List<EmotionRecord> getEmotionRecordByYearAndMonth(long userId, int year, int month);
-
-	/**
-	 * Get emotion records for a specific year, month, and week
-	 * @param userId User ID
-	 * @param year Year
-	 * @param month Month
-	 * @param week Week (ISO week number)
-	 * @return List of emotion records
-	 */
-	public abstract List<EmotionRecord> getEmotionRecordByYearMonthWeek(long userId, int year, int month, int week);
-
-	/**
-	 * Get emotion records for a specific date (detailed view)
-	 * @param userId User ID
-	 * @param date Local date
-	 * @return List of emotion records for the date
-	 */
-	public abstract List<EmotionRecord> getEmotionRecordByDate(long userId, LocalDate date);
-
+	boolean updateEmotionRecord(Long userId, Long emotionRecordId, Integer emotionId,
+	                            List<String> emotionReasons, String diaryEntry);
 }

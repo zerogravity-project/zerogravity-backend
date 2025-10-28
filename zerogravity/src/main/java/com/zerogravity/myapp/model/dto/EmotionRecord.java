@@ -1,5 +1,8 @@
 package com.zerogravity.myapp.model.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -9,12 +12,18 @@ import java.util.List;
  */
 public class EmotionRecord {
 
-	private String emotionRecordId;
-	private long userId;
-	private int emotionId;
+	@JsonSerialize(using = ToStringSerializer.class)
+	private Long emotionRecordId;  // Snowflake ID (BIGINT) serialized as String for JavaScript safety
+
+	@JsonSerialize(using = ToStringSerializer.class)
+	private Long userId;  // Snowflake ID (BIGINT) serialized as String for JavaScript safety
+
+	private Integer emotionId;
 	private EmotionRecord.Type emotionRecordType;
 	private List<String> emotionReasons;
 	private String diaryEntry;
+	private Boolean isDeleted;
+	private Timestamp deletedAt;
 	private Timestamp createdTime;
 	private Timestamp updatedTime;
 
@@ -91,46 +100,59 @@ public class EmotionRecord {
 			}
 			throw new IllegalArgumentException("Unknown emotion reason: " + displayName);
 		}
+
+		public static boolean isValid(String displayName) {
+			try {
+				fromDisplayName(displayName);
+				return true;
+			} catch (IllegalArgumentException e) {
+				return false;
+			}
+		}
 	}
 
 	// Constructors
 
 	public EmotionRecord() {}
 
-	public EmotionRecord(String emotionRecordId, long userId, int emotionId, EmotionRecord.Type emotionRecordType, List<String> emotionReasons, String diaryEntry, Timestamp createdTime, Timestamp updatedTime) {
+	public EmotionRecord(Long emotionRecordId, Long userId, Integer emotionId, EmotionRecord.Type emotionRecordType,
+	                     List<String> emotionReasons, String diaryEntry, Boolean isDeleted, Timestamp deletedAt,
+	                     Timestamp createdTime, Timestamp updatedTime) {
 		this.emotionRecordId = emotionRecordId;
 		this.userId = userId;
 		this.emotionId = emotionId;
 		this.emotionRecordType = emotionRecordType;
 		this.emotionReasons = emotionReasons;
 		this.diaryEntry = diaryEntry;
+		this.isDeleted = isDeleted;
+		this.deletedAt = deletedAt;
 		this.createdTime = createdTime;
 		this.updatedTime = updatedTime;
 	}
 
 	// Getters and Setters
 
-	public String getEmotionRecordId() {
+	public Long getEmotionRecordId() {
 		return emotionRecordId;
 	}
 
-	public void setEmotionRecordId(String emotionRecordId) {
+	public void setEmotionRecordId(Long emotionRecordId) {
 		this.emotionRecordId = emotionRecordId;
 	}
 
-	public long getUserId() {
+	public Long getUserId() {
 		return userId;
 	}
 
-	public void setUserId(long userId) {
+	public void setUserId(Long userId) {
 		this.userId = userId;
 	}
 
-	public int getEmotionId() {
+	public Integer getEmotionId() {
 		return emotionId;
 	}
 
-	public void setEmotionId(int emotionId) {
+	public void setEmotionId(Integer emotionId) {
 		this.emotionId = emotionId;
 	}
 
@@ -158,6 +180,22 @@ public class EmotionRecord {
 		this.diaryEntry = diaryEntry;
 	}
 
+	public Boolean getIsDeleted() {
+		return isDeleted;
+	}
+
+	public void setIsDeleted(Boolean isDeleted) {
+		this.isDeleted = isDeleted;
+	}
+
+	public Timestamp getDeletedAt() {
+		return deletedAt;
+	}
+
+	public void setDeletedAt(Timestamp deletedAt) {
+		this.deletedAt = deletedAt;
+	}
+
 	public Timestamp getCreatedTime() {
 		return createdTime;
 	}
@@ -178,7 +216,8 @@ public class EmotionRecord {
 	public String toString() {
 		return "EmotionRecord [emotionRecordId=" + emotionRecordId + ", userId=" + userId + ", emotionId="
 				+ emotionId + ", emotionRecordType=" + emotionRecordType + ", emotionReasons=" + emotionReasons
-				+ ", diaryEntry=" + diaryEntry + ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
+				+ ", diaryEntry=" + diaryEntry + ", isDeleted=" + isDeleted + ", deletedAt=" + deletedAt
+				+ ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
 	}
 
 }

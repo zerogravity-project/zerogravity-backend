@@ -13,7 +13,7 @@ public interface UserService {
 	 * @param userId User ID
 	 * @return User object or null if not found
 	 */
-	public abstract User getUserByUserId(long userId);
+	public abstract User getUserByUserId(Long userId);
 
 	/**
 	 * Get user by OAuth provider ID and provider name
@@ -42,6 +42,6 @@ public interface UserService {
 	 * @param userId User ID to delete
 	 * @return true if deletion successful, false otherwise
 	 */
-	public abstract boolean removeUser(long userId);
+	public abstract boolean removeUser(Long userId);
 
 }
