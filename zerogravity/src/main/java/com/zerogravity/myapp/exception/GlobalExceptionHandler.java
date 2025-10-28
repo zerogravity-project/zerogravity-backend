@@ -1,42 +1,116 @@
 package com.zerogravity.myapp.exception;
 
+import com.zerogravity.myapp.model.dto.ErrorResponse;
+import com.zerogravity.myapp.util.TimezoneUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
-import java.util.Map;
+import java.time.Instant;
+import java.time.ZoneId;
 
 /**
- * 전역 예외 처리 핸들러
- * 애플리케이션 전체에서 발생하는 예외를 일관되게 처리
+ * Global exception handler for all REST controllers
+ * Returns standardized error responses with timezone-aware timestamps
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * UnauthorizedException 처리
-     * JWT 토큰이 없거나 유효하지 않은 경우 401 Unauthorized로 응답
-     */
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<?> handleUnauthorizedException(UnauthorizedException e) {
-        Map<String, Object> response = Map.of(
-                "error", "unauthorized",
-                "message", e.getMessage()
-        );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-    }
+	@ExceptionHandler(DailyRecordAlreadyExistsException.class)
+	public ResponseEntity<ErrorResponse> handleDailyRecordAlreadyExists(
+		DailyRecordAlreadyExistsException ex, WebRequest request) {
 
-    /**
-     * 기타 RuntimeException 처리
-     * 예기치 않은 에러를 500 Internal Server Error로 응답
-     */
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<?> handleRuntimeException(RuntimeException e) {
-        Map<String, Object> response = Map.of(
-                "error", "internal_server_error",
-                "message", "요청 처리 중 오류가 발생했습니다."
-        );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
+		String timezone = request.getHeader("X-Timezone");
+		ZoneId zoneId = timezone != null ? ZoneId.of(timezone) : ZoneId.of("UTC");
+
+		ErrorResponse error = new ErrorResponse(
+			"DAILY_ALREADY_EXISTS",
+			ex.getMessage(),
+			TimezoneUtil.formatToUserTimezone(Instant.now(), zoneId)
+		);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+	}
+
+	@ExceptionHandler(MomentNotEditableException.class)
+	public ResponseEntity<ErrorResponse> handleMomentNotEditable(
+		MomentNotEditableException ex, WebRequest request) {
+
+		String timezone = request.getHeader("X-Timezone");
+		ZoneId zoneId = timezone != null ? ZoneId.of(timezone) : ZoneId.of("UTC");
+
+		ErrorResponse error = new ErrorResponse(
+			"MOMENT_NOT_EDITABLE",
+			ex.getMessage(),
+			TimezoneUtil.formatToUserTimezone(Instant.now(), zoneId)
+		);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+	}
+
+	@ExceptionHandler(EditWindowExpiredException.class)
+	public ResponseEntity<ErrorResponse> handleEditWindowExpired(
+		EditWindowExpiredException ex, WebRequest request) {
+
+		String timezone = request.getHeader("X-Timezone");
+		ZoneId zoneId = timezone != null ? ZoneId.of(timezone) : ZoneId.of("UTC");
+
+		ErrorResponse error = new ErrorResponse(
+			"EDIT_WINDOW_EXPIRED",
+			ex.getMessage(),
+			TimezoneUtil.formatToUserTimezone(Instant.now(), zoneId)
+		);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+	}
+
+	@ExceptionHandler(InvalidReasonException.class)
+	public ResponseEntity<ErrorResponse> handleInvalidReason(
+		InvalidReasonException ex, WebRequest request) {
+
+		String timezone = request.getHeader("X-Timezone");
+		ZoneId zoneId = timezone != null ? ZoneId.of(timezone) : ZoneId.of("UTC");
+
+		ErrorResponse error = new ErrorResponse(
+			"INVALID_REASON",
+			ex.getMessage(),
+			TimezoneUtil.formatToUserTimezone(Instant.now(), zoneId)
+		);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ErrorResponse> handleIllegalArgument(
+		IllegalArgumentException ex, WebRequest request) {
+
+		String timezone = request.getHeader("X-Timezone");
+		ZoneId zoneId = timezone != null ? ZoneId.of(timezone) : ZoneId.of("UTC");
+
+		ErrorResponse error = new ErrorResponse(
+			"INVALID_ARGUMENT",
+			ex.getMessage(),
+			TimezoneUtil.formatToUserTimezone(Instant.now(), zoneId)
+		);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+	}
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ErrorResponse> handleGenericException(
+		Exception ex, WebRequest request) {
+
+		String timezone = request.getHeader("X-Timezone");
+		ZoneId zoneId = timezone != null ? ZoneId.of(timezone) : ZoneId.of("UTC");
+
+		ErrorResponse error = new ErrorResponse(
+			"INTERNAL_SERVER_ERROR",
+			"An unexpected error occurred: " + ex.getMessage(),
+			TimezoneUtil.formatToUserTimezone(Instant.now(), zoneId)
+		);
+
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+	}
 }

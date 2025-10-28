@@ -81,19 +81,5 @@ public class UserRestController {
 		}
 	}
 
-	@PostMapping
-	@Operation(summary = "새 사용자 생성", description = "새로운 사용자를 생성합니다.")
-	public ResponseEntity<Void> createUser(@Parameter(description = "사용자 정보") @RequestBody User user) {
-		if (isValidUser(user)) {
-			boolean isCreated = userService.createUser(user);
-			if (isCreated) {
-				return new ResponseEntity<>(HttpStatus.CREATED);
-			}
-		}
-		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-	}
-
-	private boolean isValidUser(User user) {
-		return user != null;
-	}
+	// POST endpoint removed - user creation only via /auth/verify
 }

@@ -1,5 +1,7 @@
 package com.zerogravity.myapp.controller;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +47,7 @@ public class AuthController {
 	 */
 	@PostMapping("/verify")
 	@Operation(summary = "OAuth 사용자 검증 및 JWT 발급", description = "NextAuth에서 OAuth 로그인 후 호출하는 엔드포인트. 사용자 정보를 검증하고 백엔드 JWT를 발급합니다.")
-	public ResponseEntity<AuthResponse> verifyAndCreateUser(@RequestBody User oauthUser) {
+	public ResponseEntity<AuthResponse> verifyAndCreateUser(@RequestBody User oauthUser, HttpServletResponse response) {
 		try {
 			// Validate input
 			if (oauthUser == null || oauthUser.getProviderId() == null || oauthUser.getProvider() == null) {
@@ -84,9 +86,19 @@ public class AuthController {
 			// 4. Generate JWT token (1-hour expiration)
 			String jwtToken = jwtUtil.createJwt(user.getUserId(), 3600000L);
 
-			// 5. Return response
-			AuthResponse response = new AuthResponse(jwtToken);
-			return ResponseEntity.ok(response);
+			// 5. Set JWT as HttpOnly cookie
+			Cookie cookie = new Cookie("token", jwtToken);
+			cookie.setHttpOnly(true);        // JS cannot access
+			cookie.setSecure(true);          // HTTPS only (production)
+			cookie.setPath("/");             // All paths
+			cookie.setMaxAge(3600);          // 1 hour (seconds)
+			cookie.setAttribute("SameSite", "Lax");  // CSRF protection
+			
+			response.addCookie(cookie);
+
+			// Response body is only success message
+			AuthResponse authResponse = new AuthResponse(true, "Authentication successful");
+			return ResponseEntity.ok(authResponse);
 
 		} catch (Exception e) {
 			System.err.println("[AuthController] Error during OAuth verification: " + e.getMessage());

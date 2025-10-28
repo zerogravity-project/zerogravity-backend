@@ -1,10 +1,15 @@
 package com.zerogravity.myapp.model.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.sql.Timestamp;
 
 @Schema(description = "사용자 정보")
 public class User {
 	@Schema(description = "사용자 ID (내부, Snowflake ID)", example = "1234567890123456789")
+	@JsonSerialize(using = ToStringSerializer.class)
 	private Long userId;
 
 	@Schema(description = "OAuth 제공자 ID", example = "123456789")
@@ -22,11 +27,17 @@ public class User {
 	@Schema(description = "프로필 이미지 URL", example = "https://example.com/profiles/daisy.jpg")
 	private String image;
 
+	@Schema(description = "삭제 여부", example = "false")
+	private Boolean isDeleted;
+
+	@Schema(description = "삭제 시간", example = "2021-12-01T12:00:00Z")
+	private Timestamp deletedAt;
+
 	@Schema(description = "생성 시간", example = "2021-10-01T12:00:00Z")
-	private String createdTime;
+	private Timestamp createdTime;
 
 	@Schema(description = "업데이트 시간", example = "2021-12-01T12:00:00Z")
-	private String updatedTime;
+	private Timestamp updatedTime;
 
 	public User() {
 	}
@@ -88,26 +99,42 @@ public class User {
 		this.image = image;
 	}
 
-	public String getCreatedTime() {
+	public Boolean getIsDeleted() {
+		return isDeleted;
+	}
+
+	public void setIsDeleted(Boolean isDeleted) {
+		this.isDeleted = isDeleted;
+	}
+
+	public Timestamp getDeletedAt() {
+		return deletedAt;
+	}
+
+	public void setDeletedAt(Timestamp deletedAt) {
+		this.deletedAt = deletedAt;
+	}
+
+	public Timestamp getCreatedTime() {
 		return createdTime;
 	}
 
-	public void setCreatedTime(String createdTime) {
+	public void setCreatedTime(Timestamp createdTime) {
 		this.createdTime = createdTime;
 	}
 
-	public String getUpdatedTime() {
+	public Timestamp getUpdatedTime() {
 		return updatedTime;
 	}
 
-	public void setUpdatedTime(String updatedTime) {
+	public void setUpdatedTime(Timestamp updatedTime) {
 		this.updatedTime = updatedTime;
 	}
 
 	@Override
 	public String toString() {
 		return "User [userId=" + userId + ", providerId=" + providerId + ", provider=" + provider + ", email="
-				+ email + ", name=" + name + ", image=" + image + ", createdTime=" + createdTime + ", updatedTime="
-				+ updatedTime + "]";
+				+ email + ", name=" + name + ", image=" + image + ", isDeleted=" + isDeleted + ", deletedAt="
+				+ deletedAt + ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
 	}
 }

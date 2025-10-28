@@ -1,164 +1,181 @@
 package com.zerogravity.myapp.controller;
 
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.List;
-
+import com.zerogravity.myapp.model.dto.*;
+import com.zerogravity.myapp.model.service.EmotionRecordService;
 import com.zerogravity.myapp.security.AuthUserId;
+import com.zerogravity.myapp.util.TimezoneUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import com.zerogravity.myapp.model.dto.EmotionRecord;
-import com.zerogravity.myapp.model.service.DailyChartService;
-import com.zerogravity.myapp.model.service.EmotionRecordService;
-import com.zerogravity.myapp.model.service.PeriodicChartService;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api-zerogravity/emotions")
-@Tag(name = "Emotion Record Management", description = "감정 기록 및 통계 관리 API")
+@Tag(name = "Emotion Record Management", description = "감정 기록 관리 API")
 public class EmotionRecordRestController {
 
-    private final EmotionRecordService emotionRecordService;
-    private final DailyChartService dailyChartService;
-    private final PeriodicChartService periodicChartService;
+	private final EmotionRecordService emotionRecordService;
 
-    @Autowired
-    public EmotionRecordRestController(EmotionRecordService emotionRecordService,
-                                                 DailyChartService dailyChartService,
-                                                 PeriodicChartService periodicChartService) {
-        this.emotionRecordService = emotionRecordService;
-        this.dailyChartService = dailyChartService;
-        this.periodicChartService = periodicChartService;
-    }
+	@Autowired
+	public EmotionRecordRestController(EmotionRecordService emotionRecordService) {
+		this.emotionRecordService = emotionRecordService;
+	}
 
-    @GetMapping("/records")
-    @Operation(summary = "감정 기록 조회 (월/주 단위)", description = "월 단위 또는 주 단위로 감정 기록을 조회합니다. week 파라미터가 있으면 주 단위, 없으면 월 단위입니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 파라미터")
-    })
-    public ResponseEntity<?> getEmotionRecords(
-            @AuthUserId Long userId,
-            @RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
-            @RequestParam int year,
-            @RequestParam int month,
-            @RequestParam(required = false) Integer week
-    ) {
-        List<EmotionRecord> records;
+	@PostMapping("/records")
+	@Operation(summary = "감정 기록 생성", description = "새로운 감정 기록을 생성합니다. Daily 타입은 하루에 한 번만 생성 가능합니다.")
+	@ApiResponses(value = {
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "감정 기록 생성 성공"),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청 (Daily 중복, 잘못된 이유 등)")
+	})
+	public ResponseEntity<?> createEmotionRecord(
+		@AuthUserId Long userId,
+		@RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
+		@RequestBody CreateEmotionRecordRequest request
+	) {
+		try {
+			ZoneId timezone = ZoneId.of(clientTimezone);
 
-        if (week != null) {
-            // 주 단위 조회
-            records = emotionRecordService.getEmotionRecordByYearMonthWeek(userId, year, month, week);
-        } else {
-            // 월 단위 조회
-            records = emotionRecordService.getEmotionRecordByYearAndMonth(userId, year, month);
-        }
+			Long emotionRecordId = emotionRecordService.createEmotionRecord(
+				userId,
+				request.getEmotionId(),
+				request.getEmotionRecordType(),
+				request.getEmotionReasons(),
+				request.getDiaryEntry(),
+				timezone
+			);
 
-        return new ResponseEntity<>(records, HttpStatus.OK);
-    }
+			Map<String, Object> responseData = new HashMap<>();
+			responseData.put("emotionRecordId", String.valueOf(emotionRecordId));
 
-    @GetMapping("/records/date/{date}")
-    @Operation(summary = "특정 날짜 감정 기록 상세보기", description = "특정 날짜의 감정 기록을 모든 정보(다이어리 포함)와 함께 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 날짜 형식")
-    })
-    public ResponseEntity<?> getEmotionRecordByDate(
-            @AuthUserId Long userId,
-            @RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
-            @PathVariable String date
-    ) {
-        try {
-            LocalDate targetDate = LocalDate.parse(date);
-            List<EmotionRecord> records = emotionRecordService.getEmotionRecordByDate(userId, targetDate);
-            return new ResponseEntity<>(records, HttpStatus.OK);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Invalid date format. Use YYYY-MM-DD");
-        }
-    }
+			ApiResponse<Map<String, Object>> response = new ApiResponse<>(
+				responseData,
+				TimezoneUtil.formatToUserTimezone(Instant.now(), timezone)
+			);
 
-    @Transactional
-    @PostMapping("/records")
-    @Operation(summary = "감정 기록 생성 및 통계 생성 또는 업데이트", description = "감정 기록을 생성함과 동시에 통계 기록을 생성 또는 업데이트 합니다. X-Timezone 헤더에 클라이언트의 브라우저 타임존을 전달하면 자동으로 변환됩니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "감정 기록 생성 및 통계 생성 또는 업데이트 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청으로 인한 감정 기록 생성 및 통계 생성 또는 업데이트 실패")
-    })
-    public ResponseEntity<?> createAndManageRecords(
-            @AuthUserId Long userId,
-            @RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
-            @RequestBody EmotionRecord emotionRecord
-    ) {
-        try {
-            // 클라이언트 타임존 검증
-            ZoneId zoneId = ZoneId.of(clientTimezone);
+			return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		} catch (Exception e) {
+			// GlobalExceptionHandler will handle specific exceptions
+			throw e;
+		}
+	}
 
-            // userId 설정
-            emotionRecord.setUserId(userId);
+	@GetMapping("/records")
+	@Operation(summary = "감정 기록 조회", description = "특정 기간의 감정 기록을 Daily/Moment로 분리하여 조회합니다.")
+	@ApiResponses(value = {
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 파라미터")
+	})
+	public ResponseEntity<?> getEmotionRecords(
+		@AuthUserId Long userId,
+		@RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
+		@RequestParam String startDateTime,
+		@RequestParam String endDateTime
+	) {
+		try {
+			ZoneId timezone = ZoneId.of(clientTimezone);
 
-            // 요청의 로컬 시간을 UTC로 변환
-            Timestamp createdTime = emotionRecord.getCreatedTime();
-            if (createdTime != null) {
-                LocalDateTime localTime = createdTime.toLocalDateTime();
-                ZonedDateTime zonedTime = localTime.atZone(zoneId);
-                Timestamp utcTime = Timestamp.from(zonedTime.toInstant());
-                emotionRecord.setCreatedTime(utcTime);
-            }
+			// Parse user input datetime strings to UTC Instant
+			Instant periodStart = TimezoneUtil.parseToUtc(startDateTime, timezone);
+			Instant periodEnd = TimezoneUtil.parseToUtc(endDateTime, timezone);
 
-            int createDailyRecord = emotionRecordService.createEmotionRecord(emotionRecord);
-            Timestamp savedTime = emotionRecordService.getCreatedTimeByEmotionRecordId(emotionRecord.getEmotionRecordId());
+			// Get records
+			List<EmotionRecord> records = emotionRecordService.getEmotionRecordByPeriodAndUserId(
+				userId, periodStart, periodEnd
+			);
 
-            if (createDailyRecord == 0) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            } else {
-                boolean dailyChartUpdated = dailyChartService.createOrModifyDailyChart(emotionRecord, savedTime);
-                if (!dailyChartUpdated) {
-                    throw new RuntimeException("Failed to update or create daily chart");
-                }
+			// Separate into daily and moment
+			List<GetEmotionRecordsResponse.EmotionRecordDetail> daily = new ArrayList<>();
+			List<GetEmotionRecordsResponse.EmotionRecordDetail> moment = new ArrayList<>();
 
-                boolean periodicChartUpdated = periodicChartService.createOrModifyPeriodicChart(emotionRecord, savedTime);
-                if (!periodicChartUpdated) {
-                    throw new RuntimeException("Failed to update or create periodic chart");
-                }
-            }
+			for (EmotionRecord record : records) {
+				GetEmotionRecordsResponse.EmotionRecordDetail detail = new GetEmotionRecordsResponse.EmotionRecordDetail(
+					String.valueOf(record.getEmotionRecordId()),
+					record.getEmotionId(),
+					getEmotionType(record.getEmotionId()),
+					record.getEmotionReasons(),
+					record.getDiaryEntry(),
+					TimezoneUtil.formatToUserTimezone(record.getCreatedTime().toInstant(), timezone)
+				);
 
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Invalid timezone: " + e.getMessage());
-        }
-    }
+				if (record.getEmotionRecordType() == EmotionRecord.Type.DAILY) {
+					daily.add(detail);
+				} else {
+					moment.add(detail);
+				}
+			}
 
-    @Transactional
-    @PutMapping("/records/{emotionRecordId}")
-    @Operation(summary = "감정 기록 업데이트", description = "감정 기록을 업데이트를 합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "감정 기록 업데이트 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청으로 인해 감정 기록 업데이트 실패"),
-            @ApiResponse(responseCode = "401", description = "인증 실패")
-    })
-    public ResponseEntity<?> modifyEmotionRecord(
-            @AuthUserId Long userId,
-            @PathVariable("emotionRecordId") String emotionRecordId,
-            @RequestBody EmotionRecord emotionRecord
-    ) {
-        // userId 설정 (사용자의 감정 기록만 수정 가능)
-        emotionRecord.setUserId(userId);
+			GetEmotionRecordsResponse data = new GetEmotionRecordsResponse(daily, moment);
+			ApiResponse<GetEmotionRecordsResponse> response = new ApiResponse<>(
+				data,
+				TimezoneUtil.formatToUserTimezone(Instant.now(), timezone)
+			);
+			return ResponseEntity.ok(response);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Invalid datetime format or timezone: " + e.getMessage());
+		}
+	}
 
-        if (emotionRecordService.updateEmotionRecord(emotionRecord)) {
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
+	@PutMapping("/records/{emotionRecordId}")
+	@Operation(summary = "감정 기록 수정", description = "감정 기록을 수정합니다. Moment 타입은 수정 불가하며, Daily는 생성 후 24시간 이내에만 수정 가능합니다.")
+	@ApiResponses(value = {
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "수정 성공"),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "수정 불가 (Moment 타입, 24시간 초과)"),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "기록을 찾을 수 없음")
+	})
+	public ResponseEntity<?> updateEmotionRecord(
+		@AuthUserId Long userId,
+		@PathVariable Long emotionRecordId,
+		@RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
+		@RequestBody UpdateEmotionRecordRequest request
+	) {
+		try {
+			ZoneId timezone = ZoneId.of(clientTimezone);
+
+			boolean updated = emotionRecordService.updateEmotionRecord(
+				userId,
+				emotionRecordId,
+				request.getEmotionId(),
+				request.getEmotionReasons(),
+				request.getDiaryEntry()
+			);
+
+			if (updated) {
+				ApiResponse<Void> response = new ApiResponse<>(
+					null,
+					TimezoneUtil.formatToUserTimezone(Instant.now(), timezone)
+				);
+				return ResponseEntity.ok(response);
+			} else {
+				throw new IllegalArgumentException("Emotion record not found");
+			}
+		} catch (Exception e) {
+			// GlobalExceptionHandler will handle specific exceptions
+			throw e;
+		}
+	}
+
+	// Helper method to get emotion type from ID
+	private String getEmotionType(Integer emotionId) {
+		switch (emotionId) {
+			case 0: return "VERY_NEGATIVE";
+			case 1: return "NEGATIVE";
+			case 2: return "MID_NEGATIVE";
+			case 3: return "NORMAL";
+			case 4: return "MID_POSITIVE";
+			case 5: return "POSITIVE";
+			case 6: return "VERY_POSITIVE";
+			default: return "UNKNOWN";
+		}
+	}
 }

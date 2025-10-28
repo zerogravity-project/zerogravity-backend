@@ -2,32 +2,40 @@ package com.zerogravity.myapp.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * OAuth authentication response
- * Contains backend JWT token for NextAuth integration
- */
 @Schema(description = "OAuth 인증 응답")
 public class AuthResponse {
-	@Schema(description = "백엔드 JWT 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-	private String token;
+	@Schema(description = "인증 성공 여부", example = "true")
+	private boolean success;
+	
+	@Schema(description = "응답 메시지", example = "Authentication successful")
+	private String message;
 
 	public AuthResponse() {
 	}
 
-	public AuthResponse(String token) {
-		this.token = token;
+	public AuthResponse(boolean success, String message) {
+		this.success = success;
+		this.message = message;
 	}
 
-	public String getToken() {
-		return token;
+	public boolean isSuccess() {
+		return success;
 	}
 
-	public void setToken(String token) {
-		this.token = token;
+	public void setSuccess(boolean success) {
+		this.success = success;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
 	}
 
 	@Override
 	public String toString() {
-		return "AuthResponse [token=" + token + "]";
+		return "AuthResponse [success=" + success + ", message=" + message + "]";
 	}
 }

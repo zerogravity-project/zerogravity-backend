@@ -7,17 +7,20 @@ import org.springframework.transaction.annotation.Transactional;
 import com.zerogravity.myapp.model.dao.UserDao;
 import com.zerogravity.myapp.model.dto.User;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+
 @Service
 public class UserServiceImpl implements UserService {
 	private final UserDao userDao;
-	
+
 	@Autowired
 	public UserServiceImpl(UserDao userDao) {
 		this.userDao = userDao;
 	}
 
 	@Override
-	public User getUserByUserId(long userId) {
+	public User getUserByUserId(Long userId) {
 		return userDao.selectUserByUserId(userId);
 	}
 
@@ -30,26 +33,22 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public boolean createUser(User user) {
 		int userResult = userDao.insertUser(user);
-		if(userResult == 1) {
-			return true;
-		}
-		return false;
-	}
-	
-	@Override
-	@Transactional
-	public boolean modifyUser(User user) {
-		int userResult = userDao.updateUser(user);
-		if(userResult == 1) {
-			return true;
-		}
-		return false;
+		return userResult == 1;
 	}
 
 	@Override
 	@Transactional
-	public boolean removeUser(long userId) {
-		int result = userDao.deleteUser(userId);
+	public boolean modifyUser(User user) {
+		int userResult = userDao.updateUser(user);
+		return userResult == 1;
+	}
+
+	@Override
+	@Transactional
+	public boolean removeUser(Long userId) {
+		// Soft delete
+		Timestamp deletedAt = Timestamp.from(Instant.now());
+		int result = userDao.softDeleteUser(userId, deletedAt);
 		return result == 1;
 	}
 
