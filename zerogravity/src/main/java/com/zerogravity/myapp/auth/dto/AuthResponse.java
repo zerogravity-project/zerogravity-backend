@@ -1,6 +1,7 @@
 package com.zerogravity.myapp.auth.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 
 @Schema(description = "OAuth Authentication Response")
 public class AuthResponse {
@@ -12,6 +13,9 @@ public class AuthResponse {
 
 	@Schema(description = "Flag indicating if user is newly created (needs consent)", example = "true")
 	private boolean isNewUser;
+
+	@Schema(description = "User consent information", example = "{\"termsAgreed\": true, \"aiAnalysisConsent\": false}")
+	private Map<String, Object> consents;
 
 	public AuthResponse() {
 	}
@@ -26,6 +30,13 @@ public class AuthResponse {
 		this.success = success;
 		this.message = message;
 		this.isNewUser = isNewUser;
+	}
+
+	public AuthResponse(boolean success, String message, boolean isNewUser, Map<String, Object> consents) {
+		this.success = success;
+		this.message = message;
+		this.isNewUser = isNewUser;
+		this.consents = consents;
 	}
 
 	public boolean isSuccess() {
@@ -52,8 +63,16 @@ public class AuthResponse {
 		isNewUser = newUser;
 	}
 
+	public Map<String, Object> getConsents() {
+		return consents;
+	}
+
+	public void setConsents(Map<String, Object> consents) {
+		this.consents = consents;
+	}
+
 	@Override
 	public String toString() {
-		return "AuthResponse [success=" + success + ", message=" + message + ", isNewUser=" + isNewUser + "]";
+		return "AuthResponse [success=" + success + ", message=" + message + ", isNewUser=" + isNewUser + ", consents=" + consents + "]";
 	}
 }

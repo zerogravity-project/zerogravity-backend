@@ -44,18 +44,28 @@ public class UserRestController {
 
 	@GetMapping("/me")
 	@Operation(summary = "Get User Information", description = "Retrieve information of the currently logged-in user.")
-	public ResponseEntity<?> getProfile(@AuthUserId Long userId) {
-		User user = userService.getUserByUserId(userId);
-		if (user != null) {
-			Map<String, Object> userProfile = Map.of(
-					"name", user.getName(),
-					"image", user.getImage(),
-					"email", user.getEmail(),
-					"provider", user.getProvider()
-			);
-			return new ResponseEntity<>(userProfile, HttpStatus.OK);
-		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	public ResponseEntity<?> getProfile(
+		@AuthUserId Long userId,
+		@RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone
+	) {
+		try {
+			User user = userService.getUserByUserId(userId);
+			if (user != null) {
+				ZoneId timezone = ZoneId.of(clientTimezone);
+
+				Map<String, Object> userProfile = new java.util.LinkedHashMap<>();
+				userProfile.put("name", user.getName());
+				userProfile.put("image", user.getImage());
+				userProfile.put("email", user.getEmail());
+				userProfile.put("provider", user.getProvider());
+				userProfile.put("consents", buildConsentsMap(user, timezone));
+
+				return new ResponseEntity<>(userProfile, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to get user profile: " + e.getMessage());
 		}
 	}
 
@@ -112,8 +122,14 @@ public class UserRestController {
 			// Update consent
 			boolean updated = userService.updateConsent(userId, request);
 			if (updated) {
-				ApiResponse<Void> response = new ApiResponse<>(
-					null,
+				// Fetch updated user to return current consent state
+				User updatedUser = userService.getUserByUserId(userId);
+				Map<String, Object> consentsData = Map.of(
+					"consents", buildConsentsMap(updatedUser, timezone)
+				);
+
+				ApiResponse<Map<String, Object>> response = new ApiResponse<>(
+					consentsData,
 					TimezoneUtil.formatToUserTimezone(Instant.now(), timezone)
 				);
 				return ResponseEntity.ok(response);
@@ -125,6 +141,53 @@ public class UserRestController {
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to update consent: " + e.getMessage());
 		}
+	}
+
+	/**
+	 * Helper method to build consent information map from User object
+	 * @param user User object with consent fields
+	 * @param timezone User's timezone for timestamp formatting
+	 * @return Map with all consent fields and timestamps
+	 */
+	private Map<String, Object> buildConsentsMap(User user, ZoneId timezone) {
+		Map<String, Object> consents = new java.util.LinkedHashMap<>();
+
+		// Terms agreement
+		consents.put("termsAgreed", user.getTermsAgreed() != null ? user.getTermsAgreed() : false);
+		if (user.getTermsAgreedAt() != null) {
+			consents.put("termsAgreedAt", TimezoneUtil.formatToUserTimezone(user.getTermsAgreedAt().toInstant(), timezone));
+		} else {
+			consents.put("termsAgreedAt", null);
+		}
+
+		// Privacy agreement
+		consents.put("privacyAgreed", user.getPrivacyAgreed() != null ? user.getPrivacyAgreed() : false);
+		if (user.getPrivacyAgreedAt() != null) {
+			consents.put("privacyAgreedAt", TimezoneUtil.formatToUserTimezone(user.getPrivacyAgreedAt().toInstant(), timezone));
+		} else {
+			consents.put("privacyAgreedAt", null);
+		}
+
+		// Sensitive data consent
+		consents.put("sensitiveDataConsent", user.getSensitiveDataConsent() != null ? user.getSensitiveDataConsent() : false);
+		if (user.getSensitiveDataConsentAt() != null) {
+			consents.put("sensitiveDataConsentAt", TimezoneUtil.formatToUserTimezone(user.getSensitiveDataConsentAt().toInstant(), timezone));
+		} else {
+			consents.put("sensitiveDataConsentAt", null);
+		}
+
+		// AI analysis consent
+		consents.put("aiAnalysisConsent", user.getAiAnalysisConsent() != null ? user.getAiAnalysisConsent() : false);
+		if (user.getAiAnalysisConsentAt() != null) {
+			consents.put("aiAnalysisConsentAt", TimezoneUtil.formatToUserTimezone(user.getAiAnalysisConsentAt().toInstant(), timezone));
+		} else {
+			consents.put("aiAnalysisConsentAt", null);
+		}
+
+		// Consent version
+		consents.put("consentVersion", user.getConsentVersion() != null ? user.getConsentVersion() : "v1.0");
+
+		return consents;
 	}
 
 	// POST endpoint removed - user creation only via /auth/verify

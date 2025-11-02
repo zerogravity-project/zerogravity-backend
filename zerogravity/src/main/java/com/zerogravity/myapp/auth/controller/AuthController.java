@@ -15,9 +15,13 @@ import com.zerogravity.myapp.user.dto.User;
 import com.zerogravity.myapp.user.service.UserService;
 import com.zerogravity.myapp.common.security.JWTUtil;
 import com.zerogravity.myapp.common.security.SnowflakeIdService;
+import com.zerogravity.myapp.common.util.TimezoneUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Map;
 
 /**
  * Authentication Controller for OAuth verification and JWT generation
@@ -100,8 +104,11 @@ public class AuthController {
 
 			response.addCookie(cookie);
 
+			// Build consents map with UTC timezone (frontend will receive and handle timezone conversion)
+			Map<String, Object> consents = buildConsentsMap(user);
+
 			// Response with isNewUser flag for frontend to show consent screen
-			AuthResponse authResponse = new AuthResponse(true, "Authentication successful", isNewUser);
+			AuthResponse authResponse = new AuthResponse(true, "Authentication successful", isNewUser, consents);
 			return ResponseEntity.ok(authResponse);
 
 		} catch (Exception e) {
@@ -109,5 +116,52 @@ public class AuthController {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
+	}
+
+	/**
+	 * Helper method to build consent information map from User object
+	 * @param user User object with consent fields
+	 * @return Map with all consent fields and timestamps (formatted as UTC)
+	 */
+	private Map<String, Object> buildConsentsMap(User user) {
+		Map<String, Object> consents = new java.util.LinkedHashMap<>();
+		ZoneId utcTimezone = ZoneId.of("UTC");
+
+		// Terms agreement
+		consents.put("termsAgreed", user.getTermsAgreed() != null ? user.getTermsAgreed() : false);
+		if (user.getTermsAgreedAt() != null) {
+			consents.put("termsAgreedAt", TimezoneUtil.formatToUserTimezone(user.getTermsAgreedAt().toInstant(), utcTimezone));
+		} else {
+			consents.put("termsAgreedAt", null);
+		}
+
+		// Privacy agreement
+		consents.put("privacyAgreed", user.getPrivacyAgreed() != null ? user.getPrivacyAgreed() : false);
+		if (user.getPrivacyAgreedAt() != null) {
+			consents.put("privacyAgreedAt", TimezoneUtil.formatToUserTimezone(user.getPrivacyAgreedAt().toInstant(), utcTimezone));
+		} else {
+			consents.put("privacyAgreedAt", null);
+		}
+
+		// Sensitive data consent
+		consents.put("sensitiveDataConsent", user.getSensitiveDataConsent() != null ? user.getSensitiveDataConsent() : false);
+		if (user.getSensitiveDataConsentAt() != null) {
+			consents.put("sensitiveDataConsentAt", TimezoneUtil.formatToUserTimezone(user.getSensitiveDataConsentAt().toInstant(), utcTimezone));
+		} else {
+			consents.put("sensitiveDataConsentAt", null);
+		}
+
+		// AI analysis consent
+		consents.put("aiAnalysisConsent", user.getAiAnalysisConsent() != null ? user.getAiAnalysisConsent() : false);
+		if (user.getAiAnalysisConsentAt() != null) {
+			consents.put("aiAnalysisConsentAt", TimezoneUtil.formatToUserTimezone(user.getAiAnalysisConsentAt().toInstant(), utcTimezone));
+		} else {
+			consents.put("aiAnalysisConsentAt", null);
+		}
+
+		// Consent version
+		consents.put("consentVersion", user.getConsentVersion() != null ? user.getConsentVersion() : "v1.0");
+
+		return consents;
 	}
 }
