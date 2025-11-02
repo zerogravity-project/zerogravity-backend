@@ -1,6 +1,7 @@
 package com.zerogravity.myapp.user.dao;
 
 import com.zerogravity.myapp.user.dto.User;
+import com.zerogravity.myapp.user.dto.ConsentUpdateRequest;
 import org.apache.ibatis.annotations.Param;
 
 import java.sql.Timestamp;
@@ -54,5 +55,13 @@ public interface UserDao {
 	 * @return Number of rows affected
 	 */
 	int deleteUser(@Param("userId") Long userId);
+
+	/**
+	 * Update user consent information
+	 * @param userId User ID
+	 * @param request Consent update request
+	 * @return Number of rows affected
+	 */
+	int updateConsent(@Param("userId") Long userId, @Param("request") ConsentUpdateRequest request);
 
 }

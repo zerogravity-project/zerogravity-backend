@@ -1,6 +1,7 @@
 package com.zerogravity.myapp.user.service;
 
 import com.zerogravity.myapp.user.dto.User;
+import com.zerogravity.myapp.user.dto.ConsentUpdateRequest;
 
 /**
  * Service interface for user management
@@ -43,5 +44,13 @@ public interface UserService {
 	 * @return true if deletion successful, false otherwise
 	 */
 	public abstract boolean removeUser(Long userId);
+
+	/**
+	 * Update user consent information
+	 * @param userId User ID
+	 * @param request Consent update request
+	 * @return true if update successful, false otherwise
+	 */
+	public abstract boolean updateConsent(Long userId, ConsentUpdateRequest request);
 
 }
