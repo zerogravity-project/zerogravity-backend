@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zerogravity.myapp.ai.dao.AIAnalysisCacheDao;
 import com.zerogravity.myapp.ai.dto.AIAnalysisCache;
 import com.zerogravity.myapp.ai.dto.AIAnalysisResponse;
+import com.zerogravity.myapp.ai.dto.DiarySummaryResponse;
 import com.zerogravity.myapp.ai.dto.SummaryData;
 import com.zerogravity.myapp.ai.exception.AIAnalysisCacheException;
 import com.zerogravity.myapp.chart.dto.ChartCountResponse;
@@ -189,6 +190,47 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
 				return TimezoneUtil.getEndOfYear(endDate, timezone);
 			default:
 				throw new IllegalArgumentException("Invalid period: " + period);
+		}
+	}
+
+	/**
+	 * Get diary summary from emotion records in a period
+	 * Requires at least 3 diary entries to generate summary
+	 * Results are cached for 24 hours
+	 */
+	@Override
+	public DiarySummaryResponse getDiarySummary(Long userId, String startDateStr, String endDateStr, ZoneId timezone) {
+		try {
+			// Parse dates
+			LocalDate startDate = LocalDate.parse(startDateStr);
+			LocalDate endDate = LocalDate.parse(endDateStr);
+
+			// Convert to UTC instants
+			Instant periodStart = startDate.atStartOfDay(timezone).toInstant();
+			Instant periodEnd = endDate.plusDays(1).atStartOfDay(timezone).toInstant();
+
+			// Get emotion records with diary entries
+			List<EmotionRecord> records = emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
+
+			// Filter records that have diary entries
+			List<String> diaryEntries = records.stream()
+				.filter(r -> r.getDiaryEntry() != null && !r.getDiaryEntry().trim().isEmpty())
+				.map(EmotionRecord::getDiaryEntry)
+				.toList();
+
+			// Check if we have enough entries
+			if (diaryEntries.size() < 3) {
+				throw new IllegalArgumentException("At least 3 diary entries are required to generate a summary. Found: " + diaryEntries.size());
+			}
+
+			// Generate summary using Gemini
+			String summary = geminiService.summarizeDiaries(diaryEntries, 1000);
+
+			return new DiarySummaryResponse(summary, diaryEntries.size());
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to get diary summary: " + e.getMessage(), e);
 		}
 	}
 }

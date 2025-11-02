@@ -275,4 +275,59 @@ public class GeminiServiceImpl implements GeminiService {
 			throw new GeminiApiException("Failed to parse prediction response: " + e.getMessage(), e);
 		}
 	}
+
+	/**
+	 * Summarize diary entries using Gemini API
+	 * Generates a concise summary of multiple diary entries
+	 */
+	@Override
+	public String summarizeDiaries(List<String> diaryEntries, int maxLength) {
+		try {
+			// Build prompt for diary summarization
+			String prompt = buildDiarySummaryPrompt(diaryEntries, maxLength);
+
+			// Call Gemini API
+			GenerateContentResponse response = geminiClient.models.generateContent(
+				MODEL_NAME,
+				prompt,
+				null
+			);
+
+			String responseText = response.text().trim();
+
+			// Trim to max length if needed
+			if (responseText.length() > maxLength) {
+				responseText = responseText.substring(0, maxLength).trim();
+			}
+
+			return responseText;
+		} catch (Exception e) {
+			throw new GeminiApiException("Failed to summarize diaries from Gemini API: " + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * Build prompt for diary summarization
+	 */
+	private String buildDiarySummaryPrompt(List<String> diaryEntries, int maxLength) {
+		StringBuilder prompt = new StringBuilder();
+		prompt.append("You are a personal diary analyst. Summarize the following diary entries in a concise manner.\n\n");
+		prompt.append("Diary Entries:\n");
+		prompt.append("---\n");
+
+		for (int i = 0; i < diaryEntries.size(); i++) {
+			prompt.append(i + 1).append(". ").append(diaryEntries.get(i)).append("\n\n");
+		}
+
+		prompt.append("---\n\n");
+		prompt.append("Please provide a summary of these entries that:\n");
+		prompt.append("1. Captures the main themes and emotional patterns\n");
+		prompt.append("2. Highlights key events and feelings\n");
+		prompt.append("3. Is written in a natural, conversational tone\n");
+		prompt.append("4. Is maximum ").append(maxLength).append(" characters long\n");
+		prompt.append("5. Is in the same language as the diary entries\n\n");
+		prompt.append("Respond with ONLY the summary text, no additional commentary.");
+
+		return prompt.toString();
+	}
 }

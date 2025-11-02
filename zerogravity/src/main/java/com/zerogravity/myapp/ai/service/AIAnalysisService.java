@@ -1,6 +1,7 @@
 package com.zerogravity.myapp.ai.service;
 
 import com.zerogravity.myapp.ai.dto.AIAnalysisResponse;
+import com.zerogravity.myapp.ai.dto.DiarySummaryResponse;
 import java.time.ZoneId;
 
 /**
@@ -21,4 +22,17 @@ public interface AIAnalysisService {
 	 * @return AI analysis response with summary
 	 */
 	AIAnalysisResponse getAnalysis(Long userId, String period, String startDateStr, ZoneId timezone);
+
+	/**
+	 * Get diary summary from emotion records in a period
+	 * Requires at least 3 diary entries to generate summary
+	 * Results are cached for 24 hours
+	 *
+	 * @param userId User ID
+	 * @param startDateStr Start date (YYYY-MM-DD)
+	 * @param endDateStr End date (YYYY-MM-DD)
+	 * @param timezone User's timezone
+	 * @return Diary summary response with AI-generated summary
+	 */
+	DiarySummaryResponse getDiarySummary(Long userId, String startDateStr, String endDateStr, ZoneId timezone);
 }
