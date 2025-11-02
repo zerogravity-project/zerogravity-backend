@@ -48,7 +48,7 @@ public class AIAnalysisRestController {
 	 * @param startDate Start date in ISO 8601 format (YYYY-MM-DD)
 	 * @return AI analysis response with summary
 	 */
-	@GetMapping("/analysis")
+	@GetMapping("/period-analyses")
 	@Operation(
 		summary = "Get AI emotion analysis summary",
 		description = "Returns an AI-generated summary of emotion data for the specified period. " +
@@ -107,7 +107,7 @@ public class AIAnalysisRestController {
 	 * @param request Prediction request with diary entry and optional emotion info
 	 * @return Prediction response with analysis ID and suggestions
 	 */
-	@PostMapping("/predict-emotion")
+	@PostMapping("/emotion-predictions")
 	@Operation(
 		summary = "Predict emotion from diary entry",
 		description = "AI predicts missing emotion information (emotionId and/or emotionReasons) based on diary entry. " +
