@@ -8,6 +8,8 @@ import com.zerogravity.myapp.ai.service.EmotionPredictionService;
 import com.zerogravity.myapp.common.dto.ApiResponse;
 import com.zerogravity.myapp.common.security.AuthUserId;
 import com.zerogravity.myapp.common.util.TimezoneUtil;
+import com.zerogravity.myapp.user.service.UserService;
+import com.zerogravity.myapp.user.dto.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -31,11 +33,14 @@ public class AIAnalysisRestController {
 
 	private final AIAnalysisService aiAnalysisService;
 	private final EmotionPredictionService emotionPredictionService;
+	private final UserService userService;
 
 	public AIAnalysisRestController(AIAnalysisService aiAnalysisService,
-								   EmotionPredictionService emotionPredictionService) {
+								   EmotionPredictionService emotionPredictionService,
+								   UserService userService) {
 		this.aiAnalysisService = aiAnalysisService;
 		this.emotionPredictionService = emotionPredictionService;
+		this.userService = userService;
 	}
 
 	/**
@@ -74,6 +79,12 @@ public class AIAnalysisRestController {
 	) {
 		try {
 			ZoneId timezone = ZoneId.of(clientTimezone);
+
+			// Check AI analysis consent
+			User user = userService.getUserByUserId(userId);
+			if (user == null || !user.getAiAnalysisConsent()) {
+				throw new IllegalArgumentException("AI analysis consent required. Please enable AI analysis consent in your preferences.");
+			}
 
 			// Validate period
 			if (!period.matches("(?i)^(week|month|year)$")) {
@@ -124,6 +135,12 @@ public class AIAnalysisRestController {
 		@RequestBody EmotionPredictionRequest request
 	) {
 		try {
+			// Check AI analysis consent
+			User user = userService.getUserByUserId(userId);
+			if (user == null || !user.getAiAnalysisConsent()) {
+				throw new IllegalArgumentException("AI analysis consent required. Please enable AI analysis consent in your preferences.");
+			}
+
 			// Predict emotion
 			EmotionPredictionResponse predictionResponse = emotionPredictionService.predictEmotion(userId, request);
 

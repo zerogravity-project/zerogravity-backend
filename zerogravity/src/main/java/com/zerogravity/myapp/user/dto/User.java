@@ -39,6 +39,34 @@ public class User {
 	@Schema(description = "Updated time", example = "2021-12-01T12:00:00Z")
 	private Timestamp updatedTime;
 
+	// User Consent Fields
+	@Schema(description = "Terms of service agreement", example = "false")
+	private Boolean termsAgreed;
+
+	@Schema(description = "Terms agreement timestamp", example = "2021-12-01T12:00:00Z")
+	private Timestamp termsAgreedAt;
+
+	@Schema(description = "Privacy policy agreement", example = "false")
+	private Boolean privacyAgreed;
+
+	@Schema(description = "Privacy policy agreement timestamp", example = "2021-12-01T12:00:00Z")
+	private Timestamp privacyAgreedAt;
+
+	@Schema(description = "Sensitive data (emotion) processing consent", example = "false")
+	private Boolean sensitiveDataConsent;
+
+	@Schema(description = "Sensitive data consent timestamp", example = "2021-12-01T12:00:00Z")
+	private Timestamp sensitiveDataConsentAt;
+
+	@Schema(description = "AI analysis feature consent", example = "false")
+	private Boolean aiAnalysisConsent;
+
+	@Schema(description = "AI analysis consent timestamp", example = "2021-12-01T12:00:00Z")
+	private Timestamp aiAnalysisConsentAt;
+
+	@Schema(description = "Consent document version", example = "v1.0")
+	private String consentVersion;
+
 	public User() {
 	}
 
@@ -129,6 +157,78 @@ public class User {
 
 	public void setUpdatedTime(Timestamp updatedTime) {
 		this.updatedTime = updatedTime;
+	}
+
+	public Boolean getTermsAgreed() {
+		return termsAgreed;
+	}
+
+	public void setTermsAgreed(Boolean termsAgreed) {
+		this.termsAgreed = termsAgreed;
+	}
+
+	public Timestamp getTermsAgreedAt() {
+		return termsAgreedAt;
+	}
+
+	public void setTermsAgreedAt(Timestamp termsAgreedAt) {
+		this.termsAgreedAt = termsAgreedAt;
+	}
+
+	public Boolean getPrivacyAgreed() {
+		return privacyAgreed;
+	}
+
+	public void setPrivacyAgreed(Boolean privacyAgreed) {
+		this.privacyAgreed = privacyAgreed;
+	}
+
+	public Timestamp getPrivacyAgreedAt() {
+		return privacyAgreedAt;
+	}
+
+	public void setPrivacyAgreedAt(Timestamp privacyAgreedAt) {
+		this.privacyAgreedAt = privacyAgreedAt;
+	}
+
+	public Boolean getSensitiveDataConsent() {
+		return sensitiveDataConsent;
+	}
+
+	public void setSensitiveDataConsent(Boolean sensitiveDataConsent) {
+		this.sensitiveDataConsent = sensitiveDataConsent;
+	}
+
+	public Timestamp getSensitiveDataConsentAt() {
+		return sensitiveDataConsentAt;
+	}
+
+	public void setSensitiveDataConsentAt(Timestamp sensitiveDataConsentAt) {
+		this.sensitiveDataConsentAt = sensitiveDataConsentAt;
+	}
+
+	public Boolean getAiAnalysisConsent() {
+		return aiAnalysisConsent;
+	}
+
+	public void setAiAnalysisConsent(Boolean aiAnalysisConsent) {
+		this.aiAnalysisConsent = aiAnalysisConsent;
+	}
+
+	public Timestamp getAiAnalysisConsentAt() {
+		return aiAnalysisConsentAt;
+	}
+
+	public void setAiAnalysisConsentAt(Timestamp aiAnalysisConsentAt) {
+		this.aiAnalysisConsentAt = aiAnalysisConsentAt;
+	}
+
+	public String getConsentVersion() {
+		return consentVersion;
+	}
+
+	public void setConsentVersion(String consentVersion) {
+		this.consentVersion = consentVersion;
 	}
 
 	@Override

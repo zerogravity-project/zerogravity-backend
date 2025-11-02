@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.zerogravity.myapp.user.dao.UserDao;
 import com.zerogravity.myapp.user.dto.User;
+import com.zerogravity.myapp.user.dto.ConsentUpdateRequest;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -49,6 +50,13 @@ public class UserServiceImpl implements UserService {
 		// Soft delete
 		Timestamp deletedAt = Timestamp.from(Instant.now());
 		int result = userDao.softDeleteUser(userId, deletedAt);
+		return result == 1;
+	}
+
+	@Override
+	@Transactional
+	public boolean updateConsent(Long userId, ConsentUpdateRequest request) {
+		int result = userDao.updateConsent(userId, request);
 		return result == 1;
 	}
 

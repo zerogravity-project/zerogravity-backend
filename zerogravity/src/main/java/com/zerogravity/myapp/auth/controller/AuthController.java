@@ -60,18 +60,22 @@ public class AuthController {
 				oauthUser.getProvider()
 			);
 
+			// Track if user is new
+			boolean isNewUser = false;
+
 			// 2. Create a new user if it doesn't exist
 			if (user == null) {
 				// Generate Snowflake ID (unique, non-sequential, sortable)
 				long newUserId = snowflakeIdService.generateId();
 				oauthUser.setUserId(newUserId);
 
-				// Create user
+				// Create user with default consent values (all false)
 				boolean created = userService.createUser(oauthUser);
 				if (!created) {
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 				}
 				user = oauthUser;
+				isNewUser = true;
 			} else {
 				// 3. Update user info if the user already exists
 				user.setEmail(oauthUser.getEmail());
@@ -93,11 +97,11 @@ public class AuthController {
 			cookie.setPath("/");             // All paths
 			cookie.setMaxAge(3600);          // 1 hour (seconds)
 			cookie.setAttribute("SameSite", "Lax");  // CSRF protection
-			
+
 			response.addCookie(cookie);
 
-			// Response body is only success message
-			AuthResponse authResponse = new AuthResponse(true, "Authentication successful");
+			// Response with isNewUser flag for frontend to show consent screen
+			AuthResponse authResponse = new AuthResponse(true, "Authentication successful", isNewUser);
 			return ResponseEntity.ok(authResponse);
 
 		} catch (Exception e) {
