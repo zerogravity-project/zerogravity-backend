@@ -10,15 +10,18 @@ CREATE TABLE emotion_record (
     emotion_id INT NOT NULL,
     emotion_record_type ENUM('daily', 'moment') NOT NULL,
     diary_entry TEXT NULL,
+    ai_analysis_id BIGINT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     deleted_at DATETIME NULL,
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
     FOREIGN KEY (emotion_id) REFERENCES emotion(emotion_id),
+    FOREIGN KEY (ai_analysis_id) REFERENCES emotion_ai_analysis(analysis_id) ON DELETE SET NULL,
     INDEX idx_user_created (user_id, created_time),
     INDEX idx_user_deleted (user_id, is_deleted),
-    INDEX idx_user_type_date (user_id, emotion_record_type, created_time)
+    INDEX idx_user_type_date (user_id, emotion_record_type, created_time),
+    INDEX idx_ai_analysis (ai_analysis_id)
 );
 
 # Junction table for emotion reasons (many-to-many relationship)

@@ -43,29 +43,12 @@ public class SnowflakeIdService {
 	}
 
 	/**
-	 * Generate a unique Snowflake ID for user
+	 * Generate a unique Snowflake ID
+	 * Used for users, emotion records, AI analysis, and other entities
 	 *
 	 * @return unique Snowflake ID as BIGINT
 	 */
-	public synchronized long generateUserId() {
-		return generateId();
-	}
-
-	/**
-	 * Generate a unique Snowflake ID for emotion record
-	 *
-	 * @return unique Snowflake ID as BIGINT
-	 */
-	public synchronized long generateEmotionRecordId() {
-		return generateId();
-	}
-
-	/**
-	 * Internal method to generate a unique Snowflake ID
-	 *
-	 * @return unique Snowflake ID as BIGINT
-	 */
-	private long generateId() {
+	public synchronized long generateId() {
 		long timestamp = System.currentTimeMillis();
 
 		if (timestamp < lastTimestamp) {

@@ -63,7 +63,7 @@ public class AuthController {
 			// 2. Create a new user if it doesn't exist
 			if (user == null) {
 				// Generate Snowflake ID (unique, non-sequential, sortable)
-				long newUserId = snowflakeIdService.generateUserId();
+				long newUserId = snowflakeIdService.generateId();
 				oauthUser.setUserId(newUserId);
 
 				// Create user

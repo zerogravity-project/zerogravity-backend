@@ -6,6 +6,8 @@ import com.zerogravity.myapp.emotion.exception.DailyRecordAlreadyExistsException
 import com.zerogravity.myapp.emotion.exception.EditWindowExpiredException;
 import com.zerogravity.myapp.emotion.exception.InvalidReasonException;
 import com.zerogravity.myapp.emotion.exception.MomentNotEditableException;
+import com.zerogravity.myapp.ai.exception.GeminiApiException;
+import com.zerogravity.myapp.ai.exception.AIAnalysisCacheException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -84,6 +86,38 @@ public class GlobalExceptionHandler {
 		);
 
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+	}
+
+	@ExceptionHandler(GeminiApiException.class)
+	public ResponseEntity<ErrorResponse> handleGeminiApiException(
+		GeminiApiException ex, WebRequest request) {
+
+		String timezone = request.getHeader("X-Timezone");
+		ZoneId zoneId = timezone != null ? ZoneId.of(timezone) : ZoneId.of("UTC");
+
+		ErrorResponse error = new ErrorResponse(
+			"GEMINI_API_ERROR",
+			"Failed to generate AI analysis: " + ex.getMessage(),
+			TimezoneUtil.formatToUserTimezone(Instant.now(), zoneId)
+		);
+
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+	}
+
+	@ExceptionHandler(AIAnalysisCacheException.class)
+	public ResponseEntity<ErrorResponse> handleAIAnalysisCacheException(
+		AIAnalysisCacheException ex, WebRequest request) {
+
+		String timezone = request.getHeader("X-Timezone");
+		ZoneId zoneId = timezone != null ? ZoneId.of(timezone) : ZoneId.of("UTC");
+
+		ErrorResponse error = new ErrorResponse(
+			"AI_ANALYSIS_CACHE_ERROR",
+			"Failed to retrieve or cache analysis: " + ex.getMessage(),
+			TimezoneUtil.formatToUserTimezone(Instant.now(), zoneId)
+		);
+
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
 	}
 
 	@ExceptionHandler(IllegalArgumentException.class)
