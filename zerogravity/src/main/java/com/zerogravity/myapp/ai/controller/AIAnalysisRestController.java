@@ -1,6 +1,7 @@
 package com.zerogravity.myapp.ai.controller;
 
 import com.zerogravity.myapp.ai.dto.AIAnalysisResponse;
+import com.zerogravity.myapp.ai.dto.DiarySummaryResponse;
 import com.zerogravity.myapp.ai.dto.EmotionPredictionRequest;
 import com.zerogravity.myapp.ai.dto.EmotionPredictionResponse;
 import com.zerogravity.myapp.ai.service.AIAnalysisService;
@@ -156,6 +157,67 @@ public class AIAnalysisRestController {
 			throw new IllegalArgumentException("Invalid request: " + e.getMessage());
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to predict emotion: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Get diary summary for a specified period
+	 * Summarizes diary entries using AI (requires at least 3 entries)
+	 *
+	 * @param userId Authenticated user ID (from JWT)
+	 * @param clientTimezone User's timezone
+	 * @param startDate Start date in ISO 8601 format (YYYY-MM-DD)
+	 * @param endDate End date in ISO 8601 format (YYYY-MM-DD)
+	 * @return Diary summary response with AI-generated summary
+	 */
+	@GetMapping("/diary-summaries")
+	@Operation(
+		summary = "Get diary summary",
+		description = "Returns an AI-generated summary of diary entries within the specified period. " +
+					"Requires at least 3 diary entries to generate summary."
+	)
+	@ApiResponses(value = {
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Summary generated successfully"),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid parameters or insufficient diary entries"),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized - invalid JWT or no AI consent"),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "AI service error")
+	})
+	public ResponseEntity<?> getDiarySummary(
+		@AuthUserId Long userId,
+		@RequestHeader(value = "X-Timezone", defaultValue = "UTC")
+		@Parameter(description = "User's timezone (e.g., Asia/Seoul, America/New_York)")
+		String clientTimezone,
+		@RequestParam(value = "startDate")
+		@Parameter(description = "Start date in ISO 8601 format (YYYY-MM-DD)")
+		String startDate,
+		@RequestParam(value = "endDate")
+		@Parameter(description = "End date in ISO 8601 format (YYYY-MM-DD)")
+		String endDate
+	) {
+		try {
+			ZoneId timezone = ZoneId.of(clientTimezone);
+
+			// Check AI analysis consent
+			User user = userService.getUserByUserId(userId);
+			if (user == null || !user.getAiAnalysisConsent()) {
+				throw new IllegalArgumentException("AI analysis consent required. Please enable AI analysis consent in your preferences.");
+			}
+
+			// Get diary summary
+			DiarySummaryResponse summaryResponse = aiAnalysisService.getDiarySummary(userId, startDate, endDate, timezone);
+
+			// Wrap in API response
+			ApiResponse<DiarySummaryResponse> apiResponse = new ApiResponse<>(
+				summaryResponse,
+				TimezoneUtil.formatToUserTimezone(Instant.now(), timezone)
+			);
+
+			return ResponseEntity.ok(apiResponse);
+
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("Invalid request: " + e.getMessage());
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to get diary summary: " + e.getMessage());
 		}
 	}
 }

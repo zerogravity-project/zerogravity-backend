@@ -46,4 +46,14 @@ public interface GeminiService {
 	EmotionPredictionResult predictEmotion(String diaryEntry,
 										  Integer providedEmotionId,
 										  List<String> providedReasons);
+
+	/**
+	 * Summarize diary entries using Gemini API
+	 * Generates a concise summary of multiple diary entries
+	 *
+	 * @param diaryEntries List of diary entry texts
+	 * @param maxLength Maximum length of summary in characters
+	 * @return Generated summary text (max length respected)
+	 */
+	String summarizeDiaries(List<String> diaryEntries, int maxLength);
 }
