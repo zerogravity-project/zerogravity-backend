@@ -44,10 +44,11 @@ public interface EmotionRecordService {
 	 * @param emotionReasons List of reasons
 	 * @param diaryEntry Diary entry (nullable)
 	 * @param timezone User's timezone for daily duplicate check
+	 * @param aiAnalysisId AI analysis ID from prediction (nullable)
 	 * @return Created emotion record ID
 	 */
 	Long createEmotionRecord(Long userId, Integer emotionId, String emotionRecordType,
-	                         List<String> emotionReasons, String diaryEntry, ZoneId timezone);
+	                         List<String> emotionReasons, String diaryEntry, ZoneId timezone, Long aiAnalysisId);
 
 	/**
 	 * Update an existing emotion record

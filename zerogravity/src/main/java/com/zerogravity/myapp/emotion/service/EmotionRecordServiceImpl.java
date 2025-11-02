@@ -3,6 +3,8 @@ package com.zerogravity.myapp.emotion.service;
 import com.zerogravity.myapp.emotion.exception.*;
 import com.zerogravity.myapp.emotion.dao.EmotionRecordDao;
 import com.zerogravity.myapp.emotion.dto.EmotionRecord;
+import com.zerogravity.myapp.ai.dao.AIAnalysisCacheDao;
+import com.zerogravity.myapp.ai.service.EmotionPredictionService;
 import com.zerogravity.myapp.common.security.SnowflakeIdService;
 import com.zerogravity.myapp.common.util.TimezoneUtil;
 import org.springframework.stereotype.Service;
@@ -17,10 +19,15 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 
 	private final EmotionRecordDao emotionRecordDao;
 	private final SnowflakeIdService snowflakeIdService;
+	private final AIAnalysisCacheDao aiAnalysisCacheDao;
+	private final EmotionPredictionService emotionPredictionService;
 
-	public EmotionRecordServiceImpl(EmotionRecordDao emotionRecordDao, SnowflakeIdService snowflakeIdService) {
+	public EmotionRecordServiceImpl(EmotionRecordDao emotionRecordDao, SnowflakeIdService snowflakeIdService,
+								   AIAnalysisCacheDao aiAnalysisCacheDao, EmotionPredictionService emotionPredictionService) {
 		this.emotionRecordDao = emotionRecordDao;
 		this.snowflakeIdService = snowflakeIdService;
+		this.aiAnalysisCacheDao = aiAnalysisCacheDao;
+		this.emotionPredictionService = emotionPredictionService;
 	}
 
 	@Override
@@ -41,7 +48,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	@Override
 	@Transactional
 	public Long createEmotionRecord(Long userId, Integer emotionId, String emotionRecordType,
-	                                List<String> emotionReasons, String diaryEntry, ZoneId timezone) {
+	                                List<String> emotionReasons, String diaryEntry, ZoneId timezone, Long aiAnalysisId) {
 		// Validate emotion record type
 		EmotionRecord.Type type;
 		try {
@@ -56,10 +63,11 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 		}
 
 		// Validate emotion reasons
+		// Custom reasons are allowed in addition to predefined ones
 		if (emotionReasons != null) {
 			for (String reason : emotionReasons) {
-				if (!EmotionRecord.Reason.isValid(reason)) {
-					throw new InvalidReasonException(reason);
+				if (reason == null || reason.trim().isEmpty()) {
+					throw new IllegalArgumentException("Emotion reason cannot be empty");
 				}
 			}
 		}
@@ -75,7 +83,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 		}
 
 		// Generate Snowflake ID
-		Long emotionRecordId = snowflakeIdService.generateEmotionRecordId();
+		Long emotionRecordId = snowflakeIdService.generateId();
 
 		// Create emotion record
 		EmotionRecord record = new EmotionRecord();
@@ -85,6 +93,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 		record.setEmotionRecordType(type);
 		record.setDiaryEntry(diaryEntry);
 		record.setCreatedTime(Timestamp.from(Instant.now()));
+		record.setAiAnalysisId(aiAnalysisId);
 
 		int result = emotionRecordDao.createEmotionRecord(record);
 
@@ -93,6 +102,16 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 			for (String reason : emotionReasons) {
 				emotionRecordDao.insertEmotionReason(emotionRecordId, reason);
 			}
+		}
+
+		// Accept AI prediction if analysis was used
+		if (result > 0 && aiAnalysisId != null) {
+			emotionPredictionService.acceptPrediction(userId, aiAnalysisId, emotionRecordId);
+		}
+
+		// Invalidate AI analysis cache for this user
+		if (result > 0) {
+			invalidateAICache(userId, Instant.now());
 		}
 
 		return emotionRecordId;
@@ -126,10 +145,11 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 		}
 
 		// Validate emotion reasons
+		// Custom reasons are allowed in addition to predefined ones
 		if (emotionReasons != null) {
 			for (String reason : emotionReasons) {
-				if (!EmotionRecord.Reason.isValid(reason)) {
-					throw new InvalidReasonException(reason);
+				if (reason == null || reason.trim().isEmpty()) {
+					throw new IllegalArgumentException("Emotion reason cannot be empty");
 				}
 			}
 		}
@@ -152,8 +172,40 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 					emotionRecordDao.insertEmotionReason(emotionRecordId, reason);
 				}
 			}
+
+			// Invalidate AI analysis cache for this user
+			invalidateAICache(userId, createdTime);
 		}
 
 		return updated;
+	}
+
+	/**
+	 * Invalidate AI analysis cache for a user
+	 * Deletes cache entries that cover the date range of the emotion record
+	 *
+	 * @param userId User ID
+	 * @param recordTime Timestamp of the emotion record
+	 */
+	private void invalidateAICache(Long userId, Instant recordTime) {
+		ZoneId utcZone = ZoneId.of("UTC");
+		LocalDate recordDate = recordTime.atZone(utcZone).toLocalDate();
+
+		// Calculate week range
+		LocalDate weekStart = recordDate.minusDays(recordDate.getDayOfWeek().getValue() % 7);
+		LocalDate weekEnd = weekStart.plusDays(6);
+
+		// Calculate month range
+		LocalDate monthStart = recordDate.withDayOfMonth(1);
+		LocalDate monthEnd = recordDate.withDayOfMonth(recordDate.lengthOfMonth());
+
+		// Calculate year range
+		LocalDate yearStart = recordDate.withDayOfYear(1);
+		LocalDate yearEnd = recordDate.withDayOfYear(recordDate.lengthOfYear());
+
+		// Delete caches for all three periods
+		aiAnalysisCacheDao.deleteCacheByUserIdAndDateRange(userId, weekStart, weekEnd);
+		aiAnalysisCacheDao.deleteCacheByUserIdAndDateRange(userId, monthStart, monthEnd);
+		aiAnalysisCacheDao.deleteCacheByUserIdAndDateRange(userId, yearStart, yearEnd);
 	}
 }

@@ -22,6 +22,10 @@ public class EmotionRecord {
 	private EmotionRecord.Type emotionRecordType;
 	private List<String> emotionReasons;
 	private String diaryEntry;
+
+	@JsonSerialize(using = ToStringSerializer.class)
+	private Long aiAnalysisId;  // Reference to emotion_ai_analysis if created via AI
+
 	private Boolean isDeleted;
 	private Timestamp deletedAt;
 	private Timestamp createdTime;
@@ -59,7 +63,8 @@ public class EmotionRecord {
 
 	/**
 	 * Emotion reason enumeration
-	 * Represents reasons for emotions
+	 * Represents predefined reasons for emotions
+	 * Custom reasons are also supported (not part of this enum)
 	 */
 	public enum Reason {
 		HEALTH("Health"),
@@ -101,6 +106,10 @@ public class EmotionRecord {
 			throw new IllegalArgumentException("Unknown emotion reason: " + displayName);
 		}
 
+		/**
+		 * Check if a reason string matches a predefined reason
+		 * Custom reasons will return false but are still valid
+		 */
 		public static boolean isValid(String displayName) {
 			try {
 				fromDisplayName(displayName);
@@ -108,6 +117,15 @@ public class EmotionRecord {
 			} catch (IllegalArgumentException e) {
 				return false;
 			}
+		}
+
+		/**
+		 * Get all predefined reason display names
+		 */
+		public static String[] getAllDisplayNames() {
+			return java.util.Arrays.stream(Reason.values())
+				.map(Reason::getDisplayName)
+				.toArray(String[]::new);
 		}
 	}
 
@@ -180,6 +198,14 @@ public class EmotionRecord {
 		this.diaryEntry = diaryEntry;
 	}
 
+	public Long getAiAnalysisId() {
+		return aiAnalysisId;
+	}
+
+	public void setAiAnalysisId(Long aiAnalysisId) {
+		this.aiAnalysisId = aiAnalysisId;
+	}
+
 	public Boolean getIsDeleted() {
 		return isDeleted;
 	}
@@ -216,8 +242,8 @@ public class EmotionRecord {
 	public String toString() {
 		return "EmotionRecord [emotionRecordId=" + emotionRecordId + ", userId=" + userId + ", emotionId="
 				+ emotionId + ", emotionRecordType=" + emotionRecordType + ", emotionReasons=" + emotionReasons
-				+ ", diaryEntry=" + diaryEntry + ", isDeleted=" + isDeleted + ", deletedAt=" + deletedAt
-				+ ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
+				+ ", diaryEntry=" + diaryEntry + ", aiAnalysisId=" + aiAnalysisId + ", isDeleted=" + isDeleted
+				+ ", deletedAt=" + deletedAt + ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
 	}
 
 }
