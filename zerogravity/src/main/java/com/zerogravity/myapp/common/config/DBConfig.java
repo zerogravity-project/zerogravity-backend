@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 // MyBatis mapper scanning configuration for domain-based architecture
 @Configuration
-@MapperScan(basePackages = "com.zerogravity.myapp")
+@MapperScan(basePackages = "com.zerogravity.myapp.**.dao")
 public class DBConfig {
     public static void main(String[] args) {
 
