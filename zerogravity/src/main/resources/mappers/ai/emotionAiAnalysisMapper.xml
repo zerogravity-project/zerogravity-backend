@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zerogravity.myapp.ai.dao.EmotionAiAnalysisDao">
+
+	<!-- Result map for EmotionAiAnalysis with reasons -->
+	<resultMap id="emotionAiAnalysisResultMap" type="EmotionAiAnalysis">
+		<id property="analysisId" column="analysis_id" />
+		<result property="userId" column="user_id" />
+		<result property="diaryEntry" column="diary_entry" />
+		<result property="suggestedEmotionId" column="suggested_emotion_id" />
+		<result property="reasoning" column="reasoning" />
+		<result property="confidence" column="confidence" />
+		<result property="analyzedAt" column="analyzed_at" />
+		<result property="isAccepted" column="is_accepted" />
+		<result property="acceptedAt" column="accepted_at" />
+		<result property="emotionRecordId" column="emotion_record_id" />
+		<collection property="suggestedReasons" column="analysis_id" select="selectAnalysisReasonsByAnalysisId" />
+	</resultMap>
+
+	<!-- Select suggested reasons for an analysis -->
+	<select id="selectAnalysisReasonsByAnalysisId" parameterType="long" resultType="String">
+		SELECT emotion_reason
+		FROM emotion_ai_analysis_reason
+		WHERE analysis_id = #{analysisId}
+		ORDER BY emotion_reason
+	</select>
+
+	<!-- Insert analysis record -->
+	<insert id="insertAnalysis">
+		INSERT INTO emotion_ai_analysis (
+			analysis_id, user_id, diary_entry, suggested_emotion_id,
+			reasoning, confidence, analyzed_at, is_accepted, accepted_at, emotion_record_id
+		) VALUES (
+			#{analysisId}, #{userId}, #{diaryEntry}, #{suggestedEmotionId},
+			#{reasoning}, #{confidence}, #{analyzedAt}, #{isAccepted}, #{acceptedAt}, #{emotionRecordId}
+		)
+	</insert>
+
+	<!-- Insert suggested reason -->
+	<insert id="insertAnalysisReason">
+		INSERT INTO emotion_ai_analysis_reason (analysis_id, emotion_reason, created_time)
+		VALUES (#{analysisId}, #{reason}, CURRENT_TIMESTAMP)
+	</insert>
+
+	<!-- Select analysis by ID -->
+	<select id="selectAnalysisById" resultMap="emotionAiAnalysisResultMap">
+		SELECT analysis_id, user_id, diary_entry, suggested_emotion_id,
+		       reasoning, confidence, analyzed_at, is_accepted, accepted_at, emotion_record_id
+		FROM emotion_ai_analysis
+		WHERE analysis_id = #{analysisId}
+	</select>
+
+	<!-- Update analysis acceptance -->
+	<update id="updateAccepted">
+		UPDATE emotion_ai_analysis
+		SET is_accepted = TRUE,
+		    accepted_at = #{acceptedAt},
+		    emotion_record_id = #{emotionRecordId}
+		WHERE analysis_id = #{analysisId}
+	</update>
+
+</mapper>
