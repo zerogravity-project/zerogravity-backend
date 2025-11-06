@@ -1,0 +1,249 @@
+package com.zerogravity.myapp.emotion.dto;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+
+import java.sql.Timestamp;
+import java.util.List;
+
+/**
+ * Emotion record information
+ * Represents a user's emotion record with reasons and diary entry
+ */
+public class EmotionRecord {
+
+	@JsonSerialize(using = ToStringSerializer.class)
+	private Long emotionRecordId;  // Snowflake ID (BIGINT) serialized as String for JavaScript safety
+
+	@JsonSerialize(using = ToStringSerializer.class)
+	private Long userId;  // Snowflake ID (BIGINT) serialized as String for JavaScript safety
+
+	private Integer emotionId;
+	private EmotionRecord.Type emotionRecordType;
+	private List<String> emotionReasons;
+	private String diaryEntry;
+
+	@JsonSerialize(using = ToStringSerializer.class)
+	private Long aiAnalysisId;  // Reference to emotion_ai_analysis if created via AI
+
+	private Boolean isDeleted;
+	private Timestamp deletedAt;
+	private Timestamp createdTime;
+	private Timestamp updatedTime;
+
+	// Nested Enums
+
+	/**
+	 * Emotion record type enumeration
+	 * Represents the type of emotion record (daily or moment)
+	 */
+	public enum Type {
+		DAILY("daily"),
+		MOMENT("moment");
+
+		private final String value;
+
+		Type(String value) {
+			this.value = value;
+		}
+
+		public String getValue() {
+			return value;
+		}
+
+		public static Type fromValue(String value) {
+			for (Type type : Type.values()) {
+				if (type.value.equalsIgnoreCase(value)) {
+					return type;
+				}
+			}
+			throw new IllegalArgumentException("Unknown emotion record type: " + value);
+		}
+	}
+
+	/**
+	 * Emotion reason enumeration
+	 * Represents predefined reasons for emotions
+	 * Custom reasons are also supported (not part of this enum)
+	 */
+	public enum Reason {
+		HEALTH("Health"),
+		FITNESS("Fitness"),
+		SELF_CARE("Self-care"),
+		HOBBY("Hobby"),
+		IDENTITY("Identity"),
+		RELIGION("Religion"),
+		COMMUNITY("Community"),
+		FAMILY("Family"),
+		FRIENDS("Friends"),
+		PARTNER("Partner"),
+		ROMANCE("Romance"),
+		MONEY("Money"),
+		HOUSEWORK("Housework"),
+		WORK("Work"),
+		EDUCATION("Education"),
+		TRAVEL("Travel"),
+		WEATHER("Weather"),
+		DOMESTIC_ISSUES("Domestic Issues"),
+		GLOBAL_ISSUES("Global Issues");
+
+		private final String displayName;
+
+		Reason(String displayName) {
+			this.displayName = displayName;
+		}
+
+		public String getDisplayName() {
+			return displayName;
+		}
+
+		public static Reason fromDisplayName(String displayName) {
+			for (Reason reason : Reason.values()) {
+				if (reason.displayName.equalsIgnoreCase(displayName)) {
+					return reason;
+				}
+			}
+			throw new IllegalArgumentException("Unknown emotion reason: " + displayName);
+		}
+
+		/**
+		 * Check if a reason string matches a predefined reason
+		 * Custom reasons will return false but are still valid
+		 */
+		public static boolean isValid(String displayName) {
+			try {
+				fromDisplayName(displayName);
+				return true;
+			} catch (IllegalArgumentException e) {
+				return false;
+			}
+		}
+
+		/**
+		 * Get all predefined reason display names
+		 */
+		public static String[] getAllDisplayNames() {
+			return java.util.Arrays.stream(Reason.values())
+				.map(Reason::getDisplayName)
+				.toArray(String[]::new);
+		}
+	}
+
+	// Constructors
+
+	public EmotionRecord() {}
+
+	public EmotionRecord(Long emotionRecordId, Long userId, Integer emotionId, EmotionRecord.Type emotionRecordType,
+	                     List<String> emotionReasons, String diaryEntry, Boolean isDeleted, Timestamp deletedAt,
+	                     Timestamp createdTime, Timestamp updatedTime) {
+		this.emotionRecordId = emotionRecordId;
+		this.userId = userId;
+		this.emotionId = emotionId;
+		this.emotionRecordType = emotionRecordType;
+		this.emotionReasons = emotionReasons;
+		this.diaryEntry = diaryEntry;
+		this.isDeleted = isDeleted;
+		this.deletedAt = deletedAt;
+		this.createdTime = createdTime;
+		this.updatedTime = updatedTime;
+	}
+
+	// Getters and Setters
+
+	public Long getEmotionRecordId() {
+		return emotionRecordId;
+	}
+
+	public void setEmotionRecordId(Long emotionRecordId) {
+		this.emotionRecordId = emotionRecordId;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public Integer getEmotionId() {
+		return emotionId;
+	}
+
+	public void setEmotionId(Integer emotionId) {
+		this.emotionId = emotionId;
+	}
+
+	public EmotionRecord.Type getEmotionRecordType() {
+		return emotionRecordType;
+	}
+
+	public void setEmotionRecordType(EmotionRecord.Type emotionRecordType) {
+		this.emotionRecordType = emotionRecordType;
+	}
+
+	public List<String> getEmotionReasons() {
+		return emotionReasons;
+	}
+
+	public void setEmotionReasons(List<String> emotionReasons) {
+		this.emotionReasons = emotionReasons;
+	}
+
+	public String getDiaryEntry() {
+		return diaryEntry;
+	}
+
+	public void setDiaryEntry(String diaryEntry) {
+		this.diaryEntry = diaryEntry;
+	}
+
+	public Long getAiAnalysisId() {
+		return aiAnalysisId;
+	}
+
+	public void setAiAnalysisId(Long aiAnalysisId) {
+		this.aiAnalysisId = aiAnalysisId;
+	}
+
+	public Boolean getIsDeleted() {
+		return isDeleted;
+	}
+
+	public void setIsDeleted(Boolean isDeleted) {
+		this.isDeleted = isDeleted;
+	}
+
+	public Timestamp getDeletedAt() {
+		return deletedAt;
+	}
+
+	public void setDeletedAt(Timestamp deletedAt) {
+		this.deletedAt = deletedAt;
+	}
+
+	public Timestamp getCreatedTime() {
+		return createdTime;
+	}
+
+	public void setCreatedTime(Timestamp createdTime) {
+		this.createdTime = createdTime;
+	}
+
+	public Timestamp getUpdatedTime() {
+		return updatedTime;
+	}
+
+	public void setUpdatedTime(Timestamp updatedTime) {
+		this.updatedTime = updatedTime;
+	}
+
+	@Override
+	public String toString() {
+		return "EmotionRecord [emotionRecordId=" + emotionRecordId + ", userId=" + userId + ", emotionId="
+				+ emotionId + ", emotionRecordType=" + emotionRecordType + ", emotionReasons=" + emotionReasons
+				+ ", diaryEntry=" + diaryEntry + ", aiAnalysisId=" + aiAnalysisId + ", isDeleted=" + isDeleted
+				+ ", deletedAt=" + deletedAt + ", createdTime=" + createdTime + ", updatedTime=" + updatedTime + "]";
+	}
+
+}

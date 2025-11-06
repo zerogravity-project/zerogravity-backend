@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zerogravity.myapp.model.dao.UserDao">
+
+	<!-- Select user by user ID (excluding soft-deleted) -->
+	<select id="selectUserByUserId" parameterType="long" resultType="User">
+		SELECT user_id, provider_id, provider, email, name, image, is_deleted, deleted_at,
+		       terms_agreed, terms_agreed_at, privacy_agreed, privacy_agreed_at,
+		       sensitive_data_consent, sensitive_data_consent_at, ai_analysis_consent, ai_analysis_consent_at,
+		       consent_version, created_time, updated_time
+		FROM user
+		WHERE user_id = #{userId}
+		  AND is_deleted = FALSE
+	</select>
+
+	<!-- Select user by provider ID and provider (excluding soft-deleted) -->
+	<select id="selectUserByProviderIdAndProvider" resultType="User">
+		SELECT user_id, provider_id, provider, email, name, image, is_deleted, deleted_at,
+		       terms_agreed, terms_agreed_at, privacy_agreed, privacy_agreed_at,
+		       sensitive_data_consent, sensitive_data_consent_at, ai_analysis_consent, ai_analysis_consent_at,
+		       consent_version, created_time, updated_time
+		FROM user
+		WHERE provider_id = #{providerId}
+		  AND provider = #{provider}
+		  AND is_deleted = FALSE
+	</select>
+
+	<!-- Insert new user -->
+	<insert id="insertUser" parameterType="User">
+		INSERT INTO user (user_id, provider_id, provider, email, name, image)
+		VALUES (#{userId}, #{providerId}, #{provider}, #{email}, #{name}, #{image})
+	</insert>
+
+	<!-- Update user information -->
+	<update id="updateUser" parameterType="User">
+		UPDATE user
+		SET email = #{email},
+		    name = #{name},
+		    image = #{image},
+		    updated_time = NOW()
+		WHERE user_id = #{userId}
+		  AND is_deleted = FALSE
+	</update>
+
+	<!-- Soft delete user -->
+	<update id="softDeleteUser">
+		UPDATE user
+		SET is_deleted = TRUE,
+		    deleted_at = #{deletedAt},
+		    updated_time = NOW()
+		WHERE user_id = #{userId}
+	</update>
+
+	<!-- Hard delete user (admin only) -->
+	<delete id="deleteUser" parameterType="long">
+		DELETE FROM user
+		WHERE user_id = #{userId}
+	</delete>
+
+	<!-- Update user consent information -->
+	<update id="updateConsent">
+		UPDATE user
+		SET
+		    <if test="request.termsAgreed != null">
+		        terms_agreed = #{request.termsAgreed},
+		        terms_agreed_at = <if test="request.termsAgreed">NOW()</if><if test="!request.termsAgreed">NULL</if>,
+		    </if>
+		    <if test="request.privacyAgreed != null">
+		        privacy_agreed = #{request.privacyAgreed},
+		        privacy_agreed_at = <if test="request.privacyAgreed">NOW()</if><if test="!request.privacyAgreed">NULL</if>,
+		    </if>
+		    <if test="request.sensitiveDataConsent != null">
+		        sensitive_data_consent = #{request.sensitiveDataConsent},
+		        sensitive_data_consent_at = <if test="request.sensitiveDataConsent">NOW()</if><if test="!request.sensitiveDataConsent">NULL</if>,
+		    </if>
+		    <if test="request.aiAnalysisConsent != null">
+		        ai_analysis_consent = #{request.aiAnalysisConsent},
+		        ai_analysis_consent_at = <if test="request.aiAnalysisConsent">NOW()</if><if test="!request.aiAnalysisConsent">NULL</if>,
+		    </if>
+		    updated_time = NOW()
+		WHERE user_id = #{userId}
+		  AND is_deleted = FALSE
+	</update>
+
+</mapper>
