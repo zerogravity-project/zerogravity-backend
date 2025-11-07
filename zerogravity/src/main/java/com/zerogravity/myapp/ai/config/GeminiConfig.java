@@ -19,15 +19,15 @@ public class GeminiConfig {
 
 	/**
 	 * Create Gemini API client bean
-	 * Sets the API key from application-secure.properties to environment variable
-	 * and returns a new Client instance
+	 * Initializes Client with API key from application-secure.properties
 	 *
 	 * @return Gemini API client
 	 */
 	@Bean
 	public Client geminiClient() {
-		// Set the API key from properties as environment variable for Client to use
-		System.setProperty("GOOGLE_GENAI_API_KEY", apiKey);
-		return new Client();
+		// Create Client with API key directly
+		return new Client.Builder()
+			.apiKey(apiKey)
+			.build();
 	}
 }
