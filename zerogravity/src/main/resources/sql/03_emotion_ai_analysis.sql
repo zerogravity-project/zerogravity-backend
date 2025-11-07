@@ -2,6 +2,7 @@
 # Stores AI-generated emotion predictions and analysis results
 # is_accepted = TRUE when user confirms and creates emotion_record
 # emotion_record_id links to the actual emotion record created
+# NOTE: FK for emotion_record_id is added in 05_add_foreign_keys.sql to avoid circular dependency
 
 CREATE TABLE emotion_ai_analysis (
   analysis_id BIGINT NOT NULL PRIMARY KEY,
@@ -15,7 +16,6 @@ CREATE TABLE emotion_ai_analysis (
   accepted_at TIMESTAMP NULL,
   emotion_record_id BIGINT NULL,
   FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE,
-  FOREIGN KEY (emotion_record_id) REFERENCES emotion_record(emotion_record_id) ON DELETE SET NULL,
   INDEX idx_user_analyzed (user_id, analyzed_at),
   INDEX idx_accepted (is_accepted)
 );
