@@ -71,11 +71,11 @@ jobs:
             MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
             EOF
 
-            # Stop existing containers
-            docker compose down || true
+            # Stop only current environment containers (not all environments)
+            docker compose -p zerogv-${ENV} down || true
 
-            # Build and start containers
-            docker compose up -d --build
+            # Build and start current environment containers
+            docker compose -p zerogv-${ENV} up -d --build
 
             # Wait for backend to be healthy
             echo "Waiting for backend to be healthy..."
