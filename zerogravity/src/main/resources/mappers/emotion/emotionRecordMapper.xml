@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zerogravity.myapp.model.dao.EmotionRecordDao">
+
+	<!-- Result map for EmotionRecord with emotion reasons -->
+	<resultMap id="emotionRecordResultMap" type="EmotionRecord">
+		<id property="emotionRecordId" column="emotion_record_id" />
+		<result property="userId" column="user_id" />
+		<result property="emotionId" column="emotion_id" />
+		<result property="emotionRecordType" column="emotion_record_type" typeHandler="org.apache.ibatis.type.EnumTypeHandler" />
+		<result property="diaryEntry" column="diary_entry" />
+		<result property="isDeleted" column="is_deleted" />
+		<result property="deletedAt" column="deleted_at" />
+		<result property="createdTime" column="created_time" />
+		<result property="updatedTime" column="updated_time" />
+		<collection property="emotionReasons" column="emotion_record_id" select="selectEmotionReasonsByRecordId" />
+	</resultMap>
+
+	<!-- Select emotion reasons for a specific emotion record -->
+	<select id="selectEmotionReasonsByRecordId" parameterType="long" resultType="String">
+		SELECT emotion_reason
+		FROM emotion_record_reason
+		WHERE emotion_record_id = #{emotionRecordId}
+		ORDER BY emotion_reason
+	</select>
+
+	<!-- Select emotion records by user ID (excluding soft-deleted) -->
+	<select id="selectEmotionRecordByUserId" parameterType="long" resultMap="emotionRecordResultMap">
+		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
+		       er.diary_entry, er.is_deleted, er.deleted_at, er.created_time, er.updated_time
+		FROM emotion_record er
+		WHERE er.user_id = #{userId}
+		  AND er.is_deleted = FALSE
+		ORDER BY er.created_time DESC
+	</select>
+
+	<!-- Select created time by emotion record ID -->
+	<select id="selectCreatedTimeByEmotionRecordId" parameterType="long" resultType="java.sql.Timestamp">
+		SELECT created_time
+		FROM emotion_record
+		WHERE emotion_record_id = #{emotionRecordId}
+		  AND is_deleted = FALSE
+	</select>
+
+	<!-- Select emotion record by ID and user ID for update validation -->
+	<select id="selectEmotionRecordByIdAndUserId" resultMap="emotionRecordResultMap">
+		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
+		       er.diary_entry, er.is_deleted, er.deleted_at, er.created_time, er.updated_time
+		FROM emotion_record er
+		WHERE er.emotion_record_id = #{emotionRecordId}
+		  AND er.user_id = #{userId}
+		  AND er.is_deleted = FALSE
+	</select>
+
+	<!-- Check if daily record exists for a specific date -->
+	<select id="existsDailyRecordForDate" resultType="boolean">
+		SELECT COUNT(*) > 0
+		FROM emotion_record
+		WHERE user_id = #{userId}
+		  AND emotion_record_type = 'daily'
+		  AND is_deleted = FALSE
+		  AND DATE(CONVERT_TZ(created_time, '+00:00', CONCAT(
+		      LPAD(FLOOR(ABS(#{timezoneOffset}) / 60), 2, '0'), ':',
+		      LPAD(MOD(ABS(#{timezoneOffset}), 60), 2, '0'),
+		      IF(#{timezoneOffset} >= 0, '', '-')
+		  ))) = #{date}
+	</select>
+
+	<!-- Select emotion records for a specific period and user (excluding soft-deleted) -->
+	<select id="selectEmotionRecordByPeriodAndUserId" resultMap="emotionRecordResultMap">
+		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
+		       er.diary_entry, er.is_deleted, er.deleted_at, er.created_time, er.updated_time
+		FROM emotion_record er
+		WHERE er.user_id = #{userId}
+		  AND er.is_deleted = FALSE
+		  AND er.created_time BETWEEN FROM_UNIXTIME(UNIX_TIMESTAMP(#{periodStart}))
+		                          AND FROM_UNIXTIME(UNIX_TIMESTAMP(#{periodEnd}))
+		ORDER BY er.created_time DESC
+	</select>
+
+	<!-- Select aggregated emotion level statistics -->
+	<select id="selectEmotionLevelStatsByPeriod" resultType="map">
+		SELECT
+		<choose>
+			<when test="groupBy == 'HOUR'">
+				DATE_FORMAT(er.created_time, '%Y-%m-%d %H:00:00') as label,
+			</when>
+			<when test="groupBy == 'DAY'">
+				DATE(er.created_time) as label,
+			</when>
+			<when test="groupBy == 'MONTH'">
+				DATE_FORMAT(er.created_time, '%Y-%m-01') as label,
+			</when>
+		</choose>
+		AVG(e.emotion_level) as avgLevel,
+		COUNT(*) as count
+		FROM emotion_record er
+		JOIN emotion e ON er.emotion_id = e.emotion_id
+		WHERE er.user_id = #{userId}
+		  AND er.is_deleted = FALSE
+		  AND er.created_time BETWEEN FROM_UNIXTIME(UNIX_TIMESTAMP(#{periodStart}))
+		                          AND FROM_UNIXTIME(UNIX_TIMESTAMP(#{periodEnd}))
+		GROUP BY label
+		ORDER BY label
+	</select>
+
+	<!-- Select aggregated emotion reason statistics -->
+	<select id="selectEmotionReasonStatsByPeriod" resultType="map">
+		SELECT
+		    err.emotion_reason as reason,
+		    COUNT(*) as count
+		FROM emotion_record er
+		JOIN emotion_record_reason err ON er.emotion_record_id = err.emotion_record_id
+		WHERE er.user_id = #{userId}
+		  AND er.is_deleted = FALSE
+		  AND er.created_time BETWEEN FROM_UNIXTIME(UNIX_TIMESTAMP(#{periodStart}))
+		                          AND FROM_UNIXTIME(UNIX_TIMESTAMP(#{periodEnd}))
+		GROUP BY err.emotion_reason
+		ORDER BY count DESC, err.emotion_reason
+	</select>
+
+	<!-- Select emotion count statistics for scatter chart -->
+	<select id="selectEmotionCountStatsByPeriod" resultType="map">
+		SELECT
+		<choose>
+			<when test="groupBy == 'HOUR'">
+				DATE_FORMAT(er.created_time, '%Y-%m-%d %H:00:00') as timestamp,
+			</when>
+			<when test="groupBy == 'DAY'">
+				DATE(er.created_time) as timestamp,
+			</when>
+			<when test="groupBy == 'MONTH'">
+				DATE_FORMAT(er.created_time, '%Y-%m-01') as timestamp,
+			</when>
+		</choose>
+		    er.emotion_id as emotionId,
+		    e.emotion_type as emotionType,
+		    SUM(CASE WHEN er.emotion_record_type = 'daily' THEN 1 ELSE 0 END) as dailyCount,
+		    SUM(CASE WHEN er.emotion_record_type = 'moment' THEN 1 ELSE 0 END) as momentCount,
+		    COUNT(*) as totalCount
+		FROM emotion_record er
+		JOIN emotion e ON er.emotion_id = e.emotion_id
+		WHERE er.user_id = #{userId}
+		  AND er.is_deleted = FALSE
+		  AND er.created_time BETWEEN FROM_UNIXTIME(UNIX_TIMESTAMP(#{periodStart}))
+		                          AND FROM_UNIXTIME(UNIX_TIMESTAMP(#{periodEnd}))
+		GROUP BY timestamp, er.emotion_id, e.emotion_type
+		ORDER BY timestamp, er.emotion_id
+	</select>
+
+	<!-- Create emotion record -->
+	<insert id="createEmotionRecord" parameterType="EmotionRecord">
+		INSERT INTO emotion_record (emotion_record_id, user_id, emotion_id, emotion_record_type, diary_entry, created_time)
+		VALUES (#{emotionRecordId}, #{userId}, #{emotionId}, #{emotionRecordType}, #{diaryEntry}, FROM_UNIXTIME(UNIX_TIMESTAMP(#{createdTime})))
+	</insert>
+
+	<!-- Update emotion record -->
+	<update id="updateEmotionRecord" parameterType="EmotionRecord">
+		UPDATE emotion_record
+		SET emotion_id = #{emotionId},
+		    diary_entry = #{diaryEntry},
+		    updated_time = NOW()
+		WHERE emotion_record_id = #{emotionRecordId}
+		  AND user_id = #{userId}
+		  AND is_deleted = FALSE
+	</update>
+
+	<!-- Soft delete emotion record -->
+	<update id="softDeleteEmotionRecord">
+		UPDATE emotion_record
+		SET is_deleted = TRUE,
+		    deleted_at = #{deletedAt},
+		    updated_time = NOW()
+		WHERE emotion_record_id = #{emotionRecordId}
+		  AND user_id = #{userId}
+	</update>
+
+	<!-- Insert emotion reason for emotion record (junction table) -->
+	<insert id="insertEmotionReason">
+		INSERT INTO emotion_record_reason (emotion_record_id, emotion_reason)
+		VALUES (#{emotionRecordId}, #{emotionReason})
+	</insert>
+
+	<!-- Delete emotion reasons for emotion record -->
+	<delete id="deleteEmotionReasons" parameterType="long">
+		DELETE FROM emotion_record_reason
+		WHERE emotion_record_id = #{emotionRecordId}
+	</delete>
+
+</mapper>
