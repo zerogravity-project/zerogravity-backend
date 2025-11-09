@@ -91,12 +91,25 @@ jobs:
             echo "⏳ Waiting for backend to be healthy (max 150 seconds)..."
             HEALTH_CHECK_PASSED=false
             for i in {1..30}; do
-              if docker inspect zerogv-backend-$ENV 2>/dev/null | grep -q '"Health".*"healthy"'; then
+              # Check if container is running first
+              if ! docker ps --filter "name=zerogv-backend-$ENV" --format "{{.Names}}" | grep -q "zerogv-backend-$ENV"; then
+                echo "❌ Container is not running! Deployment failed."
+                break
+              fi
+
+              # Check health status
+              HEALTH_STATUS=$(docker inspect zerogv-backend-$ENV 2>/dev/null | grep -o '"Status":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+              if [ "$HEALTH_STATUS" = "healthy" ]; then
                 echo "✅ Backend is healthy! Deployment successful."
                 HEALTH_CHECK_PASSED=true
                 break
+              elif [ "$HEALTH_STATUS" = "unhealthy" ]; then
+                echo "❌ Backend is unhealthy! Deployment failed."
+                break
               fi
-              echo "Attempt $i/30: Backend not yet healthy, waiting..."
+
+              echo "Attempt $i/30: Backend status: ${HEALTH_STATUS:-starting}, waiting..."
               sleep 5
             done
 
