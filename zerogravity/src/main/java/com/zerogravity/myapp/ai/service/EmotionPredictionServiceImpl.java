@@ -8,6 +8,7 @@ import com.zerogravity.myapp.ai.exception.GeminiApiException;
 import com.zerogravity.myapp.common.security.SnowflakeIdService;
 import com.zerogravity.myapp.common.util.TimezoneUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -33,6 +34,7 @@ public class EmotionPredictionServiceImpl implements EmotionPredictionService {
 	}
 
 	@Override
+	@Transactional
 	public EmotionPredictionResponse predictEmotion(Long userId, EmotionPredictionRequest request) {
 		try {
 			// 1. Validate request
@@ -93,6 +95,7 @@ public class EmotionPredictionServiceImpl implements EmotionPredictionService {
 	}
 
 	@Override
+	@Transactional
 	public EmotionAiAnalysis acceptPrediction(Long userId, Long analysisId, Long emotionRecordId) {
 		try {
 			// 1. Get the analysis to verify ownership
@@ -118,6 +121,7 @@ public class EmotionPredictionServiceImpl implements EmotionPredictionService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public EmotionAiAnalysis getAnalysis(Long userId, Long analysisId) {
 		try {
 			// Get the analysis
