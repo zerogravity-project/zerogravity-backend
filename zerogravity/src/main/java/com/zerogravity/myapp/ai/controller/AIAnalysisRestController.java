@@ -28,7 +28,7 @@ import java.time.ZoneId;
  * Provides AI-powered emotion analysis summaries using Gemini API
  */
 @RestController
-@RequestMapping("/api-zerogravity/ai")
+@RequestMapping("/ai")
 @Tag(name = "AI Analysis", description = "AI-powered emotion analysis API")
 public class AIAnalysisRestController {
 

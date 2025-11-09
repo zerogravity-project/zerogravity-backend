@@ -21,11 +21,13 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public User getUserByUserId(Long userId) {
 		return userDao.selectUserByUserId(userId);
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public User getUserByProviderIdAndProvider(String providerId, String provider) {
 		return userDao.selectUserByProviderIdAndProvider(providerId, provider);
 	}
