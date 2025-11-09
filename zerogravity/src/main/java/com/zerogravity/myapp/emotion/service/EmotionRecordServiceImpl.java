@@ -31,16 +31,19 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<EmotionRecord> getEmotionRecordsByUserId(Long userId) {
 		return emotionRecordDao.selectEmotionRecordByUserId(userId);
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Timestamp getCreatedTimeByEmotionRecordId(Long emotionRecordId) {
 		return emotionRecordDao.selectCreatedTimeByEmotionRecordId(emotionRecordId);
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<EmotionRecord> getEmotionRecordByPeriodAndUserId(Long userId, Instant periodStart, Instant periodEnd) {
 		return emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
 	}

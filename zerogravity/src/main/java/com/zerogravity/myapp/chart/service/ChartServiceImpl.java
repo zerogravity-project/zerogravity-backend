@@ -6,6 +6,7 @@ import com.zerogravity.myapp.emotion.dto.EmotionRecord;
 import com.zerogravity.myapp.chart.dto.*;
 import com.zerogravity.myapp.common.util.TimezoneUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.time.format.TextStyle;
@@ -24,6 +25,7 @@ public class ChartServiceImpl implements ChartService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public ChartLevelResponse getEmotionLevelChart(Long userId, String period, LocalDate startDate, ZoneId timezone) {
 		// Determine period range
 		Instant periodStart, periodEnd;
@@ -82,6 +84,7 @@ public class ChartServiceImpl implements ChartService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public ChartReasonResponse getEmotionReasonChart(Long userId, String period, LocalDate startDate, ZoneId timezone) {
 		// Determine period range
 		Instant periodStart, periodEnd;
@@ -126,6 +129,7 @@ public class ChartServiceImpl implements ChartService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public ChartCountResponse getEmotionCountChart(Long userId, String period, LocalDate startDate, ZoneId timezone) {
 		// Determine period range
 		Instant periodStart, periodEnd;

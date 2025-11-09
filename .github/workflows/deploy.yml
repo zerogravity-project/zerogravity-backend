@@ -71,27 +71,66 @@ jobs:
             MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
             EOF
 
-            # Stop only current environment containers (not all environments)
+            # Step 1: Backup current image (if it exists)
+            echo "🔄 Backing up current image..."
+            if docker ps --filter "name=zerogv-backend-$ENV" --format "{{.Names}}" | grep -q "zerogv-backend-$ENV"; then
+              docker commit zerogv-backend-$ENV zerogv-backend:${ENV}-backup || true
+              echo "✅ Backup created: zerogv-backend:${ENV}-backup"
+            else
+              echo "ℹ️  No existing container to backup (first deployment)"
+            fi
+
+            # Step 2: Stop current containers
             docker compose -p zerogv-${ENV} down || true
 
-            # Build and start current environment containers
+            # Step 3: Build and start new containers
+            echo "🚀 Building and deploying new version..."
             docker compose -p zerogv-${ENV} up -d --build
 
-            # Wait for backend to be healthy
-            echo "Waiting for backend to be healthy..."
+            # Step 4: Health check with validation
+            echo "⏳ Waiting for backend to be healthy (max 150 seconds)..."
+            HEALTH_CHECK_PASSED=false
             for i in {1..30}; do
-              if docker inspect zerogv-backend-$ENV | grep -q '"Health".*"healthy"'; then
-                echo "Backend is healthy!"
+              if docker inspect zerogv-backend-$ENV 2>/dev/null | grep -q '"Health".*"healthy"'; then
+                echo "✅ Backend is healthy! Deployment successful."
+                HEALTH_CHECK_PASSED=true
                 break
               fi
               echo "Attempt $i/30: Backend not yet healthy, waiting..."
               sleep 5
             done
 
-            # Deploy Nginx configuration
+            # Step 5: Rollback if health check failed
+            if [ "$HEALTH_CHECK_PASSED" = false ]; then
+              echo "❌ DEPLOYMENT FAILED: Health check did not pass"
+              echo "🔄 Rolling back to previous version..."
+
+              # Stop failed containers
+              docker compose -p zerogv-${ENV} down
+
+              # Check if backup exists
+              if docker images | grep -q "zerogv-backend.*${ENV}-backup"; then
+                echo "📦 Restoring backup image..."
+                docker tag zerogv-backend:${ENV}-backup zerogv-backend:latest
+                docker compose -p zerogv-${ENV} up -d
+                echo "✅ Rollback completed. Previous version restored."
+                exit 1
+              else
+                echo "⚠️  ERROR: No backup image found for rollback!"
+                echo "This may be the first deployment. Manual intervention required."
+                exit 1
+              fi
+            fi
+
+            # Step 6: Cleanup old backup image
+            echo "🧹 Cleaning up old backup..."
+            docker images | grep "zerogv-backend.*${ENV}-backup" | awk '{print $3}' | xargs -r docker rmi || true
+            echo "✅ Cleanup completed"
+
+            # Step 7: Deploy Nginx configuration
             ./scripts/deploy-nginx.sh
 
-            # Show container status
+            # Step 8: Show container status
             docker ps | grep zerogv
 
       - name: Verify deployment
