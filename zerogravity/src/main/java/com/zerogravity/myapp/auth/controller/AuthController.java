@@ -28,7 +28,7 @@ import java.util.Map;
  * Handles NextAuth integration: receives OAuth user info and returns backend JWT
  */
 @RestController
-@RequestMapping("/api-zerogravity/auth")
+@RequestMapping("/auth")
 @Tag(name = "Auth", description = "Authentication API")
 public class AuthController {
 	private final UserService userService;

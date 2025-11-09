@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api-zerogravity/emotions")
+@RequestMapping("/emotions")
 @Tag(name = "Emotion Record Management", description = "Emotion Record Management API")
 public class EmotionRecordRestController {
 

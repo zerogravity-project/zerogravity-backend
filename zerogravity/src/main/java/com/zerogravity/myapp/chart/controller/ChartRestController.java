@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 
 @RestController
-@RequestMapping("/api-zerogravity/chart")
+@RequestMapping("/chart")
 @Tag(name = "Chart Statistics", description = "Chart Statistics API")
 public class ChartRestController {
 
