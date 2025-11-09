@@ -10,17 +10,17 @@ import com.zerogravity.myapp.emotion.dao.EmotionDao;
 import com.zerogravity.myapp.emotion.dto.Emotion;
 
 @Service
-@Transactional
 public class EmotionServiceImpl implements EmotionService {
-	
+
 	private final EmotionDao emotionDao;
-	
+
 	@Autowired
 	public EmotionServiceImpl(EmotionDao emotionDao) {
 		this.emotionDao = emotionDao;
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<Emotion> getEmotionList() {
 		return emotionDao.selectAllEmotions();
 	}

@@ -31,7 +31,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 
 @RestController
-@RequestMapping("/api-zerogravity/users")
+@RequestMapping("/users")
 @Tag(name = "User Management", description = "User Management API")
 public class UserRestController {
 

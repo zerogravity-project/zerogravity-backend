@@ -16,6 +16,7 @@ import com.zerogravity.myapp.common.util.TimezoneUtil;
 import com.zerogravity.myapp.emotion.dao.EmotionRecordDao;
 import com.zerogravity.myapp.emotion.dto.EmotionRecord;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -51,6 +52,7 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
 	}
 
 	@Override
+	@Transactional
 	public AIAnalysisResponse getAnalysis(Long userId, String period, String startDateStr, ZoneId timezone) {
 		try {
 			LocalDate startDate = LocalDate.parse(startDateStr);
