@@ -17,6 +17,9 @@ public class AuthResponse {
 	@Schema(description = "User consent information", example = "{\"termsAgreed\": true, \"aiAnalysisConsent\": false}")
 	private Map<String, Object> consents;
 
+	@Schema(description = "Backend JWT token for API authentication", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+	private String jwtToken;
+
 	public AuthResponse() {
 	}
 
@@ -37,6 +40,14 @@ public class AuthResponse {
 		this.message = message;
 		this.isNewUser = isNewUser;
 		this.consents = consents;
+	}
+
+	public AuthResponse(boolean success, String message, boolean isNewUser, Map<String, Object> consents, String jwtToken) {
+		this.success = success;
+		this.message = message;
+		this.isNewUser = isNewUser;
+		this.consents = consents;
+		this.jwtToken = jwtToken;
 	}
 
 	public boolean isSuccess() {
@@ -71,8 +82,16 @@ public class AuthResponse {
 		this.consents = consents;
 	}
 
+	public String getJwtToken() {
+		return jwtToken;
+	}
+
+	public void setJwtToken(String jwtToken) {
+		this.jwtToken = jwtToken;
+	}
+
 	@Override
 	public String toString() {
-		return "AuthResponse [success=" + success + ", message=" + message + ", isNewUser=" + isNewUser + ", consents=" + consents + "]";
+		return "AuthResponse [success=" + success + ", message=" + message + ", isNewUser=" + isNewUser + ", consents=" + consents + ", jwtToken=" + (jwtToken != null ? "***" : "null") + "]";
 	}
 }

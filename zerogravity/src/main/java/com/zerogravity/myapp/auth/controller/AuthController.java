@@ -109,7 +109,7 @@ public class AuthController {
 			Map<String, Object> consents = buildConsentsMap(user);
 
 			// Response with isNewUser flag for frontend to show consent screen
-			AuthResponse authResponse = new AuthResponse(true, "Authentication successful", isNewUser, consents);
+			AuthResponse authResponse = new AuthResponse(true, "Authentication successful", isNewUser, consents, jwtToken);
 			ApiResponse<AuthResponse> apiResponse = new ApiResponse<>(authResponse, Instant.now().toString());
 			return ResponseEntity.ok(apiResponse);
 
