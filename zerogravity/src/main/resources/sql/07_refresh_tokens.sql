@@ -15,5 +15,5 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     INDEX idx_refresh_token (refresh_token),
     INDEX idx_expires_at (expires_at),
 
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Refresh tokens for secure token renewal';
