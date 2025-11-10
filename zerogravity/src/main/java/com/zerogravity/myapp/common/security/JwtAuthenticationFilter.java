@@ -39,8 +39,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         try {
-            // 1. Extract JWT token from cookies
-            String token = extractTokenFromCookie(request);
+            // 1. Extract JWT token from Authorization header or cookies
+            String token = extractTokenFromRequest(request);
 
             // 2. If token exists and is valid, set authentication
             if (token != null) {
@@ -75,16 +75,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Extract "token" value from HTTP request cookies
+     * Extract JWT token from Authorization header or cookies
+     * Priority: Authorization header > Cookie
      */
-    private String extractTokenFromCookie(HttpServletRequest request) {
-        if (request == null || request.getCookies() == null) {
+    private String extractTokenFromRequest(HttpServletRequest request) {
+        if (request == null) {
             return null;
         }
 
-        for (Cookie cookie : request.getCookies()) {
-            if ("token".equals(cookie.getName())) {
-                return cookie.getValue();
+        // 1. Check Authorization header first (Bearer token)
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7); // Remove "Bearer " prefix
+        }
+
+        // 2. Fall back to cookie
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
             }
         }
 
