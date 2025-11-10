@@ -15,9 +15,8 @@ import java.util.Optional;
 
 /**
  * ArgumentResolver for handling @AuthUserId annotation
- * Extracts JWT from Authorization header or HTTP cookies, gets userId from the token,
+ * Extracts JWT from HTTP cookies, gets userId from the token,
  * and automatically injects it into method parameters.
- * Priority: Authorization header (Bearer token) > Cookie
  */
 @Component
 public class AuthUserIdArgumentResolver implements HandlerMethodArgumentResolver {
@@ -40,7 +39,7 @@ public class AuthUserIdArgumentResolver implements HandlerMethodArgumentResolver
 
     /**
      * Extracts and returns the actual userId value
-     * 1. Extract JWT from Authorization header or cookies
+     * 1. Extract "token" from HTTP cookies
      * 2. Use JWTUtil to extract userId from token
      * 3. Throw UnauthorizedException if userId is not found
      */
@@ -52,9 +51,9 @@ public class AuthUserIdArgumentResolver implements HandlerMethodArgumentResolver
             WebDataBinderFactory binderFactory
     ) throws Exception {
 
-        // 1. Extract token from Authorization header or cookies
+        // 1. Extract cookies from HttpServletRequest
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
-        String token = extractToken(request);
+        String token = extractTokenFromCookie(request);
 
         // 2. Extract userId from JWT
         Optional<Long> userIdOpt = jwtUtil.extractUserId(token);
@@ -69,29 +68,10 @@ public class AuthUserIdArgumentResolver implements HandlerMethodArgumentResolver
     }
 
     /**
-     * Extract JWT token from request
-     * Priority: 1. Authorization header (Bearer token) → 2. Cookie
-     */
-    private String extractToken(HttpServletRequest request) {
-        if (request == null) {
-            return null;
-        }
-
-        // 1. Try Authorization header first
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-
-        // 2. Fallback to cookie
-        return extractTokenFromCookie(request);
-    }
-
-    /**
      * Extract "token" value from HTTP request cookies
      */
     private String extractTokenFromCookie(HttpServletRequest request) {
-        if (request.getCookies() == null) {
+        if (request == null || request.getCookies() == null) {
             return null;
         }
 
