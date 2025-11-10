@@ -162,6 +162,15 @@ jobs:
             curl -f http://localhost:$BACKEND_PORT/actuator/health || exit 1
             echo "Health check passed!"
 
+            # Warm-up: Initialize DB connection pool and DispatcherServlet
+            echo "Warming up application..."
+            sleep 2
+            curl -X POST http://localhost:$BACKEND_PORT/auth/verify \
+              -H "Content-Type: application/json" \
+              -d '{"provider":"WARMUP","providerId":"warmup-test","email":"warmup@test.com","name":"Warmup","image":""}' \
+              -s -o /dev/null -w "Warm-up request: HTTP %{http_code} (took %{time_total}s)\n" || true
+            echo "✅ Application warmed up and ready!"
+
       - name: Deployment summary
         run: |
           echo "✅ Deployment completed successfully!"
