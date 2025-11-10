@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.zerogravity.myapp.auth.service.RefreshTokenService;
 import com.zerogravity.myapp.user.dto.User;
 import com.zerogravity.myapp.user.dto.ConsentUpdateRequest;
 import com.zerogravity.myapp.user.service.UserService;
@@ -36,10 +37,12 @@ import java.time.ZoneId;
 public class UserRestController {
 
 	private final UserService userService;
+	private final RefreshTokenService refreshTokenService;
 
 	@Autowired
-	public UserRestController(UserService userService) {
+	public UserRestController(UserService userService, RefreshTokenService refreshTokenService) {
 		this.userService = userService;
+		this.refreshTokenService = refreshTokenService;
 	}
 
 	@GetMapping("/me")
@@ -70,16 +73,36 @@ public class UserRestController {
 	}
 
 	@PostMapping("/logout")
-	@Operation(summary = "Logout", description = "Logout by deleting JWT cookie.")
-	public ResponseEntity<Void> logout(@CookieValue(value = "token", required = false) String token, HttpServletResponse response) {
-		if (token != null) {
+	@Operation(
+			summary = "Logout",
+			description = "Logout by revoking all refresh tokens and deleting JWT cookie. " +
+					"This invalidates all active sessions for the user."
+	)
+	public ResponseEntity<ApiResponse<Void>> logout(
+			@AuthUserId Long userId,
+			HttpServletResponse response
+	) {
+		try {
+			// Revoke all refresh tokens for this user
+			refreshTokenService.revokeAllUserTokens(userId);
+
+			// Delete JWT cookie
 			Cookie jwtCookie = new Cookie("token", null);
 			jwtCookie.setHttpOnly(true);
 			jwtCookie.setPath("/");
 			jwtCookie.setMaxAge(0);
 			response.addCookie(jwtCookie);
+
+			ApiResponse<Void> apiResponse = new ApiResponse<>(
+					null,
+					Instant.now().toString()
+			);
+
+			return ResponseEntity.ok(apiResponse);
+		} catch (Exception e) {
+			System.err.println("[UserRestController] Error during logout: " + e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
-		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
 	@DeleteMapping("/me")
