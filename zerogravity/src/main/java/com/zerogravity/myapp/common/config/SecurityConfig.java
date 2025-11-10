@@ -45,7 +45,7 @@ public class SecurityConfig {
                                 "/health",                           // Load Balancer health check
                                 "/actuator/health",                  // Actuator health check
                                 "/actuator/health/**",               // Detailed health endpoints
-                                "/api-zerogravity/auth/**",          // Authentication endpoints
+                                "/auth/**",          // Authentication endpoints
                                 "/swagger-ui/**",                    // Swagger UI
                                 "/v3/api-docs/**",                   // Swagger API docs
                                 "/swagger-resources/**",             // Swagger resources
