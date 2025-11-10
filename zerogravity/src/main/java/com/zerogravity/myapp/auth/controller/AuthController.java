@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zerogravity.myapp.auth.dto.AuthResponse;
+import com.zerogravity.myapp.common.dto.ApiResponse;
 import com.zerogravity.myapp.user.dto.User;
 import com.zerogravity.myapp.user.service.UserService;
 import com.zerogravity.myapp.common.security.JWTUtil;
@@ -51,7 +52,7 @@ public class AuthController {
 	 */
 	@PostMapping("/verify")
 	@Operation(summary = "OAuth User Verification and JWT Issuance", description = "Endpoint called after OAuth login from NextAuth. Verifies user information and issues backend JWT.")
-	public ResponseEntity<AuthResponse> verifyAndCreateUser(@RequestBody User oauthUser, HttpServletResponse response) {
+	public ResponseEntity<ApiResponse<AuthResponse>> verifyAndCreateUser(@RequestBody User oauthUser, HttpServletResponse response) {
 		try {
 			// Validate input
 			if (oauthUser == null || oauthUser.getProviderId() == null || oauthUser.getProvider() == null) {
@@ -109,7 +110,8 @@ public class AuthController {
 
 			// Response with isNewUser flag for frontend to show consent screen
 			AuthResponse authResponse = new AuthResponse(true, "Authentication successful", isNewUser, consents);
-			return ResponseEntity.ok(authResponse);
+			ApiResponse<AuthResponse> apiResponse = new ApiResponse<>(authResponse, Instant.now().toString());
+			return ResponseEntity.ok(apiResponse);
 
 		} catch (Exception e) {
 			System.err.println("[AuthController] Error during OAuth verification: " + e.getMessage());
