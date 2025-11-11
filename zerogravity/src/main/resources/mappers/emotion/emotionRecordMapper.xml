@@ -130,10 +130,10 @@
 				DATE_FORMAT(er.created_time, '%Y-%m-%d %H:00:00') as timestamp,
 			</when>
 			<when test="groupBy == 'DAY'">
-				DATE(er.created_time) as timestamp,
+				DATE_FORMAT(er.created_time, '%Y-%m-%d 00:00:00') as timestamp,
 			</when>
 			<when test="groupBy == 'MONTH'">
-				DATE_FORMAT(er.created_time, '%Y-%m-01') as timestamp,
+				DATE_FORMAT(er.created_time, '%Y-%m-01 00:00:00') as timestamp,
 			</when>
 		</choose>
 		    er.emotion_id as emotionId,
