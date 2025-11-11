@@ -48,15 +48,16 @@ jobs:
             # Navigate to app directory
             cd /home/ubuntu/app
 
-            # Pull latest code
+            # Pull latest code (use reset to avoid divergence issues)
             git fetch origin
             if [ "$ENV" = "prod" ]; then
-              git checkout main
-              git pull origin main
+              git reset --hard origin/main
             else
-              git checkout develop
-              git pull origin develop
+              git reset --hard origin/develop
             fi
+
+            # Verify current commit
+            echo "✅ Deployment commit: $(git log -1 --format='%h %s')"
 
             # Create .env file
             cat > .env << EOF

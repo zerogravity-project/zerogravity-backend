@@ -52,11 +52,6 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	@Transactional
 	public Long createEmotionRecord(Long userId, Integer emotionId, String emotionRecordType,
 	                                List<String> emotionReasons, String diaryEntry, ZoneId timezone, Long aiAnalysisId, String recordDate) {
-		// DEBUG LOG
-		System.out.println("=== DEBUG: createEmotionRecord called ===");
-		System.out.println("recordDate parameter: " + recordDate);
-		System.out.println("timezone: " + timezone);
-		System.out.println("emotionRecordType: " + emotionRecordType);
 
 		// Validate emotion record type
 		EmotionRecord.Type type;
@@ -85,23 +80,15 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 		LocalDate targetDate = null;
 		Instant recordTimestamp;
 
-		System.out.println("=== DEBUG: Before recordDate parsing ===");
-		System.out.println("recordDate is null? " + (recordDate == null));
-		System.out.println("recordDate value: '" + recordDate + "'");
-
 		if (recordDate != null && !recordDate.trim().isEmpty()) {
-			System.out.println("=== DEBUG: recordDate provided, parsing... ===");
 			try {
 				targetDate = LocalDate.parse(recordDate); // Parse ISO Date (YYYY-MM-DD)
-				System.out.println("Parsed targetDate: " + targetDate);
 			} catch (Exception e) {
 				throw new IllegalArgumentException("Invalid record date format. Expected YYYY-MM-DD: " + recordDate);
 			}
 
 			// Validate: Future dates not allowed
 			LocalDate today = LocalDate.now(timezone);
-			System.out.println("Today (user timezone): " + today);
-			System.out.println("Is targetDate after today? " + targetDate.isAfter(today));
 
 			if (targetDate.isAfter(today)) {
 				throw new IllegalArgumentException("Future dates are not allowed. Record date: " + recordDate);
@@ -110,26 +97,17 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 			// Determine timestamp based on date
 			if (targetDate.equals(today)) {
 				// Today: Use current exact time
-				System.out.println("=== DEBUG: targetDate equals today, using Instant.now() ===");
 				recordTimestamp = Instant.now();
 			} else {
 				// Past date: Use 12:00:00 (noon) in user timezone, convert to UTC
-				System.out.println("=== DEBUG: targetDate is past, using 12:00:00 noon ===");
 				ZonedDateTime noonInUserTimezone = targetDate.atTime(12, 0).atZone(timezone);
 				recordTimestamp = noonInUserTimezone.toInstant();
-				System.out.println("Noon in user timezone: " + noonInUserTimezone);
-				System.out.println("Converted to UTC Instant: " + recordTimestamp);
 			}
 		} else {
-			System.out.println("=== DEBUG: recordDate NOT provided, using current time ===");
 			// No recordDate provided: Use current time (existing behavior)
 			targetDate = LocalDate.now(timezone);
 			recordTimestamp = Instant.now();
 		}
-
-		System.out.println("=== DEBUG: Final values ===");
-		System.out.println("targetDate: " + targetDate);
-		System.out.println("recordTimestamp: " + recordTimestamp);
 
 		// Check for daily record duplicate on target date
 		if (type == EmotionRecord.Type.DAILY) {
