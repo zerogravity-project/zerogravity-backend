@@ -250,7 +250,13 @@ public class ChartServiceImpl implements ChartService {
 		if (obj instanceof java.sql.Date) {
 			return ((java.sql.Date) obj).toLocalDate();
 		} else if (obj instanceof String) {
-			return LocalDate.parse((String) obj);
+			String dateStr = (String) obj;
+			// Handle both "YYYY-MM-DD" and "YYYY-MM-DD HH:MM:SS" formats
+			if (dateStr.contains(" ")) {
+				// Extract date part from "YYYY-MM-DD HH:MM:SS"
+				dateStr = dateStr.substring(0, 10);
+			}
+			return LocalDate.parse(dateStr);
 		}
 		throw new IllegalArgumentException("Cannot parse date: " + obj);
 	}
