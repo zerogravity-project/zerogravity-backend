@@ -10,7 +10,7 @@
 		<id property="emotionRecordId" column="emotion_record_id" />
 		<result property="userId" column="user_id" />
 		<result property="emotionId" column="emotion_id" />
-		<result property="emotionRecordType" column="emotion_record_type" typeHandler="org.apache.ibatis.type.EnumTypeHandler" />
+		<result property="emotionRecordType" column="emotion_record_type" typeHandler="com.zerogravity.myapp.emotion.typehandler.EmotionRecordTypeHandler" />
 		<result property="diaryEntry" column="diary_entry" />
 		<result property="isDeleted" column="is_deleted" />
 		<result property="deletedAt" column="deleted_at" />
@@ -154,7 +154,7 @@
 	<!-- Create emotion record -->
 	<insert id="createEmotionRecord" parameterType="EmotionRecord">
 		INSERT INTO emotion_record (emotion_record_id, user_id, emotion_id, emotion_record_type, diary_entry, created_time)
-		VALUES (#{emotionRecordId}, #{userId}, #{emotionId}, #{emotionRecordType}, #{diaryEntry}, FROM_UNIXTIME(UNIX_TIMESTAMP(#{createdTime})))
+		VALUES (#{emotionRecordId}, #{userId}, #{emotionId}, #{emotionRecordType, typeHandler=com.zerogravity.myapp.emotion.typehandler.EmotionRecordTypeHandler}, #{diaryEntry}, FROM_UNIXTIME(UNIX_TIMESTAMP(#{createdTime})))
 	</insert>
 
 	<!-- Update emotion record -->
