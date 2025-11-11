@@ -54,7 +54,8 @@ public class EmotionRecordRestController {
 				request.getEmotionReasons(),
 				request.getDiaryEntry(),
 				timezone,
-				request.getAiAnalysisId()
+				request.getAiAnalysisId(),
+				request.getRecordDate()
 			);
 
 			Map<String, Object> responseData = new HashMap<>();

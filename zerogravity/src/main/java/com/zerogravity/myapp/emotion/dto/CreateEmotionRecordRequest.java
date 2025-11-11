@@ -22,14 +22,18 @@ public class CreateEmotionRecordRequest {
 	@Schema(description = "AI analysis ID (from /ai/predict-emotion endpoint). If provided, use AI-predicted values.", example = "1234567890123456789")
 	private Long aiAnalysisId;
 
+	@Schema(description = "Optional record date (ISO Date format: YYYY-MM-DD). If not provided, current date/time is used. Past dates are saved at 12:00:00 (noon). Future dates are not allowed.", example = "2025-11-05")
+	private String recordDate;
+
 	public CreateEmotionRecordRequest() {}
 
-	public CreateEmotionRecordRequest(Integer emotionId, String emotionRecordType, List<String> emotionReasons, String diaryEntry, Long aiAnalysisId) {
+	public CreateEmotionRecordRequest(Integer emotionId, String emotionRecordType, List<String> emotionReasons, String diaryEntry, Long aiAnalysisId, String recordDate) {
 		this.emotionId = emotionId;
 		this.emotionRecordType = emotionRecordType;
 		this.emotionReasons = emotionReasons;
 		this.diaryEntry = diaryEntry;
 		this.aiAnalysisId = aiAnalysisId;
+		this.recordDate = recordDate;
 	}
 
 	public Integer getEmotionId() {
@@ -72,9 +76,17 @@ public class CreateEmotionRecordRequest {
 		this.aiAnalysisId = aiAnalysisId;
 	}
 
+	public String getRecordDate() {
+		return recordDate;
+	}
+
+	public void setRecordDate(String recordDate) {
+		this.recordDate = recordDate;
+	}
+
 	@Override
 	public String toString() {
 		return "CreateEmotionRecordRequest [emotionId=" + emotionId + ", emotionRecordType=" + emotionRecordType
-				+ ", emotionReasons=" + emotionReasons + ", diaryEntry=" + diaryEntry + ", aiAnalysisId=" + aiAnalysisId + "]";
+				+ ", emotionReasons=" + emotionReasons + ", diaryEntry=" + diaryEntry + ", aiAnalysisId=" + aiAnalysisId + ", recordDate=" + recordDate + "]";
 	}
 }
