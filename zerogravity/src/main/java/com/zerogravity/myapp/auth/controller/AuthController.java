@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zerogravity.myapp.auth.dto.AuthResponse;
+import com.zerogravity.myapp.auth.dto.RefreshRequest;
+import com.zerogravity.myapp.auth.dto.RefreshResponse;
+import com.zerogravity.myapp.auth.service.RefreshTokenService;
+import com.zerogravity.myapp.common.dto.ApiResponse;
 import com.zerogravity.myapp.user.dto.User;
 import com.zerogravity.myapp.user.service.UserService;
 import com.zerogravity.myapp.common.security.JWTUtil;
@@ -34,12 +38,19 @@ public class AuthController {
 	private final UserService userService;
 	private final JWTUtil jwtUtil;
 	private final SnowflakeIdService snowflakeIdService;
+	private final RefreshTokenService refreshTokenService;
 
 	@Autowired
-	public AuthController(UserService userService, JWTUtil jwtUtil, SnowflakeIdService snowflakeIdService) {
+	public AuthController(
+			UserService userService,
+			JWTUtil jwtUtil,
+			SnowflakeIdService snowflakeIdService,
+			RefreshTokenService refreshTokenService
+	) {
 		this.userService = userService;
 		this.jwtUtil = jwtUtil;
 		this.snowflakeIdService = snowflakeIdService;
+		this.refreshTokenService = refreshTokenService;
 	}
 
 	/**
@@ -51,7 +62,7 @@ public class AuthController {
 	 */
 	@PostMapping("/verify")
 	@Operation(summary = "OAuth User Verification and JWT Issuance", description = "Endpoint called after OAuth login from NextAuth. Verifies user information and issues backend JWT.")
-	public ResponseEntity<AuthResponse> verifyAndCreateUser(@RequestBody User oauthUser, HttpServletResponse response) {
+	public ResponseEntity<ApiResponse<AuthResponse>> verifyAndCreateUser(@RequestBody User oauthUser, HttpServletResponse response) {
 		try {
 			// Validate input
 			if (oauthUser == null || oauthUser.getProviderId() == null || oauthUser.getProvider() == null) {
@@ -91,15 +102,18 @@ public class AuthController {
 				}
 			}
 
-			// 4. Generate JWT token (1-hour expiration)
-			String jwtToken = jwtUtil.createJwt(user.getUserId(), 3600000L);
+			// 4. Generate JWT token (15-minute expiration)
+			String jwtToken = jwtUtil.createJwt(user.getUserId(), 900000L);
 
-			// 5. Set JWT as HttpOnly cookie
+			// 5. Generate refresh token (30-day expiration)
+			String refreshToken = refreshTokenService.createRefreshToken(user.getUserId());
+
+			// 6. Set JWT as HttpOnly cookie
 			Cookie cookie = new Cookie("token", jwtToken);
 			cookie.setHttpOnly(true);        // JS cannot access
 			cookie.setSecure(true);          // HTTPS only (production)
 			cookie.setPath("/");             // All paths
-			cookie.setMaxAge(3600);          // 1 hour (seconds)
+			cookie.setMaxAge(900);           // 15 minutes (seconds)
 			cookie.setAttribute("SameSite", "Lax");  // CSRF protection
 
 			response.addCookie(cookie);
@@ -107,9 +121,17 @@ public class AuthController {
 			// Build consents map with UTC timezone (frontend will receive and handle timezone conversion)
 			Map<String, Object> consents = buildConsentsMap(user);
 
-			// Response with isNewUser flag for frontend to show consent screen
-			AuthResponse authResponse = new AuthResponse(true, "Authentication successful", isNewUser, consents);
-			return ResponseEntity.ok(authResponse);
+			// Response with isNewUser flag and both tokens for frontend
+			AuthResponse authResponse = new AuthResponse(
+					true,
+					"Authentication successful",
+					isNewUser,
+					consents,
+					jwtToken,
+					refreshToken
+			);
+			ApiResponse<AuthResponse> apiResponse = new ApiResponse<>(authResponse, Instant.now().toString());
+			return ResponseEntity.ok(apiResponse);
 
 		} catch (Exception e) {
 			System.err.println("[AuthController] Error during OAuth verification: " + e.getMessage());
@@ -163,5 +185,49 @@ public class AuthController {
 		consents.put("consentVersion", user.getConsentVersion() != null ? user.getConsentVersion() : "v1.0");
 
 		return consents;
+	}
+
+	/**
+	 * Refresh access token using refresh token
+	 * Implements token rotation: old refresh token is revoked and new tokens are issued
+	 *
+	 * @param request refresh token request
+	 * @return RefreshResponse with new access token and refresh token
+	 */
+	@PostMapping("/refresh")
+	@Operation(
+			summary = "Refresh Access Token",
+			description = "Exchange refresh token for new access token and refresh token. " +
+					"Implements token rotation for security: old refresh token is immediately revoked."
+	)
+	public ResponseEntity<ApiResponse<RefreshResponse>> refreshToken(@RequestBody RefreshRequest request) {
+		try {
+			// Validate request
+			if (request == null || request.getRefreshToken() == null || request.getRefreshToken().isBlank()) {
+				return ResponseEntity.badRequest().build();
+			}
+
+			// Validate and rotate refresh token
+			RefreshTokenService.TokenPair tokenPair = refreshTokenService.validateAndRotateRefreshToken(
+					request.getRefreshToken()
+			);
+
+			// Create response with new tokens
+			RefreshResponse refreshResponse = new RefreshResponse(
+					tokenPair.accessToken(),
+					tokenPair.refreshToken()
+			);
+
+			ApiResponse<RefreshResponse> apiResponse = new ApiResponse<>(
+					refreshResponse,
+					Instant.now().toString()
+			);
+
+			return ResponseEntity.ok(apiResponse);
+
+		} catch (Exception e) {
+			System.err.println("[AuthController] Error during token refresh: " + e.getMessage());
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
 	}
 }
