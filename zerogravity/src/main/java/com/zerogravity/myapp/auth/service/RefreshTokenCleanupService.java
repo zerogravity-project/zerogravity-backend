@@ -19,6 +19,9 @@ public class RefreshTokenCleanupService {
 
     private static final Logger logger = LoggerFactory.getLogger(RefreshTokenCleanupService.class);
 
+    // Delete revoked tokens older than 1 day
+    private static final int REVOKED_TOKEN_RETENTION_HOURS = 24;
+
     private final RefreshTokenDao refreshTokenDao;
 
     @Autowired
@@ -27,17 +30,33 @@ public class RefreshTokenCleanupService {
     }
 
     /**
-     * Clean up expired refresh tokens
-     * Runs daily at 2:00 AM server time
-     * Deletes tokens that are both expired AND revoked
+     * Clean up expired and old revoked refresh tokens
+     * Runs hourly at the start of every hour
+     * Deletes:
+     * 1. Expired tokens that are already revoked
+     * 2. Revoked tokens older than 24 hours
      */
-    @Scheduled(cron = "0 0 2 * * *")
+    @Scheduled(cron = "0 0 * * * *")
     @Transactional
-    public void cleanupExpiredTokens() {
+    public void cleanupOldTokens() {
+        logger.info("Starting refresh token cleanup job");
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime cutoffTime = now.minusHours(REVOKED_TOKEN_RETENTION_HOURS);
+
         try {
-            LocalDateTime now = LocalDateTime.now();
-            int deletedCount = refreshTokenDao.deleteExpiredTokens(now);
-            logger.info("Refresh token cleanup completed. Deleted {} expired and revoked tokens.", deletedCount);
+            // Delete expired tokens (already revoked)
+            int expiredDeleted = refreshTokenDao.deleteExpiredTokens(now);
+            logger.info("Deleted {} expired refresh tokens", expiredDeleted);
+
+            // Delete old revoked tokens (older than 24 hours)
+            int oldRevokedDeleted = refreshTokenDao.deleteOldRevokedTokens(cutoffTime);
+            logger.info("Deleted {} old revoked refresh tokens (older than {} hours)",
+                    oldRevokedDeleted, REVOKED_TOKEN_RETENTION_HOURS);
+
+            logger.info("Refresh token cleanup completed - Total deleted: {}",
+                    expiredDeleted + oldRevokedDeleted);
+
         } catch (Exception e) {
             logger.error("Error during refresh token cleanup", e);
         }

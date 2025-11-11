@@ -91,24 +91,31 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     @Transactional
     public TokenPair validateAndRotateRefreshToken(String refreshTokenString) {
+        // Log token validation attempt (show first 8 chars only for security)
+        String tokenPrefix = refreshTokenString != null && refreshTokenString.length() >= 8 ?
+                             refreshTokenString.substring(0, 8) + "..." : "null";
+        logger.info("Token refresh attempt - token: {}", tokenPrefix);
+
         // Find token in database
         RefreshToken refreshToken = refreshTokenDao.findByToken(refreshTokenString);
 
         if (refreshToken == null) {
-            logger.warn("Refresh token not found");
-            throw new UnauthorizedException("Invalid refresh token");
+            logger.warn("REFRESH_TOKEN_INVALID: Token not found in database - token: {}", tokenPrefix);
+            throw new UnauthorizedException("REFRESH_TOKEN_INVALID: Token does not exist or has been deleted");
         }
 
         // Check if token is revoked
         if (Boolean.TRUE.equals(refreshToken.getIsRevoked())) {
-            logger.warn("Attempting to use revoked refresh token for user: {}", refreshToken.getUserId());
-            throw new UnauthorizedException("Refresh token has been revoked");
+            logger.warn("REFRESH_TOKEN_REVOKED: Attempted to use revoked token - user: {}, token: {}, usedAt: {}",
+                    refreshToken.getUserId(), tokenPrefix, refreshToken.getUsedAt());
+            throw new UnauthorizedException("REFRESH_TOKEN_REVOKED: This token has already been used and invalidated. Please login again.");
         }
 
         // Check if token is expired
         if (refreshToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            logger.warn("Refresh token expired for user: {}", refreshToken.getUserId());
-            throw new UnauthorizedException("Refresh token has expired");
+            logger.warn("REFRESH_TOKEN_EXPIRED: Token expired - user: {}, token: {}, expiresAt: {}",
+                    refreshToken.getUserId(), tokenPrefix, refreshToken.getExpiresAt());
+            throw new UnauthorizedException("REFRESH_TOKEN_EXPIRED: Token has expired. Please login again.");
         }
 
         // SECURITY: Detect token reuse attack
@@ -130,7 +137,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 // Revoke all tokens for this user as a security measure
                 refreshTokenDao.revokeAllByUserId(refreshToken.getUserId());
 
-                throw new UnauthorizedException("Token reuse detected. All sessions have been terminated for security.");
+                throw new UnauthorizedException("REFRESH_TOKEN_REUSE_DETECTED: Token reuse detected. All sessions have been terminated for security.");
             }
         }
 
@@ -142,7 +149,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         String newAccessToken = jwtUtil.createJwt(refreshToken.getUserId(), ACCESS_TOKEN_EXPIRATION_MS);
         String newRefreshToken = createRefreshToken(refreshToken.getUserId());
 
-        logger.info("Successfully rotated refresh token for user: {}", refreshToken.getUserId());
+        logger.info("Successfully rotated refresh token for user: {} - Old token: {}, New token: {}",
+                refreshToken.getUserId(),
+                tokenPrefix,
+                newRefreshToken.substring(0, 8) + "...");
 
         return new TokenPair(newAccessToken, newRefreshToken);
     }
