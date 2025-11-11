@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -26,6 +27,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     // Token expiration times
     private static final long ACCESS_TOKEN_EXPIRATION_MS = 15 * 60 * 1000L; // 15 minutes
     private static final int REFRESH_TOKEN_EXPIRATION_DAYS = 30; // 30 days
+
+    // Grace period for concurrent refresh requests (seconds)
+    private static final long GRACE_PERIOD_SECONDS = 5L;
 
     private final RefreshTokenDao refreshTokenDao;
     private final JWTUtil jwtUtil;
@@ -110,13 +114,24 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         // SECURITY: Detect token reuse attack
         // If token was already used (usedAt is not null), this is a reuse attempt
         if (refreshToken.getUsedAt() != null) {
-            logger.error("SECURITY ALERT: Refresh token reuse detected for user: {}. Revoking all tokens.",
-                    refreshToken.getUserId());
+            // Calculate time since last use
+            long secondsSinceUse = Duration.between(refreshToken.getUsedAt(), LocalDateTime.now()).toSeconds();
 
-            // Revoke all tokens for this user as a security measure
-            refreshTokenDao.revokeAllByUserId(refreshToken.getUserId());
+            // Grace period: Allow concurrent requests within 5 seconds
+            if (secondsSinceUse <= GRACE_PERIOD_SECONDS) {
+                logger.warn("Concurrent refresh request detected within grace period ({} seconds) for user: {}. Allowing request.",
+                        secondsSinceUse, refreshToken.getUserId());
+                // Allow the request to proceed - will create new tokens
+            } else {
+                // Token reuse after grace period indicates potential security threat
+                logger.error("SECURITY ALERT: Refresh token reuse detected ({} seconds after use) for user: {}. Revoking all tokens.",
+                        secondsSinceUse, refreshToken.getUserId());
 
-            throw new UnauthorizedException("Token reuse detected. All sessions have been terminated for security.");
+                // Revoke all tokens for this user as a security measure
+                refreshTokenDao.revokeAllByUserId(refreshToken.getUserId());
+
+                throw new UnauthorizedException("Token reuse detected. All sessions have been terminated for security.");
+            }
         }
 
         // Mark token as used and revoke it (rotation)
