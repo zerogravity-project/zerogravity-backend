@@ -65,7 +65,7 @@ public class ChartServiceImpl implements ChartService {
 
 		for (Map<String, Object> row : stats) {
 			String label = convertLabel(row.get("label"), period, timezone);
-			Double avgLevel = (Double) row.get("avgLevel");
+			Double avgLevel = ((Number) row.get("avgLevel")).doubleValue();
 			Integer count = ((Number) row.get("count")).intValue();
 
 			dataMap.put(label, avgLevel);
