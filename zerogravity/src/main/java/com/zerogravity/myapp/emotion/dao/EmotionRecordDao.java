@@ -19,31 +19,25 @@ public interface EmotionRecordDao {
 	/**
 	 * Select all emotion records for a user (excluding soft-deleted)
 	 * @param userId User ID
-	 * @param timezoneOffset Timezone offset string (e.g., "+09:00")
 	 * @return List of emotion records with reasons loaded from junction table
 	 */
-	List<EmotionRecord> selectEmotionRecordByUserId(@Param("userId") Long userId,
-	                                                 @Param("timezoneOffset") String timezoneOffset);
+	List<EmotionRecord> selectEmotionRecordByUserId(@Param("userId") Long userId);
 
 	/**
 	 * Select created time of an emotion record
 	 * @param emotionRecordId Emotion record ID (Snowflake)
-	 * @param timezoneOffset Timezone offset string (e.g., "+09:00")
 	 * @return Created timestamp
 	 */
-	Timestamp selectCreatedTimeByEmotionRecordId(@Param("emotionRecordId") Long emotionRecordId,
-	                                             @Param("timezoneOffset") String timezoneOffset);
+	Timestamp selectCreatedTimeByEmotionRecordId(@Param("emotionRecordId") Long emotionRecordId);
 
 	/**
 	 * Select emotion record by ID for update validation
 	 * @param emotionRecordId Emotion record ID
 	 * @param userId User ID
-	 * @param timezoneOffset Timezone offset string (e.g., "+09:00")
 	 * @return Emotion record or null if not found
 	 */
 	EmotionRecord selectEmotionRecordByIdAndUserId(@Param("emotionRecordId") Long emotionRecordId,
-	                                               @Param("userId") Long userId,
-	                                               @Param("timezoneOffset") String timezoneOffset);
+	                                               @Param("userId") Long userId);
 
 	/**
 	 * Check if a daily emotion record exists for a specific date (uses UTC date range for index efficiency)
