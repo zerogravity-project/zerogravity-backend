@@ -32,19 +32,19 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<EmotionRecord> getEmotionRecordsByUserId(Long userId, ZoneId timezone) {
+	public List<EmotionRecord> getEmotionRecordsByUserId(Long userId) {
 		return emotionRecordDao.selectEmotionRecordByUserId(userId);
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public Timestamp getCreatedTimeByEmotionRecordId(Long emotionRecordId, ZoneId timezone) {
+	public Timestamp getCreatedTimeByEmotionRecordId(Long emotionRecordId) {
 		return emotionRecordDao.selectCreatedTimeByEmotionRecordId(emotionRecordId);
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<EmotionRecord> getEmotionRecordByPeriodAndUserId(Long userId, Instant periodStart, Instant periodEnd, ZoneId timezone) {
+	public List<EmotionRecord> getEmotionRecordByPeriodAndUserId(Long userId, Instant periodStart, Instant periodEnd) {
 		return emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
 	}
 
@@ -157,7 +157,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	@Override
 	@Transactional
 	public boolean updateEmotionRecord(Long userId, Long emotionRecordId, Integer emotionId,
-	                                   List<String> emotionReasons, String diaryEntry, ZoneId timezone) {
+	                                   List<String> emotionReasons, String diaryEntry) {
 		// Fetch existing record
 		EmotionRecord existing = emotionRecordDao.selectEmotionRecordByIdAndUserId(emotionRecordId, userId);
 		if (existing == null) {
