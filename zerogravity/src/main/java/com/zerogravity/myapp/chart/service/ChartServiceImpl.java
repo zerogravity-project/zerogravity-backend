@@ -216,11 +216,11 @@ public class ChartServiceImpl implements ChartService {
 				double hourFraction = zdt.getHour() / 24.0;
 				return dayOfWeek + hourFraction;
 			case "month":
-				// Day of month (1-31) + hour fraction
-				return (double) zdt.getDayOfMonth() + zdt.getHour() / 24.0;
+				// Day of month (0-30) + hour fraction
+				return (double) (zdt.getDayOfMonth() - 1) + zdt.getHour() / 24.0;
 			case "year":
-				// Month (1-12)
-				return (double) zdt.getMonthValue();
+				// Month (0-11)
+				return (double) (zdt.getMonthValue() - 1);
 			default:
 				return 0.0;
 		}
