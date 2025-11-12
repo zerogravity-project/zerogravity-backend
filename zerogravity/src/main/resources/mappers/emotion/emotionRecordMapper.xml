@@ -28,7 +28,7 @@
 	</select>
 
 	<!-- Select emotion records by user ID (excluding soft-deleted) -->
-	<select id="selectEmotionRecordByUserId" resultMap="emotionRecordResultMap">
+	<select id="selectEmotionRecordByUserId" parameterType="long" resultMap="emotionRecordResultMap">
 		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
 		       er.diary_entry, er.is_deleted,
 		       er.deleted_at,
@@ -41,7 +41,7 @@
 	</select>
 
 	<!-- Select created time by emotion record ID -->
-	<select id="selectCreatedTimeByEmotionRecordId" resultType="java.sql.Timestamp">
+	<select id="selectCreatedTimeByEmotionRecordId" parameterType="long" resultType="java.sql.Timestamp">
 		SELECT created_time
 		FROM emotion_record
 		WHERE emotion_record_id = #{emotionRecordId}
