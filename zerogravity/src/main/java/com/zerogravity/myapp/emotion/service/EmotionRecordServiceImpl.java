@@ -32,20 +32,23 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<EmotionRecord> getEmotionRecordsByUserId(Long userId) {
-		return emotionRecordDao.selectEmotionRecordByUserId(userId);
+	public List<EmotionRecord> getEmotionRecordsByUserId(Long userId, ZoneId timezone) {
+		String timezoneOffset = TimezoneUtil.getTimezoneOffset(timezone);
+		return emotionRecordDao.selectEmotionRecordByUserId(userId, timezoneOffset);
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public Timestamp getCreatedTimeByEmotionRecordId(Long emotionRecordId) {
-		return emotionRecordDao.selectCreatedTimeByEmotionRecordId(emotionRecordId);
+	public Timestamp getCreatedTimeByEmotionRecordId(Long emotionRecordId, ZoneId timezone) {
+		String timezoneOffset = TimezoneUtil.getTimezoneOffset(timezone);
+		return emotionRecordDao.selectCreatedTimeByEmotionRecordId(emotionRecordId, timezoneOffset);
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<EmotionRecord> getEmotionRecordByPeriodAndUserId(Long userId, Instant periodStart, Instant periodEnd) {
-		return emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
+	public List<EmotionRecord> getEmotionRecordByPeriodAndUserId(Long userId, Instant periodStart, Instant periodEnd, ZoneId timezone) {
+		String timezoneOffset = TimezoneUtil.getTimezoneOffset(timezone);
+		return emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd, timezoneOffset);
 	}
 
 	@Override
@@ -109,10 +112,11 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 			recordTimestamp = Instant.now();
 		}
 
-		// Check for daily record duplicate on target date
+		// Check for daily record duplicate on target date (using UTC date range for index efficiency)
 		if (type == EmotionRecord.Type.DAILY) {
-			int timezoneOffsetMinutes = timezone.getRules().getOffset(Instant.now()).getTotalSeconds() / 60;
-			boolean exists = emotionRecordDao.existsDailyRecordForDate(userId, targetDate, timezoneOffsetMinutes);
+			Instant dateStartUtc = TimezoneUtil.getStartOfDay(targetDate, timezone);
+			Instant dateEndUtc = dateStartUtc.plus(Duration.ofDays(1)); // Next day start
+			boolean exists = emotionRecordDao.existsDailyRecordForDate(userId, dateStartUtc, dateEndUtc);
 			if (exists) {
 				throw new DailyRecordAlreadyExistsException();
 			}
@@ -156,9 +160,10 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	@Override
 	@Transactional
 	public boolean updateEmotionRecord(Long userId, Long emotionRecordId, Integer emotionId,
-	                                   List<String> emotionReasons, String diaryEntry) {
+	                                   List<String> emotionReasons, String diaryEntry, ZoneId timezone) {
 		// Fetch existing record
-		EmotionRecord existing = emotionRecordDao.selectEmotionRecordByIdAndUserId(emotionRecordId, userId);
+		String timezoneOffset = TimezoneUtil.getTimezoneOffset(timezone);
+		EmotionRecord existing = emotionRecordDao.selectEmotionRecordByIdAndUserId(emotionRecordId, userId, timezoneOffset);
 		if (existing == null) {
 			return false;
 		}

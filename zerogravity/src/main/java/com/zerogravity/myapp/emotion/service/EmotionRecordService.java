@@ -16,25 +16,28 @@ public interface EmotionRecordService {
 	/**
 	 * Get all emotion records for a user
 	 * @param userId User ID
+	 * @param timezone User's timezone for timestamp conversion
 	 * @return List of emotion records
 	 */
-	List<EmotionRecord> getEmotionRecordsByUserId(Long userId);
+	List<EmotionRecord> getEmotionRecordsByUserId(Long userId, ZoneId timezone);
 
 	/**
 	 * Get created time of an emotion record
 	 * @param emotionRecordId Emotion record ID
+	 * @param timezone User's timezone for timestamp conversion
 	 * @return Created timestamp
 	 */
-	Timestamp getCreatedTimeByEmotionRecordId(Long emotionRecordId);
+	Timestamp getCreatedTimeByEmotionRecordId(Long emotionRecordId, ZoneId timezone);
 
 	/**
 	 * Get emotion records for a specific period
 	 * @param userId User ID
 	 * @param periodStart Period start instant (UTC)
 	 * @param periodEnd Period end instant (UTC)
+	 * @param timezone User's timezone for timestamp conversion
 	 * @return List of emotion records
 	 */
-	List<EmotionRecord> getEmotionRecordByPeriodAndUserId(Long userId, Instant periodStart, Instant periodEnd);
+	List<EmotionRecord> getEmotionRecordByPeriodAndUserId(Long userId, Instant periodStart, Instant periodEnd, ZoneId timezone);
 
 	/**
 	 * Create a new emotion record with validation
@@ -58,8 +61,9 @@ public interface EmotionRecordService {
 	 * @param emotionId New emotion ID
 	 * @param emotionReasons New reasons list
 	 * @param diaryEntry New diary entry
+	 * @param timezone User's timezone for timestamp conversion
 	 * @return true if update successful, false otherwise
 	 */
 	boolean updateEmotionRecord(Long userId, Long emotionRecordId, Integer emotionId,
-	                            List<String> emotionReasons, String diaryEntry);
+	                            List<String> emotionReasons, String diaryEntry, ZoneId timezone);
 }

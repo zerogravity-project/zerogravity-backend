@@ -155,13 +155,14 @@ public class ChartServiceImpl implements ChartService {
 				throw new IllegalArgumentException("Invalid period: " + period);
 		}
 
-		// Query aggregated data
-		List<Map<String, Object>> stats = emotionRecordDao.selectEmotionCountStatsByPeriod(userId, periodStart, periodEnd, groupBy);
+		// Query aggregated data (timestamps already converted to user timezone in SQL)
+		String timezoneOffset = TimezoneUtil.getTimezoneOffset(timezone);
+		List<Map<String, Object>> stats = emotionRecordDao.selectEmotionCountStatsByPeriod(userId, periodStart, periodEnd, groupBy, timezoneOffset);
 
 		// Build response
 		List<ChartCountResponse.DataPoint> dataPoints = stats.stream().map(row -> {
 			Object timestampObj = row.get("timestamp");
-			Instant timestamp = parseTimestamp(timestampObj);
+			Instant timestamp = parseTimestamp(timestampObj, timezone);
 			String label = convertLabel(timestampObj, period, timezone);
 			Double position = calculatePosition(timestamp, period, startDate, timezone);
 
@@ -190,7 +191,7 @@ public class ChartServiceImpl implements ChartService {
 		switch (period.toLowerCase()) {
 			case "week":
 				// labelObj is timestamp, extract day of week
-				Instant instant = parseTimestamp(labelObj);
+				Instant instant = parseTimestamp(labelObj, timezone);
 				DayOfWeek dayOfWeek = instant.atZone(timezone).getDayOfWeek();
 				return dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toUpperCase();
 			case "month":
@@ -235,18 +236,28 @@ public class ChartServiceImpl implements ChartService {
 		return labels;
 	}
 
-	private Instant parseTimestamp(Object obj) {
+	/**
+	 * Parse timestamp that was already converted to user timezone in SQL (via CONVERT_TZ)
+	 * The timestamp string from SQL represents user's local time, so we need to interpret it
+	 * in the user's timezone to get the correct Instant.
+	 */
+	private Instant parseTimestamp(Object obj, ZoneId timezone) {
 		if (obj instanceof java.sql.Timestamp) {
-			return ((java.sql.Timestamp) obj).toInstant();
+			// Timestamp from SQL CONVERT_TZ - interpret as user timezone
+			LocalDateTime ldt = ((java.sql.Timestamp) obj).toLocalDateTime();
+			return ldt.atZone(timezone).toInstant();
 		} else if (obj instanceof java.util.Date) {
 			return ((java.util.Date) obj).toInstant();
 		} else if (obj instanceof String) {
 			String timestampStr = (String) obj;
-			// Handle "YYYY-MM-DD HH:MM:SS" format from MySQL DATE_FORMAT()
+			// Handle "YYYY-MM-DD HH:MM:SS" format from MySQL DATE_FORMAT() after CONVERT_TZ
+			// This represents user's local time, not UTC
 			if (timestampStr.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
-				// Convert to ISO format: "YYYY-MM-DDTHH:MM:SSZ"
-				timestampStr = timestampStr.replace(" ", "T") + "Z";
+				// Parse as LocalDateTime, then interpret in user timezone
+				LocalDateTime ldt = LocalDateTime.parse(timestampStr.replace(" ", "T"));
+				return ldt.atZone(timezone).toInstant();
 			}
+			// Fallback for ISO format
 			return Instant.parse(timestampStr);
 		}
 		throw new IllegalArgumentException("Cannot parse timestamp: " + obj);
