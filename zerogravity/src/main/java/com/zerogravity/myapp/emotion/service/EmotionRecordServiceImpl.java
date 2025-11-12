@@ -109,10 +109,11 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 			recordTimestamp = Instant.now();
 		}
 
-		// Check for daily record duplicate on target date
+		// Check for daily record duplicate on target date (using UTC date range for index efficiency)
 		if (type == EmotionRecord.Type.DAILY) {
-			int timezoneOffsetMinutes = timezone.getRules().getOffset(Instant.now()).getTotalSeconds() / 60;
-			boolean exists = emotionRecordDao.existsDailyRecordForDate(userId, targetDate, timezoneOffsetMinutes);
+			Instant dateStartUtc = TimezoneUtil.getStartOfDay(targetDate, timezone);
+			Instant dateEndUtc = dateStartUtc.plus(Duration.ofDays(1)); // Next day start
+			boolean exists = emotionRecordDao.existsDailyRecordForDate(userId, dateStartUtc, dateEndUtc);
 			if (exists) {
 				throw new DailyRecordAlreadyExistsException();
 			}
