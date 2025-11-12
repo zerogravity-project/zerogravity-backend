@@ -157,4 +157,36 @@ public class TimezoneUtil {
 	public static LocalDate toLocalDate(Instant instant, ZoneId timezone) {
 		return instant.atZone(timezone).toLocalDate();
 	}
+
+	/**
+	 * Format SQL-converted timestamp to ISO 8601 with offset
+	 * Use this when timestamp is already converted in SQL via CONVERT_TZ
+	 *
+	 * @param timestamp Timestamp already converted to user's timezone in SQL
+	 * @param timezone User's timezone (for offset information)
+	 * @return ISO 8601 formatted string with offset (e.g., "2025-10-26T15:00:00+09:00")
+	 */
+	public static String formatConvertedTimestamp(java.sql.Timestamp timestamp, ZoneId timezone) {
+		if (timestamp == null) {
+			return null;
+		}
+		// Timestamp → LocalDateTime → ZonedDateTime → ISO format
+		LocalDateTime localDateTime = timestamp.toLocalDateTime();
+		ZonedDateTime zonedDateTime = localDateTime.atZone(timezone);
+		return zonedDateTime.format(ISO_OFFSET_FORMATTER);
+	}
+
+	/**
+	 * Get timezone offset string for SQL CONVERT_TZ function
+	 *
+	 * @param timezone User's timezone
+	 * @return Timezone offset string (e.g., "+09:00" for Asia/Seoul)
+	 */
+	public static String getTimezoneOffset(ZoneId timezone) {
+		ZoneOffset offset = timezone.getRules().getOffset(Instant.now());
+		int totalSeconds = offset.getTotalSeconds();
+		int hours = totalSeconds / 3600;
+		int minutes = Math.abs(totalSeconds % 3600) / 60;
+		return String.format("%+03d:%02d", hours, minutes);
+	}
 }

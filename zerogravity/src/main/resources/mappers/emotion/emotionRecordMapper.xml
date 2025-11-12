@@ -30,7 +30,10 @@
 	<!-- Select emotion records by user ID (excluding soft-deleted) -->
 	<select id="selectEmotionRecordByUserId" parameterType="long" resultMap="emotionRecordResultMap">
 		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
-		       er.diary_entry, er.is_deleted, er.deleted_at, er.created_time, er.updated_time
+		       er.diary_entry, er.is_deleted,
+		       er.deleted_at,
+		       er.created_time,
+		       er.updated_time
 		FROM emotion_record er
 		WHERE er.user_id = #{userId}
 		  AND er.is_deleted = FALSE
@@ -48,31 +51,34 @@
 	<!-- Select emotion record by ID and user ID for update validation -->
 	<select id="selectEmotionRecordByIdAndUserId" resultMap="emotionRecordResultMap">
 		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
-		       er.diary_entry, er.is_deleted, er.deleted_at, er.created_time, er.updated_time
+		       er.diary_entry, er.is_deleted,
+		       er.deleted_at,
+		       er.created_time,
+		       er.updated_time
 		FROM emotion_record er
 		WHERE er.emotion_record_id = #{emotionRecordId}
 		  AND er.user_id = #{userId}
 		  AND er.is_deleted = FALSE
 	</select>
 
-	<!-- Check if daily record exists for a specific date -->
+	<!-- Check if daily record exists for a specific date (uses UTC date range for index efficiency) -->
 	<select id="existsDailyRecordForDate" resultType="boolean">
 		SELECT COUNT(*) > 0
 		FROM emotion_record
 		WHERE user_id = #{userId}
 		  AND emotion_record_type = 'daily'
 		  AND is_deleted = FALSE
-		  AND DATE(CONVERT_TZ(created_time, '+00:00', CONCAT(
-		      LPAD(FLOOR(ABS(#{timezoneOffset}) / 60), 2, '0'), ':',
-		      LPAD(MOD(ABS(#{timezoneOffset}), 60), 2, '0'),
-		      IF(#{timezoneOffset} >= 0, '', '-')
-		  ))) = #{date}
+		  AND created_time >= FROM_UNIXTIME(UNIX_TIMESTAMP(#{dateStartUtc}))
+		  AND created_time &lt; FROM_UNIXTIME(UNIX_TIMESTAMP(#{dateEndUtc}))
 	</select>
 
 	<!-- Select emotion records for a specific period and user (excluding soft-deleted) -->
 	<select id="selectEmotionRecordByPeriodAndUserId" resultMap="emotionRecordResultMap">
 		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
-		       er.diary_entry, er.is_deleted, er.deleted_at, er.created_time, er.updated_time
+		       er.diary_entry, er.is_deleted,
+		       er.deleted_at,
+		       er.created_time,
+		       er.updated_time
 		FROM emotion_record er
 		WHERE er.user_id = #{userId}
 		  AND er.is_deleted = FALSE
@@ -86,13 +92,13 @@
 		SELECT
 		<choose>
 			<when test="groupBy == 'HOUR'">
-				DATE_FORMAT(er.created_time, '%Y-%m-%d %H:00:00') as label,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d %H:00:00') as label,
 			</when>
 			<when test="groupBy == 'DAY'">
-				DATE(er.created_time) as label,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d 00:00:00') as label,
 			</when>
 			<when test="groupBy == 'MONTH'">
-				DATE_FORMAT(er.created_time, '%Y-%m-01') as label,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-01 00:00:00') as label,
 			</when>
 		</choose>
 		AVG(e.emotion_level) as avgLevel,
@@ -127,13 +133,13 @@
 		SELECT
 		<choose>
 			<when test="groupBy == 'HOUR'">
-				DATE_FORMAT(er.created_time, '%Y-%m-%d %H:00:00') as timestamp,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d %H:00:00') as timestamp,
 			</when>
 			<when test="groupBy == 'DAY'">
-				DATE_FORMAT(er.created_time, '%Y-%m-%d 00:00:00') as timestamp,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d 00:00:00') as timestamp,
 			</when>
 			<when test="groupBy == 'MONTH'">
-				DATE_FORMAT(er.created_time, '%Y-%m-01 00:00:00') as timestamp,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-01 00:00:00') as timestamp,
 			</when>
 		</choose>
 		    er.emotion_id as emotionId,
