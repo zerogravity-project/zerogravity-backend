@@ -94,7 +94,7 @@ public class EmotionRecordRestController {
 
 			// Get records
 			List<EmotionRecord> records = emotionRecordService.getEmotionRecordByPeriodAndUserId(
-				userId, periodStart, periodEnd, timezone
+				userId, periodStart, periodEnd
 			);
 
 			// Separate into daily and moment
@@ -150,8 +150,7 @@ public class EmotionRecordRestController {
 				emotionRecordId,
 				request.getEmotionId(),
 				request.getEmotionReasons(),
-				request.getDiaryEntry(),
-				timezone
+				request.getDiaryEntry()
 			);
 
 			if (updated) {
