@@ -19,44 +19,55 @@ public interface EmotionRecordDao {
 	/**
 	 * Select all emotion records for a user (excluding soft-deleted)
 	 * @param userId User ID
+	 * @param timezoneOffset Timezone offset string (e.g., "+09:00")
 	 * @return List of emotion records with reasons loaded from junction table
 	 */
-	List<EmotionRecord> selectEmotionRecordByUserId(@Param("userId") Long userId);
+	List<EmotionRecord> selectEmotionRecordByUserId(@Param("userId") Long userId,
+	                                                 @Param("timezoneOffset") String timezoneOffset);
 
 	/**
 	 * Select created time of an emotion record
 	 * @param emotionRecordId Emotion record ID (Snowflake)
+	 * @param timezoneOffset Timezone offset string (e.g., "+09:00")
 	 * @return Created timestamp
 	 */
-	Timestamp selectCreatedTimeByEmotionRecordId(@Param("emotionRecordId") Long emotionRecordId);
+	Timestamp selectCreatedTimeByEmotionRecordId(@Param("emotionRecordId") Long emotionRecordId,
+	                                             @Param("timezoneOffset") String timezoneOffset);
 
 	/**
 	 * Select emotion record by ID for update validation
 	 * @param emotionRecordId Emotion record ID
 	 * @param userId User ID
+	 * @param timezoneOffset Timezone offset string (e.g., "+09:00")
 	 * @return Emotion record or null if not found
 	 */
-	EmotionRecord selectEmotionRecordByIdAndUserId(@Param("emotionRecordId") Long emotionRecordId, @Param("userId") Long userId);
+	EmotionRecord selectEmotionRecordByIdAndUserId(@Param("emotionRecordId") Long emotionRecordId,
+	                                               @Param("userId") Long userId,
+	                                               @Param("timezoneOffset") String timezoneOffset);
 
 	/**
-	 * Check if a daily emotion record exists for a specific date
+	 * Check if a daily emotion record exists for a specific date (uses UTC date range for index efficiency)
 	 * @param userId User ID
-	 * @param date Date in user's timezone
-	 * @param timezoneOffset Timezone offset in minutes
+	 * @param dateStartUtc Start of day in UTC
+	 * @param dateEndUtc End of day in UTC (next day start)
 	 * @return true if daily record exists for that date
 	 */
-	boolean existsDailyRecordForDate(@Param("userId") Long userId, @Param("date") LocalDate date, @Param("timezoneOffset") int timezoneOffset);
+	boolean existsDailyRecordForDate(@Param("userId") Long userId,
+	                                 @Param("dateStartUtc") Instant dateStartUtc,
+	                                 @Param("dateEndUtc") Instant dateEndUtc);
 
 	/**
 	 * Select emotion records for a specific period and user (excluding soft-deleted)
 	 * @param userId User ID
 	 * @param periodStart Period start instant (UTC)
 	 * @param periodEnd Period end instant (UTC)
+	 * @param timezoneOffset Timezone offset string (e.g., "+09:00")
 	 * @return List of emotion records within the period
 	 */
 	List<EmotionRecord> selectEmotionRecordByPeriodAndUserId(@Param("userId") Long userId,
 	                                                          @Param("periodStart") Instant periodStart,
-	                                                          @Param("periodEnd") Instant periodEnd);
+	                                                          @Param("periodEnd") Instant periodEnd,
+	                                                          @Param("timezoneOffset") String timezoneOffset);
 
 	/**
 	 * Select aggregated emotion level statistics for a period
@@ -91,12 +102,14 @@ public interface EmotionRecordDao {
 	 * @param periodStart Period start instant (UTC)
 	 * @param periodEnd Period end instant (UTC)
 	 * @param groupBy Grouping strategy (DAY, HOUR, MONTH)
+	 * @param timezoneOffset Timezone offset string (e.g., "+09:00")
 	 * @return List of aggregated data (timestamp, emotionId, daily_count, moment_count)
 	 */
 	List<Map<String, Object>> selectEmotionCountStatsByPeriod(@Param("userId") Long userId,
 	                                                           @Param("periodStart") Instant periodStart,
 	                                                           @Param("periodEnd") Instant periodEnd,
-	                                                           @Param("groupBy") String groupBy);
+	                                                           @Param("groupBy") String groupBy,
+	                                                           @Param("timezoneOffset") String timezoneOffset);
 
 	/**
 	 * Create a new emotion record
