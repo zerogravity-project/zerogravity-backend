@@ -58,16 +58,15 @@ public interface EmotionRecordDao {
 
 	/**
 	 * Select emotion records for a specific period and user (excluding soft-deleted)
+	 * Returns timestamps in UTC, conversion to user timezone happens in Java layer
 	 * @param userId User ID
 	 * @param periodStart Period start instant (UTC)
 	 * @param periodEnd Period end instant (UTC)
-	 * @param timezoneOffset Timezone offset string (e.g., "+09:00")
 	 * @return List of emotion records within the period
 	 */
 	List<EmotionRecord> selectEmotionRecordByPeriodAndUserId(@Param("userId") Long userId,
 	                                                          @Param("periodStart") Instant periodStart,
-	                                                          @Param("periodEnd") Instant periodEnd,
-	                                                          @Param("timezoneOffset") String timezoneOffset);
+	                                                          @Param("periodEnd") Instant periodEnd);
 
 	/**
 	 * Select aggregated emotion level statistics for a period

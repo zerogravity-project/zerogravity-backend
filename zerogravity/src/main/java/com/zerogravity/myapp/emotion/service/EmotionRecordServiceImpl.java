@@ -47,8 +47,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<EmotionRecord> getEmotionRecordByPeriodAndUserId(Long userId, Instant periodStart, Instant periodEnd, ZoneId timezone) {
-		String timezoneOffset = TimezoneUtil.getTimezoneOffset(timezone);
-		return emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd, timezoneOffset);
+		return emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
 	}
 
 	@Override
