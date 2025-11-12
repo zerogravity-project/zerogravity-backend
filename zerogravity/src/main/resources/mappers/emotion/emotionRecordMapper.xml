@@ -92,13 +92,13 @@
 		SELECT
 		<choose>
 			<when test="groupBy == 'HOUR'">
-				DATE_FORMAT(er.created_time, '%Y-%m-%d %H:00:00') as label,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d %H:00:00') as label,
 			</when>
 			<when test="groupBy == 'DAY'">
-				DATE(er.created_time) as label,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d 00:00:00') as label,
 			</when>
 			<when test="groupBy == 'MONTH'">
-				DATE_FORMAT(er.created_time, '%Y-%m-01') as label,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-01 00:00:00') as label,
 			</when>
 		</choose>
 		AVG(e.emotion_level) as avgLevel,

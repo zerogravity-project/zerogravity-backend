@@ -56,7 +56,8 @@ public class ChartServiceImpl implements ChartService {
 		}
 
 		// Query aggregated data
-		List<Map<String, Object>> stats = emotionRecordDao.selectEmotionLevelStatsByPeriod(userId, periodStart, periodEnd, groupBy);
+		String timezoneOffset = TimezoneUtil.getTimezoneOffset(timezone);
+		List<Map<String, Object>> stats = emotionRecordDao.selectEmotionLevelStatsByPeriod(userId, periodStart, periodEnd, groupBy, timezoneOffset);
 
 		// Build response
 		Map<String, Double> dataMap = new HashMap<>();
