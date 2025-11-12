@@ -76,4 +76,12 @@
           AND is_revoked = TRUE
     </delete>
 
+    <!-- Delete old revoked tokens (cleanup batch) -->
+    <delete id="deleteOldRevokedTokens" parameterType="java.time.LocalDateTime">
+        DELETE FROM refresh_tokens
+        WHERE is_revoked = TRUE
+          AND (used_at IS NULL OR used_at &lt; #{cutoffTime})
+          AND created_at &lt; #{cutoffTime}
+    </delete>
+
 </mapper>

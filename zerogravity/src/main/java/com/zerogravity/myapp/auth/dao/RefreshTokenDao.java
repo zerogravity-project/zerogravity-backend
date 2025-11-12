@@ -54,4 +54,12 @@ public interface RefreshTokenDao {
      * @return number of rows deleted
      */
     int deleteExpiredTokens(LocalDateTime now);
+
+    /**
+     * Delete old revoked tokens (cleanup batch job)
+     * Deletes revoked tokens older than the specified cutoff time
+     * @param cutoffTime tokens revoked before this time will be deleted
+     * @return number of rows deleted
+     */
+    int deleteOldRevokedTokens(LocalDateTime cutoffTime);
 }
