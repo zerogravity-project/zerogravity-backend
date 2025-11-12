@@ -33,15 +33,13 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<EmotionRecord> getEmotionRecordsByUserId(Long userId, ZoneId timezone) {
-		String timezoneOffset = TimezoneUtil.getTimezoneOffset(timezone);
-		return emotionRecordDao.selectEmotionRecordByUserId(userId, timezoneOffset);
+		return emotionRecordDao.selectEmotionRecordByUserId(userId);
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public Timestamp getCreatedTimeByEmotionRecordId(Long emotionRecordId, ZoneId timezone) {
-		String timezoneOffset = TimezoneUtil.getTimezoneOffset(timezone);
-		return emotionRecordDao.selectCreatedTimeByEmotionRecordId(emotionRecordId, timezoneOffset);
+		return emotionRecordDao.selectCreatedTimeByEmotionRecordId(emotionRecordId);
 	}
 
 	@Override
@@ -161,8 +159,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	public boolean updateEmotionRecord(Long userId, Long emotionRecordId, Integer emotionId,
 	                                   List<String> emotionReasons, String diaryEntry, ZoneId timezone) {
 		// Fetch existing record
-		String timezoneOffset = TimezoneUtil.getTimezoneOffset(timezone);
-		EmotionRecord existing = emotionRecordDao.selectEmotionRecordByIdAndUserId(emotionRecordId, userId, timezoneOffset);
+		EmotionRecord existing = emotionRecordDao.selectEmotionRecordByIdAndUserId(emotionRecordId, userId);
 		if (existing == null) {
 			return false;
 		}
