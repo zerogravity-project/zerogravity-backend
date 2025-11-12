@@ -241,7 +241,13 @@ public class ChartServiceImpl implements ChartService {
 		} else if (obj instanceof java.util.Date) {
 			return ((java.util.Date) obj).toInstant();
 		} else if (obj instanceof String) {
-			return Instant.parse((String) obj);
+			String timestampStr = (String) obj;
+			// Handle "YYYY-MM-DD HH:MM:SS" format from MySQL DATE_FORMAT()
+			if (timestampStr.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
+				// Convert to ISO format: "YYYY-MM-DDTHH:MM:SSZ"
+				timestampStr = timestampStr.replace(" ", "T") + "Z";
+			}
+			return Instant.parse(timestampStr);
 		}
 		throw new IllegalArgumentException("Cannot parse timestamp: " + obj);
 	}
