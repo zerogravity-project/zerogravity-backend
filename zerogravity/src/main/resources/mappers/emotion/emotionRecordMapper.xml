@@ -69,16 +69,16 @@
 		  AND emotion_record_type = 'daily'
 		  AND is_deleted = FALSE
 		  AND created_time >= FROM_UNIXTIME(UNIX_TIMESTAMP(#{dateStartUtc}))
-		  AND created_time < FROM_UNIXTIME(UNIX_TIMESTAMP(#{dateEndUtc}))
+		  AND created_time &lt; FROM_UNIXTIME(UNIX_TIMESTAMP(#{dateEndUtc}))
 	</select>
 
 	<!-- Select emotion records for a specific period and user (excluding soft-deleted) -->
 	<select id="selectEmotionRecordByPeriodAndUserId" resultMap="emotionRecordResultMap">
 		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
 		       er.diary_entry, er.is_deleted,
-		       CONVERT_TZ(er.deleted_at, '+00:00', #{timezoneOffset}) as deleted_at,
-		       CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}) as created_time,
-		       CONVERT_TZ(er.updated_time, '+00:00', #{timezoneOffset}) as updated_time
+		       er.deleted_at,
+		       er.created_time,
+		       er.updated_time
 		FROM emotion_record er
 		WHERE er.user_id = #{userId}
 		  AND er.is_deleted = FALSE

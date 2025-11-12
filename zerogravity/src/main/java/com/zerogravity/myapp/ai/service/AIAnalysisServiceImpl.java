@@ -72,8 +72,7 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
 			Instant periodEnd = calculatePeriodEnd(endDate, period, timezone);
 
 			// Fetch emotion records
-			String timezoneOffset = TimezoneUtil.getTimezoneOffset(timezone);
-			List<EmotionRecord> emotionRecords = emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd, timezoneOffset);
+			List<EmotionRecord> emotionRecords = emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
 
 			// 3. Check if no emotion records exist
 			if (emotionRecords.isEmpty()) {
@@ -213,8 +212,7 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
 			Instant periodEnd = endDate.plusDays(1).atStartOfDay(timezone).toInstant();
 
 			// Get emotion records with diary entries
-			String timezoneOffset = TimezoneUtil.getTimezoneOffset(timezone);
-			List<EmotionRecord> records = emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd, timezoneOffset);
+			List<EmotionRecord> records = emotionRecordDao.selectEmotionRecordByPeriodAndUserId(userId, periodStart, periodEnd);
 
 			// Filter records that have diary entries
 			List<String> diaryEntries = records.stream()
