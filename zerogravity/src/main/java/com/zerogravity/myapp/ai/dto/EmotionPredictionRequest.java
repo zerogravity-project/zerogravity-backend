@@ -1,6 +1,8 @@
 package com.zerogravity.myapp.ai.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 /**
@@ -16,7 +18,9 @@ import java.util.List;
 @Schema(description = "Request for AI emotion prediction")
 public class EmotionPredictionRequest {
 
-	@Schema(description = "Diary entry for emotion analysis", example = "Today was a great day. My team appreciated my work.")
+	@Schema(description = "Diary entry for emotion analysis (100-300 characters required)", example = "Today was a great day. My team appreciated my work and I felt really accomplished. It's amazing how positive feedback can boost your mood.")
+	@NotBlank(message = "Diary entry is required for emotion prediction")
+	@Size(min = 100, max = 300, message = "Diary entry must be between 100 and 300 characters for accurate emotion prediction")
 	private String diaryEntry;
 
 	@Schema(description = "Optional: User-provided emotion ID (0-6). If provided, AI will only predict reasons.", example = "5")

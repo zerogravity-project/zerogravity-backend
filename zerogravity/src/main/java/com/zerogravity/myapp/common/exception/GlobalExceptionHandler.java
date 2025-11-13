@@ -10,6 +10,8 @@ import com.zerogravity.myapp.ai.exception.GeminiApiException;
 import com.zerogravity.myapp.ai.exception.AIAnalysisCacheException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -118,6 +120,31 @@ public class GlobalExceptionHandler {
 		);
 
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+	}
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ErrorResponse> handleValidationException(
+		MethodArgumentNotValidException ex, WebRequest request) {
+
+		String timezone = request.getHeader("X-Timezone");
+		ZoneId zoneId = timezone != null ? ZoneId.of(timezone) : ZoneId.of("UTC");
+
+		// Collect all validation error messages
+		StringBuilder errorMessage = new StringBuilder();
+		for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+			if (errorMessage.length() > 0) {
+				errorMessage.append("; ");
+			}
+			errorMessage.append(error.getDefaultMessage());
+		}
+
+		ErrorResponse error = new ErrorResponse(
+			"VALIDATION_ERROR",
+			errorMessage.toString(),
+			TimezoneUtil.formatToUserTimezone(Instant.now(), zoneId)
+		);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
 	}
 
 	@ExceptionHandler(IllegalArgumentException.class)
