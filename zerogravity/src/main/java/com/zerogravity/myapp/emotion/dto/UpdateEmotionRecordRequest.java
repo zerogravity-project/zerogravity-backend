@@ -1,6 +1,7 @@
 package com.zerogravity.myapp.emotion.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
@@ -13,7 +14,8 @@ public class UpdateEmotionRecordRequest {
 	@Schema(description = "Emotion reasons list", example = "[\"Friends\", \"Hobby\", \"Family\"]", required = true)
 	private List<String> emotionReasons;
 
-	@Schema(description = "Diary content (nullable)", example = "Updated diary entry")
+	@Schema(description = "Diary content (max 300 characters, nullable)", example = "Updated diary entry")
+	@Size(max = 300, message = "Diary entry must not exceed 300 characters")
 	private String diaryEntry;
 
 	public UpdateEmotionRecordRequest() {}

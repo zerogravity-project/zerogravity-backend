@@ -132,9 +132,9 @@ public class GeminiServiceImpl implements GeminiService {
 				}
 
 				if (record.getDiaryEntry() != null && !record.getDiaryEntry().isEmpty()) {
-					String diaryExcerpt = record.getDiaryEntry().substring(0, Math.min(200, record.getDiaryEntry().length()));
+					String diaryExcerpt = record.getDiaryEntry().substring(0, Math.min(300, record.getDiaryEntry().length()));
 					prompt.append(" - \"").append(diaryExcerpt);
-					if (record.getDiaryEntry().length() > 200) {
+					if (record.getDiaryEntry().length() > 300) {
 						prompt.append("...");
 					}
 					prompt.append("\"");
