@@ -107,8 +107,8 @@ public class ChartServiceImpl implements ChartService {
 				throw new IllegalArgumentException("Invalid period: " + period);
 		}
 
-		// Query aggregated data
-		List<Map<String, Object>> stats = emotionRecordDao.selectEmotionReasonStatsByPeriod(userId, periodStart, periodEnd);
+		// Query aggregated data (groupBy=null for backward compatibility)
+		List<Map<String, Object>> stats = emotionRecordDao.selectEmotionReasonStatsByPeriod(userId, periodStart, periodEnd, null, null);
 
 		// Build response with ALL reasons (including zeros)
 		Map<String, Integer> countMap = new HashMap<>();

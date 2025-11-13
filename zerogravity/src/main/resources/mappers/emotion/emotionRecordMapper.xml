@@ -101,7 +101,8 @@
 				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-01 00:00:00') as label,
 			</when>
 		</choose>
-		AVG(e.emotion_level) as avgLevel,
+		SUM(e.emotion_level * CASE WHEN er.emotion_record_type = 'daily' THEN 1.5 ELSE 1.0 END) /
+		SUM(CASE WHEN er.emotion_record_type = 'daily' THEN 1.5 ELSE 1.0 END) as avgLevel,
 		COUNT(*) as count
 		FROM emotion_record er
 		JOIN emotion e ON er.emotion_id = e.emotion_id
@@ -116,6 +117,19 @@
 	<!-- Select aggregated emotion reason statistics -->
 	<select id="selectEmotionReasonStatsByPeriod" resultType="map">
 		SELECT
+		<if test="groupBy != null and timezoneOffset != null">
+			<choose>
+				<when test="groupBy == 'HOUR'">
+					DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d %H:00:00') as bucket,
+				</when>
+				<when test="groupBy == 'DAY'">
+					DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d 00:00:00') as bucket,
+				</when>
+				<when test="groupBy == 'MONTH'">
+					DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-01 00:00:00') as bucket,
+				</when>
+			</choose>
+		</if>
 		    err.emotion_reason as reason,
 		    COUNT(*) as count
 		FROM emotion_record er
@@ -124,8 +138,8 @@
 		  AND er.is_deleted = FALSE
 		  AND er.created_time BETWEEN FROM_UNIXTIME(UNIX_TIMESTAMP(#{periodStart}))
 		                          AND FROM_UNIXTIME(UNIX_TIMESTAMP(#{periodEnd}))
-		GROUP BY err.emotion_reason
-		ORDER BY count DESC, err.emotion_reason
+		GROUP BY <if test="groupBy != null and timezoneOffset != null">bucket,</if> err.emotion_reason
+		ORDER BY <if test="groupBy != null and timezoneOffset != null">bucket,</if> count DESC, err.emotion_reason
 	</select>
 
 	<!-- Select emotion count statistics for scatter chart -->

@@ -32,7 +32,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:5173",
                         "https://zerogv.com",
                         "https://www.zerogv.com",
-                        "https://dev.zerogv.com"
+                        "https://dev.zerogv.com",
+                        "https://api-dev.zerogv.com"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
