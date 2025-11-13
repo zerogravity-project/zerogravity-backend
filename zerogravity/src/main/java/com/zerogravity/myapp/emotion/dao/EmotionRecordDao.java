@@ -84,11 +84,15 @@ public interface EmotionRecordDao {
 	 * @param userId User ID
 	 * @param periodStart Period start instant (UTC)
 	 * @param periodEnd Period end instant (UTC)
-	 * @return List of aggregated data (reason, count)
+	 * @param groupBy Optional grouping strategy (DAY, HOUR, MONTH)
+	 * @param timezoneOffset Optional timezone offset string (e.g., "+09:00")
+	 * @return List of aggregated data (reason, count, bucket if groupBy provided)
 	 */
 	List<Map<String, Object>> selectEmotionReasonStatsByPeriod(@Param("userId") Long userId,
 	                                                            @Param("periodStart") Instant periodStart,
-	                                                            @Param("periodEnd") Instant periodEnd);
+	                                                            @Param("periodEnd") Instant periodEnd,
+	                                                            @Param("groupBy") String groupBy,
+	                                                            @Param("timezoneOffset") String timezoneOffset);
 
 	/**
 	 * Select emotion count statistics for scatter chart

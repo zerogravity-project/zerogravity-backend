@@ -8,6 +8,7 @@ import com.zerogravity.myapp.common.util.TimezoneUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +43,7 @@ public class EmotionRecordRestController {
 	public ResponseEntity<?> createEmotionRecord(
 		@AuthUserId Long userId,
 		@RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
-		@RequestBody CreateEmotionRecordRequest request
+		@Valid @RequestBody CreateEmotionRecordRequest request
 	) {
 		try {
 			ZoneId timezone = ZoneId.of(clientTimezone);
@@ -140,7 +141,7 @@ public class EmotionRecordRestController {
 		@AuthUserId Long userId,
 		@PathVariable Long emotionRecordId,
 		@RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
-		@RequestBody UpdateEmotionRecordRequest request
+		@Valid @RequestBody UpdateEmotionRecordRequest request
 	) {
 		try {
 			ZoneId timezone = ZoneId.of(clientTimezone);
