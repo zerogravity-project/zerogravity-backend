@@ -14,19 +14,17 @@ public interface RefreshTokenService {
     String createRefreshToken(Long userId);
 
     /**
-     * Validate and rotate refresh token (issue new tokens)
-     * Implements token rotation security pattern:
+     * Validate refresh token and issue new access token
+     * Simplified approach without token rotation:
      * - Validates token (expiration, revocation)
-     * - Detects token reuse attacks
-     * - Revokes old token
-     * - Creates new refresh token
-     * - Returns new access token and refresh token
+     * - Returns new access token with same refresh token
+     * - Refresh token is reused for 30 days until expiration
      *
      * @param refreshToken refresh token string
-     * @return TokenPair containing new access token and refresh token
-     * @throws com.zerogravity.myapp.auth.exception.UnauthorizedException if token is invalid or reused
+     * @return TokenPair containing new access token and same refresh token
+     * @throws com.zerogravity.myapp.auth.exception.UnauthorizedException if token is invalid, expired, or revoked
      */
-    TokenPair validateAndRotateRefreshToken(String refreshToken);
+    TokenPair validateRefreshToken(String refreshToken);
 
     /**
      * Revoke all refresh tokens for a user (logout)

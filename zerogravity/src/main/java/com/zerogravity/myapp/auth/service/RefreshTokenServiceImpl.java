@@ -81,16 +81,15 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     /**
-     * Validate and rotate refresh token
-     * Implements security measures:
-     * - Checks if token exists and is not expired
-     * - Detects token reuse attacks
-     * - Revokes old token after use (rotation)
-     * - Issues new access token and refresh token
+     * Validate refresh token and issue new access token
+     * Simplified approach without rotation:
+     * - Validates token existence, revocation, and expiration
+     * - Issues new access token with same refresh token
+     * - Refresh token is reused until 30-day expiration or logout
      */
     @Override
     @Transactional
-    public TokenPair validateAndRotateRefreshToken(String refreshTokenString) {
+    public TokenPair validateRefreshToken(String refreshTokenString) {
         // Log token validation attempt (show first 8 chars only for security)
         String tokenPrefix = refreshTokenString != null && refreshTokenString.length() >= 8 ?
                              refreshTokenString.substring(0, 8) + "..." : "null";
@@ -106,9 +105,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         // Check if token is revoked
         if (Boolean.TRUE.equals(refreshToken.getIsRevoked())) {
-            logger.warn("REFRESH_TOKEN_REVOKED: Attempted to use revoked token - user: {}, token: {}, usedAt: {}",
-                    refreshToken.getUserId(), tokenPrefix, refreshToken.getUsedAt());
-            throw new UnauthorizedException("REFRESH_TOKEN_REVOKED: This token has already been used and invalidated. Please login again.");
+            logger.warn("REFRESH_TOKEN_REVOKED: Attempted to use revoked token - user: {}, token: {}",
+                    refreshToken.getUserId(), tokenPrefix);
+            throw new UnauthorizedException("REFRESH_TOKEN_REVOKED: This token has been revoked. Please login again.");
         }
 
         // Check if token is expired
@@ -118,43 +117,14 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             throw new UnauthorizedException("REFRESH_TOKEN_EXPIRED: Token has expired. Please login again.");
         }
 
-        // SECURITY: Detect token reuse attack
-        // If token was already used (usedAt is not null), this is a reuse attempt
-        if (refreshToken.getUsedAt() != null) {
-            // Calculate time since last use
-            long secondsSinceUse = Duration.between(refreshToken.getUsedAt(), LocalDateTime.now()).toSeconds();
-
-            // Grace period: Allow concurrent requests within 5 seconds
-            if (secondsSinceUse <= GRACE_PERIOD_SECONDS) {
-                logger.warn("Concurrent refresh request detected within grace period ({} seconds) for user: {}. Allowing request.",
-                        secondsSinceUse, refreshToken.getUserId());
-                // Allow the request to proceed - will create new tokens
-            } else {
-                // Token reuse after grace period indicates potential security threat
-                logger.error("SECURITY ALERT: Refresh token reuse detected ({} seconds after use) for user: {}. Revoking all tokens.",
-                        secondsSinceUse, refreshToken.getUserId());
-
-                // Revoke all tokens for this user as a security measure
-                refreshTokenDao.revokeAllByUserId(refreshToken.getUserId());
-
-                throw new UnauthorizedException("REFRESH_TOKEN_REUSE_DETECTED: Token reuse detected. All sessions have been terminated for security.");
-            }
-        }
-
-        // Mark token as used and revoke it (rotation)
-        refreshTokenDao.updateUsedAt(refreshToken.getTokenId(), LocalDateTime.now());
-        refreshTokenDao.revokeToken(refreshToken.getTokenId());
-
-        // Generate new tokens
+        // Generate new access token (reuse same refresh token)
         String newAccessToken = jwtUtil.createJwt(refreshToken.getUserId(), ACCESS_TOKEN_EXPIRATION_MS);
-        String newRefreshToken = createRefreshToken(refreshToken.getUserId());
 
-        logger.info("Successfully rotated refresh token for user: {} - Old token: {}, New token: {}",
+        logger.info("Successfully issued new access token for user: {} - Refresh token: {}",
                 refreshToken.getUserId(),
-                tokenPrefix,
-                newRefreshToken.substring(0, 8) + "...");
+                tokenPrefix);
 
-        return new TokenPair(newAccessToken, newRefreshToken);
+        return new TokenPair(newAccessToken, refreshTokenString);
     }
 
     /**
