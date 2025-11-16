@@ -18,6 +18,7 @@ public class EmotionAiAnalysis {
 	private Long userId;  // Snowflake ID
 
 	private String diaryEntry;
+	private String refinedDiary;  // AI-refined version of diary entry (max 300 chars)
 	private Integer suggestedEmotionId;  // Can be null if not predicted
 	private String reasoning;
 	private Double confidence;
@@ -33,12 +34,13 @@ public class EmotionAiAnalysis {
 	// Constructors
 	public EmotionAiAnalysis() {}
 
-	public EmotionAiAnalysis(Long analysisId, Long userId, String diaryEntry, Integer suggestedEmotionId,
-							 String reasoning, Double confidence, Timestamp analyzedAt, Boolean isAccepted,
-							 Timestamp acceptedAt, Long emotionRecordId, List<String> suggestedReasons) {
+	public EmotionAiAnalysis(Long analysisId, Long userId, String diaryEntry, String refinedDiary,
+							 Integer suggestedEmotionId, String reasoning, Double confidence, Timestamp analyzedAt,
+							 Boolean isAccepted, Timestamp acceptedAt, Long emotionRecordId, List<String> suggestedReasons) {
 		this.analysisId = analysisId;
 		this.userId = userId;
 		this.diaryEntry = diaryEntry;
+		this.refinedDiary = refinedDiary;
 		this.suggestedEmotionId = suggestedEmotionId;
 		this.reasoning = reasoning;
 		this.confidence = confidence;
@@ -72,6 +74,14 @@ public class EmotionAiAnalysis {
 
 	public void setDiaryEntry(String diaryEntry) {
 		this.diaryEntry = diaryEntry;
+	}
+
+	public String getRefinedDiary() {
+		return refinedDiary;
+	}
+
+	public void setRefinedDiary(String refinedDiary) {
+		this.refinedDiary = refinedDiary;
 	}
 
 	public Integer getSuggestedEmotionId() {
@@ -144,6 +154,7 @@ public class EmotionAiAnalysis {
 			"analysisId=" + analysisId +
 			", userId=" + userId +
 			", diaryEntry='" + (diaryEntry != null && diaryEntry.length() > 50 ? diaryEntry.substring(0, 50) + "..." : diaryEntry) + '\'' +
+			", refinedDiary='" + (refinedDiary != null && refinedDiary.length() > 50 ? refinedDiary.substring(0, 50) + "..." : refinedDiary) + '\'' +
 			", suggestedEmotionId=" + suggestedEmotionId +
 			", reasoning='" + (reasoning != null && reasoning.length() > 50 ? reasoning.substring(0, 50) + "..." : reasoning) + '\'' +
 			", confidence=" + confidence +

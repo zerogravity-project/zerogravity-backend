@@ -134,9 +134,14 @@ public class AIAnalysisRestController {
 	})
 	public ResponseEntity<?> predictEmotion(
 		@AuthUserId Long userId,
+		@RequestHeader(value = "X-Timezone", defaultValue = "UTC")
+		@Parameter(description = "User's timezone (e.g., Asia/Seoul, America/New_York)")
+		String clientTimezone,
 		@Valid @RequestBody EmotionPredictionRequest request
 	) {
 		try {
+			ZoneId timezone = ZoneId.of(clientTimezone);
+
 			// Check AI analysis consent
 			User user = userService.getUserByUserId(userId);
 			if (user == null || !user.getAiAnalysisConsent()) {
@@ -144,12 +149,12 @@ public class AIAnalysisRestController {
 			}
 
 			// Predict emotion
-			EmotionPredictionResponse predictionResponse = emotionPredictionService.predictEmotion(userId, request);
+			EmotionPredictionResponse predictionResponse = emotionPredictionService.predictEmotion(userId, request, timezone);
 
 			// Wrap in API response
 			ApiResponse<EmotionPredictionResponse> apiResponse = new ApiResponse<>(
 				predictionResponse,
-				TimezoneUtil.formatToUserTimezone(Instant.now(), ZoneId.of("UTC"))
+				TimezoneUtil.formatToUserTimezone(Instant.now(), timezone)
 			);
 
 			return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
