@@ -197,8 +197,8 @@ public class AuthController {
 	@PostMapping("/refresh")
 	@Operation(
 			summary = "Refresh Access Token",
-			description = "Exchange refresh token for new access token and refresh token. " +
-					"Implements token rotation for security: old refresh token is immediately revoked."
+			description = "Exchange refresh token for new access token. " +
+					"Refresh token is reused for 30 days until expiration or logout."
 	)
 	public ResponseEntity<ApiResponse<RefreshResponse>> refreshToken(@RequestBody RefreshRequest request) {
 		try {
@@ -207,8 +207,8 @@ public class AuthController {
 				return ResponseEntity.badRequest().build();
 			}
 
-			// Validate and rotate refresh token
-			RefreshTokenService.TokenPair tokenPair = refreshTokenService.validateAndRotateRefreshToken(
+			// Validate refresh token and get new access token
+			RefreshTokenService.TokenPair tokenPair = refreshTokenService.validateRefreshToken(
 					request.getRefreshToken()
 			);
 
