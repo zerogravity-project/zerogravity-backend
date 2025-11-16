@@ -148,7 +148,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 
 		// Invalidate AI analysis cache for this user
 		if (result > 0) {
-			invalidateAICache(userId, recordTimestamp);
+			invalidateAICache(userId, recordTimestamp, timezone);
 		}
 
 		return emotionRecordId;
@@ -157,7 +157,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	@Override
 	@Transactional
 	public boolean updateEmotionRecord(Long userId, Long emotionRecordId, Integer emotionId,
-	                                   List<String> emotionReasons, String diaryEntry) {
+	                                   List<String> emotionReasons, String diaryEntry, ZoneId timezone) {
 		// Fetch existing record
 		EmotionRecord existing = emotionRecordDao.selectEmotionRecordByIdAndUserId(emotionRecordId, userId);
 		if (existing == null) {
@@ -211,7 +211,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 			}
 
 			// Invalidate AI analysis cache for this user
-			invalidateAICache(userId, createdTime);
+			invalidateAICache(userId, createdTime, timezone);
 		}
 
 		return updated;
@@ -223,10 +223,10 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	 *
 	 * @param userId User ID
 	 * @param recordTime Timestamp of the emotion record
+	 * @param timezone User's timezone for date calculation
 	 */
-	private void invalidateAICache(Long userId, Instant recordTime) {
-		ZoneId utcZone = ZoneId.of("UTC");
-		LocalDate recordDate = recordTime.atZone(utcZone).toLocalDate();
+	private void invalidateAICache(Long userId, Instant recordTime, ZoneId timezone) {
+		LocalDate recordDate = recordTime.atZone(timezone).toLocalDate();
 
 		// Calculate week range
 		LocalDate weekStart = recordDate.minusDays(recordDate.getDayOfWeek().getValue() % 7);

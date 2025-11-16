@@ -21,6 +21,9 @@ public class EmotionPredictionResponse {
 	@Schema(description = "Suggested emotion reasons. Null if user already provided.", example = "[\"Work\", \"Self-care\"]")
 	private List<String> suggestedReasons;
 
+	@Schema(description = "AI-refined version of diary entry (max 300 chars)", example = "Had a productive day at work and took time for self-care")
+	private String refinedDiary;
+
 	@Schema(description = "Explanation of the prediction", example = "The diary entry shows professional achievement and personal satisfaction...")
 	private String reasoning;
 
@@ -34,10 +37,11 @@ public class EmotionPredictionResponse {
 	public EmotionPredictionResponse() {}
 
 	public EmotionPredictionResponse(String analysisId, Integer suggestedEmotionId, List<String> suggestedReasons,
-									 String reasoning, Double confidence, String analyzedAt) {
+									 String refinedDiary, String reasoning, Double confidence, String analyzedAt) {
 		this.analysisId = analysisId;
 		this.suggestedEmotionId = suggestedEmotionId;
 		this.suggestedReasons = suggestedReasons;
+		this.refinedDiary = refinedDiary;
 		this.reasoning = reasoning;
 		this.confidence = confidence;
 		this.analyzedAt = analyzedAt;
@@ -66,6 +70,14 @@ public class EmotionPredictionResponse {
 
 	public void setSuggestedReasons(List<String> suggestedReasons) {
 		this.suggestedReasons = suggestedReasons;
+	}
+
+	public String getRefinedDiary() {
+		return refinedDiary;
+	}
+
+	public void setRefinedDiary(String refinedDiary) {
+		this.refinedDiary = refinedDiary;
 	}
 
 	public String getReasoning() {
@@ -98,6 +110,7 @@ public class EmotionPredictionResponse {
 			"analysisId='" + analysisId + '\'' +
 			", suggestedEmotionId=" + suggestedEmotionId +
 			", suggestedReasons=" + suggestedReasons +
+			", refinedDiary='" + (refinedDiary != null && refinedDiary.length() > 50 ? refinedDiary.substring(0, 50) + "..." : refinedDiary) + '\'' +
 			", reasoning='" + reasoning + '\'' +
 			", confidence=" + confidence +
 			", analyzedAt='" + analyzedAt + '\'' +
