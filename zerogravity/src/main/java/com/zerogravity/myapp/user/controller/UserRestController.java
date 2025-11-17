@@ -80,9 +80,12 @@ public class UserRestController {
 	)
 	public ResponseEntity<ApiResponse<Void>> logout(
 			@AuthUserId Long userId,
+			@RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
 			HttpServletResponse response
 	) {
 		try {
+			ZoneId timezone = ZoneId.of(clientTimezone);
+
 			// Revoke all refresh tokens for this user
 			refreshTokenService.revokeAllUserTokens(userId);
 
@@ -95,7 +98,7 @@ public class UserRestController {
 
 			ApiResponse<Void> apiResponse = new ApiResponse<>(
 					null,
-					Instant.now().toString()
+					TimezoneUtil.formatToUserTimezone(Instant.now(), timezone)
 			);
 
 			return ResponseEntity.ok(apiResponse);

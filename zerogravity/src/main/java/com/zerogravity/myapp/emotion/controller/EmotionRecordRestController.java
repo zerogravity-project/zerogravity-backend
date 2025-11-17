@@ -151,7 +151,8 @@ public class EmotionRecordRestController {
 				emotionRecordId,
 				request.getEmotionId(),
 				request.getEmotionReasons(),
-				request.getDiaryEntry()
+				request.getDiaryEntry(),
+				timezone
 			);
 
 			if (updated) {
