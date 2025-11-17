@@ -16,9 +16,10 @@ public interface EmotionPredictionService {
 	 *
 	 * @param userId User ID
 	 * @param request Prediction request with diary entry and optional emotion info
+	 * @param timezone User's timezone for timestamp formatting
 	 * @return Analysis ID and prediction suggestions
 	 */
-	EmotionPredictionResponse predictEmotion(Long userId, EmotionPredictionRequest request);
+	EmotionPredictionResponse predictEmotion(Long userId, EmotionPredictionRequest request, java.time.ZoneId timezone);
 
 	/**
 	 * Accept a prediction and mark analysis as accepted

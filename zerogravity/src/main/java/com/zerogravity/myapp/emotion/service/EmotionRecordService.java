@@ -58,8 +58,9 @@ public interface EmotionRecordService {
 	 * @param emotionId New emotion ID
 	 * @param emotionReasons New reasons list
 	 * @param diaryEntry New diary entry
+	 * @param timezone User's timezone for cache invalidation
 	 * @return true if update successful, false otherwise
 	 */
 	boolean updateEmotionRecord(Long userId, Long emotionRecordId, Integer emotionId,
-	                            List<String> emotionReasons, String diaryEntry);
+	                            List<String> emotionReasons, String diaryEntry, ZoneId timezone);
 }
