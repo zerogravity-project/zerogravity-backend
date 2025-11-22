@@ -28,7 +28,7 @@ jobs:
           fi
 
       - name: Deploy to OCI server
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.0
         env:
           ENV: ${{ env.ENV }}
           BACKEND_PORT: ${{ env.BACKEND_PORT }}
@@ -160,7 +160,7 @@ jobs:
             docker ps | grep zerogv
 
       - name: Verify deployment
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.0
         env:
           ENV: ${{ env.ENV }}
           BACKEND_PORT: ${{ env.BACKEND_PORT }}
