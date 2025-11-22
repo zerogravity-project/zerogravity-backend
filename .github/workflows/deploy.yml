@@ -45,15 +45,27 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           envs: ENV,BACKEND_PORT,MYSQL_PORT,DB_NAME,DB_USER,DB_PASSWORD,JWT_SECRET,GEMINI_API_KEY,MYSQL_ROOT_PASSWORD
           script: |
-            # Navigate to app directory
+            # Navigate to app directory (create if doesn't exist)
+            mkdir -p /home/ubuntu/app
             cd /home/ubuntu/app
 
-            # Pull latest code (use reset to avoid divergence issues)
-            git fetch origin
-            if [ "$ENV" = "prod" ]; then
-              git reset --hard origin/main
+            # Clone repo if not exists, otherwise pull latest code
+            if [ ! -d ".git" ]; then
+              echo "Git repository not found. Cloning from GitHub..."
+              git clone https://github.com/zerogravity-project/zerogravity-backend.git .
+              if [ "$ENV" = "prod" ]; then
+                git checkout main
+              else
+                git checkout develop
+              fi
             else
-              git reset --hard origin/develop
+              # Pull latest code (use reset to avoid divergence issues)
+              git fetch origin
+              if [ "$ENV" = "prod" ]; then
+                git reset --hard origin/main
+              else
+                git reset --hard origin/develop
+              fi
             fi
 
             # Verify current commit
