@@ -149,7 +149,7 @@ EOF
 # Post metric to OCI Monitoring
 # Use instance principal authentication (no credentials needed on OCI instances)
 # Get region from instance metadata
-REGION=$(curl -s -H "Authorization: Bearer Oracle" http://169.254.169.254/opc/v2/instance/ | grep -o '"region":"[^"]*"' | cut -d'"' -f4)
+REGION=$(curl -s -H "Authorization: Bearer Oracle" http://169.254.169.254/opc/v2/instance/ | jq -r '.region')
 
 # Use telemetry-ingestion endpoint (not telemetry)
 if oci monitoring metric-data post \
