@@ -162,6 +162,42 @@ jobs:
             docker builder prune -f --filter "until=24h" || true
             echo "✅ Docker cleanup completed"
 
+            # Step 6.6: Install system dependencies (if needed)
+            echo "🔧 Checking and installing system dependencies..."
+
+            # Install nginx (if not installed)
+            if ! command -v nginx &> /dev/null; then
+              echo "📦 Installing nginx..."
+              sudo apt-get update -qq
+              sudo apt-get install -y nginx
+              echo "✅ nginx installed"
+            else
+              echo "✅ nginx already installed"
+            fi
+
+            # Install OCI CLI (if not installed)
+            if ! command -v oci &> /dev/null; then
+              echo "📦 Installing OCI CLI..."
+              # Download and run installer non-interactively
+              curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh > /tmp/oci-install.sh
+              chmod +x /tmp/oci-install.sh
+              /tmp/oci-install.sh --accept-all-defaults
+
+              # Create symlink to make it available system-wide
+              if [ -f "$HOME/bin/oci" ]; then
+                sudo ln -sf "$HOME/bin/oci" /usr/local/bin/oci
+              fi
+              echo "✅ OCI CLI installed"
+            else
+              echo "✅ OCI CLI already installed"
+            fi
+
+            # Setup Docker cleanup cron job (always update)
+            echo "⏰ Setting up Docker cleanup cron job..."
+            DOCKER_CLEANUP_JOB="0 2 * * * docker system prune -af --filter 'until=24h' >> /var/log/docker-cleanup.log 2>&1"
+            (crontab -l 2>/dev/null | grep -v "docker system prune"; echo "$DOCKER_CLEANUP_JOB") | crontab -
+            echo "✅ Docker cleanup cron job configured (runs daily at 2 AM)"
+
             # Step 7: Deploy Nginx configuration
             ./scripts/deploy-nginx.sh
 
