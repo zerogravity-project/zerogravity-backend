@@ -30,7 +30,7 @@ if [ -f /home/ubuntu/oci-config.env ]; then
   source /home/ubuntu/oci-config.env
 else
   # Use instance metadata service to get compartment ID
-  COMPARTMENT_ID=$(curl -s -H "Authorization: Bearer Oracle" http://169.254.169.254/opc/v2/instance/ | grep -o '"compartmentId":"[^"]*"' | cut -d'"' -f4)
+  COMPARTMENT_ID=$(curl -s -H "Authorization: Bearer Oracle" http://169.254.169.254/opc/v2/instance/ | jq -r '.compartmentId')
 fi
 
 # Get current timestamp in ISO 8601 format
