@@ -148,9 +148,14 @@ EOF
 
 # Post metric to OCI Monitoring
 # Use instance principal authentication (no credentials needed on OCI instances)
+# Get region from instance metadata
+REGION=$(curl -s -H "Authorization: Bearer Oracle" http://169.254.169.254/opc/v2/instance/ | grep -o '"region":"[^"]*"' | cut -d'"' -f4)
+
+# Use telemetry-ingestion endpoint (not telemetry)
 if oci monitoring metric-data post \
   --metric-data "$METRIC_DATA" \
-  --auth instance_principal 2>/dev/null; then
+  --auth instance_principal \
+  --endpoint "https://telemetry-ingestion.${REGION}.oraclecloud.com" 2>/dev/null; then
   echo "✅ Metric successfully sent to OCI Monitoring"
 else
   echo "⚠️  Failed to send metric to OCI Monitoring"
