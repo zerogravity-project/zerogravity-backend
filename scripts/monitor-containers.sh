@@ -21,7 +21,7 @@
 set -e
 
 # Configuration
-NAMESPACE="oci_terraform_custom"
+NAMESPACE="custom_metrics"
 METRIC_NAME="container_health"
 
 # Read OCI configuration from Terraform outputs (if available)
