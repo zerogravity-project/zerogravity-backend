@@ -165,6 +165,23 @@ jobs:
             # Step 7: Deploy Nginx configuration
             ./scripts/deploy-nginx.sh
 
+            # Step 7.5: Deploy container health monitoring script
+            echo "📊 Deploying container health monitoring script..."
+
+            # Copy monitoring script to system location
+            sudo cp scripts/monitor-containers.sh /usr/local/bin/
+            sudo chmod +x /usr/local/bin/monitor-containers.sh
+
+            # Create OCI config for monitoring script
+            # Note: COMPARTMENT_ID should be set from terraform outputs
+            # For now, script will use instance metadata if this file doesn't exist
+
+            # Set up cron job (run every 5 minutes)
+            CRON_JOB="*/5 * * * * /usr/local/bin/monitor-containers.sh >> /var/log/container-health.log 2>&1"
+            (crontab -l 2>/dev/null | grep -v "monitor-containers.sh"; echo "$CRON_JOB") | crontab -
+
+            echo "✅ Monitoring script deployed and cron job configured"
+
             # Step 8: Show container status
             docker ps | grep zerogv
 
@@ -179,10 +196,35 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           envs: ENV,BACKEND_PORT
           script: |
-            # Check health endpoint
-            echo "Checking health endpoint..."
+            # Check health endpoint (localhost - container direct)
+            echo "Checking localhost health endpoint..."
             curl -f http://localhost:$BACKEND_PORT/actuator/health || exit 1
-            echo "Health check passed!"
+            echo "✅ Localhost health check passed!"
+
+            # Check health endpoint (HTTPS - full stack via load balancer)
+            echo "Checking HTTPS health endpoint via load balancer..."
+            if [ "$ENV" = "prod" ]; then
+              DOMAIN="api.zerogv.com"
+            else
+              DOMAIN="api-dev.zerogv.com"
+            fi
+
+            # Wait for DNS/SSL to be ready (max 30 seconds)
+            for i in {1..6}; do
+              if curl -f --connect-timeout 5 https://$DOMAIN/actuator/health 2>/dev/null; then
+                echo "✅ HTTPS health check passed!"
+                break
+              fi
+
+              if [ $i -eq 6 ]; then
+                echo "⚠️  WARNING: HTTPS health check failed after 30 seconds"
+                echo "This may be a DNS/SSL propagation issue. Container is healthy on localhost."
+                echo "Load balancer health checks will continue to verify full stack health."
+              else
+                echo "Attempt $i/6: Waiting for HTTPS endpoint..."
+                sleep 5
+              fi
+            done
 
             # Warm-up: Initialize DB connection pool and DispatcherServlet
             echo "Warming up application..."
