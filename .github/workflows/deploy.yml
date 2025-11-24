@@ -154,7 +154,13 @@ jobs:
             # Step 6: Cleanup old backup image
             echo "🧹 Cleaning up old backup..."
             docker images | grep "zerogv-backend.*${ENV}-backup" | awk '{print $3}' | xargs -r docker rmi || true
-            echo "✅ Cleanup completed"
+            echo "✅ Backup cleanup completed"
+
+            # Step 6.5: Cleanup dangling images and old build cache
+            echo "🧹 Cleaning up dangling images and old build cache..."
+            docker image prune -f || true
+            docker builder prune -f --filter "until=24h" || true
+            echo "✅ Docker cleanup completed"
 
             # Step 7: Deploy Nginx configuration
             ./scripts/deploy-nginx.sh
