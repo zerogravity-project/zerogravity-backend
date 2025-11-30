@@ -17,6 +17,12 @@ public class AuthResponse {
 	@Schema(description = "User consent information", example = "{\"termsAgreed\": true, \"aiAnalysisConsent\": false}")
 	private Map<String, Object> consents;
 
+	@Schema(description = "Backend JWT token for API authentication", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+	private String jwtToken;
+
+	@Schema(description = "Refresh token for renewing access token", example = "550e8400-e29b-41d4-a716-446655440000")
+	private String refreshToken;
+
 	public AuthResponse() {
 	}
 
@@ -37,6 +43,23 @@ public class AuthResponse {
 		this.message = message;
 		this.isNewUser = isNewUser;
 		this.consents = consents;
+	}
+
+	public AuthResponse(boolean success, String message, boolean isNewUser, Map<String, Object> consents, String jwtToken) {
+		this.success = success;
+		this.message = message;
+		this.isNewUser = isNewUser;
+		this.consents = consents;
+		this.jwtToken = jwtToken;
+	}
+
+	public AuthResponse(boolean success, String message, boolean isNewUser, Map<String, Object> consents, String jwtToken, String refreshToken) {
+		this.success = success;
+		this.message = message;
+		this.isNewUser = isNewUser;
+		this.consents = consents;
+		this.jwtToken = jwtToken;
+		this.refreshToken = refreshToken;
 	}
 
 	public boolean isSuccess() {
@@ -71,8 +94,24 @@ public class AuthResponse {
 		this.consents = consents;
 	}
 
+	public String getJwtToken() {
+		return jwtToken;
+	}
+
+	public void setJwtToken(String jwtToken) {
+		this.jwtToken = jwtToken;
+	}
+
+	public String getRefreshToken() {
+		return refreshToken;
+	}
+
+	public void setRefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
+	}
+
 	@Override
 	public String toString() {
-		return "AuthResponse [success=" + success + ", message=" + message + ", isNewUser=" + isNewUser + ", consents=" + consents + "]";
+		return "AuthResponse [success=" + success + ", message=" + message + ", isNewUser=" + isNewUser + ", consents=" + consents + ", jwtToken=" + (jwtToken != null ? "***" : "null") + ", refreshToken=" + (refreshToken != null ? "***" : "null") + "]";
 	}
 }

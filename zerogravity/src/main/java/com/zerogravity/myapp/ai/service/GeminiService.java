@@ -5,6 +5,7 @@ import com.zerogravity.myapp.chart.dto.ChartCountResponse;
 import com.zerogravity.myapp.chart.dto.ChartLevelResponse;
 import com.zerogravity.myapp.chart.dto.ChartReasonResponse;
 import com.zerogravity.myapp.emotion.dto.EmotionRecord;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -23,7 +24,8 @@ public interface GeminiService {
 	 * @param levelChart Emotion level statistics
 	 * @param reasonChart Emotion reason statistics
 	 * @param countChart Emotion count statistics
-	 * @param emotionRecords Individual emotion records
+	 * @param emotionRecords Representative emotion records (statistically sampled)
+	 * @param timezone User timezone for ISO 8601 timestamp formatting
 	 * @return Generated summary data with overview, insights, and recommendations
 	 */
 	SummaryData generateSummary(String period,
@@ -32,7 +34,8 @@ public interface GeminiService {
 							   ChartLevelResponse levelChart,
 							   ChartReasonResponse reasonChart,
 							   ChartCountResponse countChart,
-							   List<EmotionRecord> emotionRecords);
+							   List<EmotionRecord> emotionRecords,
+							   ZoneId timezone);
 
 	/**
 	 * Predict emotion from diary entry

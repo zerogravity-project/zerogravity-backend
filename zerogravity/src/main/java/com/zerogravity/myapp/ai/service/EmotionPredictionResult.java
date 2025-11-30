@@ -11,15 +11,17 @@ public class EmotionPredictionResult {
 
 	private Integer emotionId;  // null if user provided
 	private List<String> reasons;  // null if user provided
+	private String refinedDiary;  // AI-refined version of diary entry (max 300 chars)
 	private String reasoning;
 	private Double confidence;
 
 	// Constructors
 	public EmotionPredictionResult() {}
 
-	public EmotionPredictionResult(Integer emotionId, List<String> reasons, String reasoning, Double confidence) {
+	public EmotionPredictionResult(Integer emotionId, List<String> reasons, String refinedDiary, String reasoning, Double confidence) {
 		this.emotionId = emotionId;
 		this.reasons = reasons;
+		this.refinedDiary = refinedDiary;
 		this.reasoning = reasoning;
 		this.confidence = confidence;
 	}
@@ -39,6 +41,14 @@ public class EmotionPredictionResult {
 
 	public void setReasons(List<String> reasons) {
 		this.reasons = reasons;
+	}
+
+	public String getRefinedDiary() {
+		return refinedDiary;
+	}
+
+	public void setRefinedDiary(String refinedDiary) {
+		this.refinedDiary = refinedDiary;
 	}
 
 	public String getReasoning() {
@@ -62,6 +72,7 @@ public class EmotionPredictionResult {
 		return "EmotionPredictionResult{" +
 			"emotionId=" + emotionId +
 			", reasons=" + reasons +
+			", refinedDiary='" + (refinedDiary != null && refinedDiary.length() > 50 ? refinedDiary.substring(0, 50) + "..." : refinedDiary) + '\'' +
 			", reasoning='" + reasoning + '\'' +
 			", confidence=" + confidence +
 			'}';
