@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "Diary Summary Response")
 public class DiarySummaryResponse {
 
-	@Schema(description = "AI-generated summary of diary entries (max 10000 characters)", example = "이 기간 동안 주로 업무와 가족 관련 긍정적인 경험이 많았습니다.")
+	@Schema(description = "AI-generated summary of diary entries (max 10000 characters)", example = "During this period, you mostly had positive experiences related to work and family.")
 	private String summary;
 
 	@Schema(description = "Number of diary entries used for summarization", example = "5")
