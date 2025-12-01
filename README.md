@@ -20,7 +20,7 @@
 ZeroGravity Backend is a Spring Boot REST API that powers the emotion tracking and personal wellness platform. It provides secure authentication, emotion recording, analytics, and AI-powered insights.
 
 > 📌 Part of the ZeroGravity full-stack project. Refactored from an incomplete collaborative Spring Boot project into a production-ready API.
-> [Frontend Repository](https://github.com/zerogravity-project/zerogravity-react) | [Original Vue Version](https://github.com/zerogravity-project/zerogravity-frontend/tree/main/zerogravity-vue)
+> [Frontend Repository](https://github.com/zerogravity-project/zerogravity-react) | [Original Vue Version](https://github.com/zerogravity-project/zerogravity-frontend/tree/main)
 
 ### Why ZeroGravity Backend?
 
@@ -472,9 +472,8 @@ GEMINI_API_KEY=your-gemini-api-key
 ## 🔗 Related
 
 - [Frontend (Next.js)](https://github.com/zerogravity-project/zerogravity-react)
-- [Original Vue Version](https://github.com/zerogravity-project/zerogravity-frontend/tree/main/zerogravity-vue)
-
----
+- [Original Vue Version](https://github.com/zerogravity-project/zerogravity-frontend/tree/main
+- 
 
 ## 👤 Author
 
