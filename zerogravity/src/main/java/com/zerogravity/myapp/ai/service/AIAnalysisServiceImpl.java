@@ -82,9 +82,9 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
 			if (emotionRecords.isEmpty()) {
 				// No data - return default response without calling Gemini API
 				SummaryData defaultSummary = new SummaryData(
-					"해당 기간에 기록된 감정이 없습니다.",
+					"No emotions recorded during this period.",
 					java.util.Arrays.asList(),
-					java.util.Arrays.asList("감정 기록을 시작해보세요!")
+					java.util.Arrays.asList("Start recording your emotions!")
 				);
 				return buildResponse(period, startDate, endDate, defaultSummary,
 					TimezoneUtil.formatToUserTimezone(Instant.now(), timezone));
