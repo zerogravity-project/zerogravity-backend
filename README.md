@@ -472,8 +472,7 @@ GEMINI_API_KEY=your-gemini-api-key
 ## 🔗 Related
 
 - [Frontend (Next.js)](https://github.com/zerogravity-project/zerogravity-react)
-- [Original Vue Version](https://github.com/zerogravity-project/zerogravity-frontend/tree/main
-- 
+- [Original Vue Version](https://github.com/zerogravity-project/zerogravity-frontend/tree/main)
 
 ## 👤 Author
 
