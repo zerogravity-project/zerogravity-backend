@@ -51,7 +51,8 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	@Override
 	@Transactional
 	public Long createEmotionRecord(Long userId, Integer emotionId, String emotionRecordType,
-	                                List<String> emotionReasons, String diaryEntry, ZoneId timezone, Long aiAnalysisId) {
+	                                List<String> emotionReasons, String diaryEntry, ZoneId timezone, Long aiAnalysisId, String recordDate) {
+
 		// Validate emotion record type
 		EmotionRecord.Type type;
 		try {
@@ -75,11 +76,44 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 			}
 		}
 
-		// Check for daily record duplicate
-		if (type == EmotionRecord.Type.DAILY) {
+		// Parse and validate recordDate if provided
+		LocalDate targetDate = null;
+		Instant recordTimestamp;
+
+		if (recordDate != null && !recordDate.trim().isEmpty()) {
+			try {
+				targetDate = LocalDate.parse(recordDate); // Parse ISO Date (YYYY-MM-DD)
+			} catch (Exception e) {
+				throw new IllegalArgumentException("Invalid record date format. Expected YYYY-MM-DD: " + recordDate);
+			}
+
+			// Validate: Future dates not allowed
 			LocalDate today = LocalDate.now(timezone);
-			int timezoneOffsetMinutes = timezone.getRules().getOffset(Instant.now()).getTotalSeconds() / 60;
-			boolean exists = emotionRecordDao.existsDailyRecordForDate(userId, today, timezoneOffsetMinutes);
+
+			if (targetDate.isAfter(today)) {
+				throw new IllegalArgumentException("Future dates are not allowed. Record date: " + recordDate);
+			}
+
+			// Determine timestamp based on date
+			if (targetDate.equals(today)) {
+				// Today: Use current exact time
+				recordTimestamp = Instant.now();
+			} else {
+				// Past date: Use 12:00:00 (noon) in user timezone, convert to UTC
+				ZonedDateTime noonInUserTimezone = targetDate.atTime(12, 0).atZone(timezone);
+				recordTimestamp = noonInUserTimezone.toInstant();
+			}
+		} else {
+			// No recordDate provided: Use current time (existing behavior)
+			targetDate = LocalDate.now(timezone);
+			recordTimestamp = Instant.now();
+		}
+
+		// Check for daily record duplicate on target date (using UTC date range for index efficiency)
+		if (type == EmotionRecord.Type.DAILY) {
+			Instant dateStartUtc = TimezoneUtil.getStartOfDay(targetDate, timezone);
+			Instant dateEndUtc = dateStartUtc.plus(Duration.ofDays(1)); // Next day start
+			boolean exists = emotionRecordDao.existsDailyRecordForDate(userId, dateStartUtc, dateEndUtc);
 			if (exists) {
 				throw new DailyRecordAlreadyExistsException();
 			}
@@ -95,7 +129,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 		record.setEmotionId(emotionId);
 		record.setEmotionRecordType(type);
 		record.setDiaryEntry(diaryEntry);
-		record.setCreatedTime(Timestamp.from(Instant.now()));
+		record.setCreatedTime(Timestamp.from(recordTimestamp));
 		record.setAiAnalysisId(aiAnalysisId);
 
 		int result = emotionRecordDao.createEmotionRecord(record);
@@ -114,7 +148,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 
 		// Invalidate AI analysis cache for this user
 		if (result > 0) {
-			invalidateAICache(userId, Instant.now());
+			invalidateAICache(userId, recordTimestamp, timezone);
 		}
 
 		return emotionRecordId;
@@ -123,7 +157,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	@Override
 	@Transactional
 	public boolean updateEmotionRecord(Long userId, Long emotionRecordId, Integer emotionId,
-	                                   List<String> emotionReasons, String diaryEntry) {
+	                                   List<String> emotionReasons, String diaryEntry, ZoneId timezone) {
 		// Fetch existing record
 		EmotionRecord existing = emotionRecordDao.selectEmotionRecordByIdAndUserId(emotionRecordId, userId);
 		if (existing == null) {
@@ -177,7 +211,7 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 			}
 
 			// Invalidate AI analysis cache for this user
-			invalidateAICache(userId, createdTime);
+			invalidateAICache(userId, createdTime, timezone);
 		}
 
 		return updated;
@@ -189,10 +223,10 @@ public class EmotionRecordServiceImpl implements EmotionRecordService {
 	 *
 	 * @param userId User ID
 	 * @param recordTime Timestamp of the emotion record
+	 * @param timezone User's timezone for date calculation
 	 */
-	private void invalidateAICache(Long userId, Instant recordTime) {
-		ZoneId utcZone = ZoneId.of("UTC");
-		LocalDate recordDate = recordTime.atZone(utcZone).toLocalDate();
+	private void invalidateAICache(Long userId, Instant recordTime, ZoneId timezone) {
+		LocalDate recordDate = recordTime.atZone(timezone).toLocalDate();
 
 		// Calculate week range
 		LocalDate weekStart = recordDate.minusDays(recordDate.getDayOfWeek().getValue() % 7);

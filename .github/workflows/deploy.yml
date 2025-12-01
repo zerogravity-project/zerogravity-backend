@@ -5,6 +5,9 @@ on:
     branches:
       - develop
       - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
 
 jobs:
   deploy:
@@ -28,7 +31,7 @@ jobs:
           fi
 
       - name: Deploy to OCI server
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.0
         env:
           ENV: ${{ env.ENV }}
           BACKEND_PORT: ${{ env.BACKEND_PORT }}
@@ -45,18 +48,31 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           envs: ENV,BACKEND_PORT,MYSQL_PORT,DB_NAME,DB_USER,DB_PASSWORD,JWT_SECRET,GEMINI_API_KEY,MYSQL_ROOT_PASSWORD
           script: |
-            # Navigate to app directory
+            # Navigate to app directory (create if doesn't exist)
+            mkdir -p /home/ubuntu/app
             cd /home/ubuntu/app
 
-            # Pull latest code
-            git fetch origin
-            if [ "$ENV" = "prod" ]; then
-              git checkout main
-              git pull origin main
+            # Clone repo if not exists, otherwise pull latest code
+            if [ ! -d ".git" ]; then
+              echo "Git repository not found. Cloning from GitHub..."
+              git clone https://github.com/zerogravity-project/zerogravity-backend.git .
+              if [ "$ENV" = "prod" ]; then
+                git checkout main
+              else
+                git checkout develop
+              fi
             else
-              git checkout develop
-              git pull origin develop
+              # Pull latest code (use reset to avoid divergence issues)
+              git fetch origin
+              if [ "$ENV" = "prod" ]; then
+                git reset --hard origin/main
+              else
+                git reset --hard origin/develop
+              fi
             fi
+
+            # Verify current commit
+            echo "✅ Deployment commit: $(git log -1 --format='%h %s')"
 
             # Create .env file
             cat > .env << EOF
@@ -71,23 +87,39 @@ jobs:
             MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
             EOF
 
-            # Step 1: Backup current image (if it exists)
+            # ============================================================
+            # Build-First Deployment Strategy (Zero-Downtime)
+            # - Build new image FIRST (old container keeps running)
+            # - Only swap containers after build succeeds
+            # - Rollback uses backup image (no rebuild needed)
+            # ============================================================
+
+            # Step 1: Build new image (without stopping old container)
+            echo "🔨 Building new image (old container still running)..."
+            if ! docker build -t zerogv-backend:${ENV}-new .; then
+              echo "❌ Build failed! Old container still running - no downtime."
+              exit 1
+            fi
+            echo "✅ Build successful!"
+
+            # Step 2: Backup current image (if it exists)
             echo "🔄 Backing up current image..."
-            if docker ps --filter "name=zerogv-backend-$ENV" --format "{{.Names}}" | grep -q "zerogv-backend-$ENV"; then
-              docker commit zerogv-backend-$ENV zerogv-backend:${ENV}-backup || true
+            if docker images --format "{{.Repository}}:{{.Tag}}" | grep -q "zerogv-backend:${ENV}$"; then
+              docker tag zerogv-backend:${ENV} zerogv-backend:${ENV}-backup
               echo "✅ Backup created: zerogv-backend:${ENV}-backup"
             else
-              echo "ℹ️  No existing container to backup (first deployment)"
+              echo "ℹ️  No existing image to backup (first deployment)"
             fi
 
-            # Step 2: Stop current containers
+            # Step 3: Tag new image as current
+            docker tag zerogv-backend:${ENV}-new zerogv-backend:${ENV}
+
+            # Step 4: Swap containers (stop old, start new)
+            echo "🚀 Swapping containers..."
             docker compose -p zerogv-${ENV} down || true
+            docker compose -p zerogv-${ENV} up -d
 
-            # Step 3: Build and start new containers
-            echo "🚀 Building and deploying new version..."
-            docker compose -p zerogv-${ENV} up -d --build
-
-            # Step 4: Health check with validation
+            # Step 5: Health check with validation
             echo "⏳ Waiting for backend to be healthy (max 150 seconds)..."
             HEALTH_CHECK_PASSED=false
             for i in {1..30}; do
@@ -113,18 +145,18 @@ jobs:
               sleep 5
             done
 
-            # Step 5: Rollback if health check failed
+            # Step 6: Rollback if health check failed (using backup image, no rebuild)
             if [ "$HEALTH_CHECK_PASSED" = false ]; then
               echo "❌ DEPLOYMENT FAILED: Health check did not pass"
-              echo "🔄 Rolling back to previous version..."
+              echo "🔄 Rolling back to previous version (using backup image)..."
 
               # Stop failed containers
               docker compose -p zerogv-${ENV} down
 
-              # Check if backup exists
-              if docker images | grep -q "zerogv-backend.*${ENV}-backup"; then
+              # Check if backup exists and restore
+              if docker images --format "{{.Repository}}:{{.Tag}}" | grep -q "zerogv-backend:${ENV}-backup"; then
                 echo "📦 Restoring backup image..."
-                docker tag zerogv-backend:${ENV}-backup zerogv-backend:latest
+                docker tag zerogv-backend:${ENV}-backup zerogv-backend:${ENV}
                 docker compose -p zerogv-${ENV} up -d
                 echo "✅ Rollback completed. Previous version restored."
                 exit 1
@@ -135,19 +167,75 @@ jobs:
               fi
             fi
 
-            # Step 6: Cleanup old backup image
-            echo "🧹 Cleaning up old backup..."
-            docker images | grep "zerogv-backend.*${ENV}-backup" | awk '{print $3}' | xargs -r docker rmi || true
+            # Step 7: Cleanup old images
+            echo "🧹 Cleaning up old images..."
+            docker rmi zerogv-backend:${ENV}-new 2>/dev/null || true
+            docker rmi zerogv-backend:${ENV}-backup 2>/dev/null || true
+            docker image prune -f || true
+            docker builder prune -f --filter "until=24h" || true
             echo "✅ Cleanup completed"
 
-            # Step 7: Deploy Nginx configuration
+            # Step 8: Install system dependencies (if needed)
+            echo "🔧 Checking and installing system dependencies..."
+
+            # Install nginx (if not installed)
+            if ! command -v nginx &> /dev/null; then
+              echo "📦 Installing nginx..."
+              sudo apt-get update -qq
+              sudo apt-get install -y nginx
+              echo "✅ nginx installed"
+            else
+              echo "✅ nginx already installed"
+            fi
+
+            # Install OCI CLI (if not installed)
+            if ! command -v oci &> /dev/null; then
+              echo "📦 Installing OCI CLI..."
+              # Download and run installer non-interactively
+              curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh > /tmp/oci-install.sh
+              chmod +x /tmp/oci-install.sh
+              /tmp/oci-install.sh --accept-all-defaults
+
+              # Create symlink to make it available system-wide
+              if [ -f "$HOME/bin/oci" ]; then
+                sudo ln -sf "$HOME/bin/oci" /usr/local/bin/oci
+              fi
+              echo "✅ OCI CLI installed"
+            else
+              echo "✅ OCI CLI already installed"
+            fi
+
+            # Setup Docker cleanup cron job (always update)
+            echo "⏰ Setting up Docker cleanup cron job..."
+            DOCKER_CLEANUP_JOB="0 2 * * * docker system prune -af --filter 'until=24h' >> /var/log/docker-cleanup.log 2>&1"
+            (crontab -l 2>/dev/null | grep -v "docker system prune"; echo "$DOCKER_CLEANUP_JOB") | crontab -
+            echo "✅ Docker cleanup cron job configured (runs daily at 2 AM)"
+
+            # Step 9: Deploy Nginx configuration
             ./scripts/deploy-nginx.sh
 
-            # Step 8: Show container status
+            # Step 10: Deploy container health monitoring script
+            echo "📊 Deploying container health monitoring script..."
+
+            # Copy monitoring script to system location
+            sudo cp scripts/monitor-containers.sh /usr/local/bin/
+            sudo chmod +x /usr/local/bin/monitor-containers.sh
+
+            # Create OCI config for monitoring script
+            # Note: COMPARTMENT_ID should be set from terraform outputs
+            # For now, script will use instance metadata if this file doesn't exist
+
+            # Set up cron job (run every 5 minutes)
+            CRON_JOB="*/5 * * * * /usr/local/bin/monitor-containers.sh >> /var/log/container-health.log 2>&1"
+            (crontab -l 2>/dev/null | grep -v "monitor-containers.sh"; echo "$CRON_JOB") | crontab -
+
+            echo "✅ Monitoring script deployed and cron job configured"
+
+            # Step 11: Show container status
             docker ps | grep zerogv
 
       - name: Verify deployment
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.0
         env:
           ENV: ${{ env.ENV }}
           BACKEND_PORT: ${{ env.BACKEND_PORT }}
@@ -157,10 +245,44 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           envs: ENV,BACKEND_PORT
           script: |
-            # Check health endpoint
-            echo "Checking health endpoint..."
+            # Check health endpoint (localhost - container direct)
+            echo "Checking localhost health endpoint..."
             curl -f http://localhost:$BACKEND_PORT/actuator/health || exit 1
-            echo "Health check passed!"
+            echo "✅ Localhost health check passed!"
+
+            # Check health endpoint (HTTPS - full stack via load balancer)
+            echo "Checking HTTPS health endpoint via load balancer..."
+            if [ "$ENV" = "prod" ]; then
+              DOMAIN="api.zerogv.com"
+            else
+              DOMAIN="api-dev.zerogv.com"
+            fi
+
+            # Wait for DNS/SSL to be ready (max 30 seconds)
+            for i in {1..6}; do
+              if curl -f --connect-timeout 5 https://$DOMAIN/actuator/health 2>/dev/null; then
+                echo "✅ HTTPS health check passed!"
+                break
+              fi
+
+              if [ $i -eq 6 ]; then
+                echo "⚠️  WARNING: HTTPS health check failed after 30 seconds"
+                echo "This may be a DNS/SSL propagation issue. Container is healthy on localhost."
+                echo "Load balancer health checks will continue to verify full stack health."
+              else
+                echo "Attempt $i/6: Waiting for HTTPS endpoint..."
+                sleep 5
+              fi
+            done
+
+            # Warm-up: Initialize DB connection pool and DispatcherServlet
+            echo "Warming up application..."
+            sleep 2
+            curl -X POST http://localhost:$BACKEND_PORT/auth/verify \
+              -H "Content-Type: application/json" \
+              -d '{"provider":"WARMUP","providerId":"warmup-test","email":"warmup@test.com","name":"Warmup","image":""}' \
+              -s -o /dev/null -w "Warm-up request: HTTP %{http_code} (took %{time_total}s)\n" || true
+            echo "✅ Application warmed up and ready!"
 
       - name: Deployment summary
         run: |

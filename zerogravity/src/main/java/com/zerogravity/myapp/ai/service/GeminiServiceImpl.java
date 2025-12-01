@@ -8,8 +8,12 @@ import com.zerogravity.myapp.ai.exception.GeminiApiException;
 import com.zerogravity.myapp.chart.dto.ChartCountResponse;
 import com.zerogravity.myapp.chart.dto.ChartLevelResponse;
 import com.zerogravity.myapp.chart.dto.ChartReasonResponse;
+import com.zerogravity.myapp.common.util.TimezoneUtil;
+import com.zerogravity.myapp.emotion.dao.EmotionDao;
+import com.zerogravity.myapp.emotion.dto.Emotion;
 import com.zerogravity.myapp.emotion.dto.EmotionRecord;
 import org.springframework.stereotype.Service;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,11 +25,13 @@ import java.util.stream.Collectors;
 public class GeminiServiceImpl implements GeminiService {
 
 	private final Client geminiClient;
+	private final EmotionDao emotionDao;
 	private final ObjectMapper objectMapper;
 	private static final String MODEL_NAME = "gemini-2.5-flash";
 
-	public GeminiServiceImpl(Client geminiClient) {
+	public GeminiServiceImpl(Client geminiClient, EmotionDao emotionDao) {
 		this.geminiClient = geminiClient;
+		this.emotionDao = emotionDao;
 		this.objectMapper = new ObjectMapper();
 	}
 
@@ -36,10 +42,11 @@ public class GeminiServiceImpl implements GeminiService {
 									   ChartLevelResponse levelChart,
 									   ChartReasonResponse reasonChart,
 									   ChartCountResponse countChart,
-									   List<EmotionRecord> emotionRecords) {
+									   List<EmotionRecord> emotionRecords,
+									   ZoneId timezone) {
 		try {
 			// Build prompt with emotion data
-			String prompt = buildPrompt(period, startDateStr, endDateStr, levelChart, reasonChart, countChart, emotionRecords);
+			String prompt = buildPrompt(period, startDateStr, endDateStr, levelChart, reasonChart, countChart, emotionRecords, timezone);
 
 			// Call Gemini API
 			GenerateContentResponse response = geminiClient.models.generateContent(
@@ -69,7 +76,8 @@ public class GeminiServiceImpl implements GeminiService {
 							   ChartLevelResponse levelChart,
 							   ChartReasonResponse reasonChart,
 							   ChartCountResponse countChart,
-							   List<EmotionRecord> emotionRecords) {
+							   List<EmotionRecord> emotionRecords,
+							   ZoneId timezone) {
 
 		StringBuilder prompt = new StringBuilder();
 		prompt.append("You are an emotion analysis assistant. Analyze the following emotion data and provide insights.\n\n");
@@ -99,17 +107,39 @@ public class GeminiServiceImpl implements GeminiService {
 			prompt.append("\n");
 		}
 
-		// Individual records summary
+		// Representative emotion records
 		if (emotionRecords != null && !emotionRecords.isEmpty()) {
-			prompt.append("Sample Diary Entries and Reasons:\n");
-			emotionRecords.stream().limit(10).forEach(record -> {
-				prompt.append("- Emotion Level ").append(record.getEmotionId()).append(": ");
+			// Load all emotions once for efficient lookup
+			List<Emotion> allEmotions = emotionDao.selectAllEmotions();
+			java.util.Map<Integer, String> emotionTypeMap = allEmotions.stream()
+				.collect(Collectors.toMap(Emotion::getEmotionId, Emotion::getEmotionType));
+
+			prompt.append("Representative Emotion Records:\n");
+			emotionRecords.forEach(record -> {
+				// Format timestamp in user timezone as ISO 8601
+				java.time.Instant instant = record.getCreatedTime().toInstant();
+				String timestamp = TimezoneUtil.formatToUserTimezone(instant, timezone);
+
+				// Get emotion type from map
+				String emotionType = emotionTypeMap.getOrDefault(record.getEmotionId(), "Unknown");
+
+				// Format: [timestamp] emotionType (Level X): reasons - "diary..."
+				prompt.append("- [").append(timestamp).append("] ")
+					.append(emotionType).append(" (Level ").append(record.getEmotionId()).append("): ");
+
 				if (record.getEmotionReasons() != null && !record.getEmotionReasons().isEmpty()) {
 					prompt.append(String.join(", ", record.getEmotionReasons()));
 				}
+
 				if (record.getDiaryEntry() != null && !record.getDiaryEntry().isEmpty()) {
-					prompt.append(" - \"").append(record.getDiaryEntry().substring(0, Math.min(100, record.getDiaryEntry().length()))).append("...\"");
+					String diaryExcerpt = record.getDiaryEntry().substring(0, Math.min(300, record.getDiaryEntry().length()));
+					prompt.append(" - \"").append(diaryExcerpt);
+					if (record.getDiaryEntry().length() > 300) {
+						prompt.append("...");
+					}
+					prompt.append("\"");
 				}
+
 				prompt.append("\n");
 			});
 			prompt.append("\n");
@@ -195,6 +225,16 @@ public class GeminiServiceImpl implements GeminiService {
 
 		prompt.append("Diary Entry:\n\"").append(diaryEntry).append("\"\n\n");
 
+		// Emotion level mapping
+		prompt.append("Emotion Level Mapping (0-6):\n");
+		prompt.append("0 = VERY NEGATIVE (extremely distressed, hopeless, deeply upset)\n");
+		prompt.append("1 = NEGATIVE (sad, frustrated, disappointed, worried)\n");
+		prompt.append("2 = MID NEGATIVE (somewhat down, slightly concerned, mildly bothered)\n");
+		prompt.append("3 = NORMAL (neutral, calm, stable, neither positive nor negative)\n");
+		prompt.append("4 = MID POSITIVE (somewhat good, pleasantly satisfied, mildly pleased)\n");
+		prompt.append("5 = POSITIVE (happy, grateful, excited, joyful)\n");
+		prompt.append("6 = VERY POSITIVE (extremely elated, thrilled, overjoyed, ecstatic)\n\n");
+
 		// Predefined reasons list
 		String[] predefinedReasons = {"Health", "Fitness", "Self-care", "Hobby", "Identity", "Religion", "Community",
 			"Family", "Friends", "Partner", "Romance", "Money", "Housework", "Work", "Education", "Travel", "Weather",
@@ -217,13 +257,15 @@ public class GeminiServiceImpl implements GeminiService {
 			prompt.append("Predict BOTH the emotion level (0-6) and emotion reasons based on the diary entry.\n");
 		}
 
-		prompt.append("\nIf none of the predefined reasons fit, you may suggest custom reasons.\n\n");
+		prompt.append("\nIf none of the predefined reasons fit, you may suggest custom reasons.\n");
+		prompt.append("Additionally, provide a refined version of the diary entry (max 300 chars) - clean and clarify the original entry.\n\n");
 
 		prompt.append("Respond with ONLY a JSON object (no additional text):\n");
 		if (providedEmotionId != null) {
 			prompt.append("{\n");
 			prompt.append("  \"emotionId\": null,\n");
 			prompt.append("  \"reasons\": [\"reason1\", \"reason2\"],\n");
+			prompt.append("  \"refinedDiary\": \"Cleaned and clarified diary entry (max 300 chars)...\",\n");
 			prompt.append("  \"reasoning\": \"Explanation of why these reasons fit...\",\n");
 			prompt.append("  \"confidence\": 0.85\n");
 			prompt.append("}\n");
@@ -231,6 +273,7 @@ public class GeminiServiceImpl implements GeminiService {
 			prompt.append("{\n");
 			prompt.append("  \"emotionId\": 5,\n");
 			prompt.append("  \"reasons\": null,\n");
+			prompt.append("  \"refinedDiary\": \"Cleaned and clarified diary entry (max 300 chars)...\",\n");
 			prompt.append("  \"reasoning\": \"Explanation of the predicted emotion level...\",\n");
 			prompt.append("  \"confidence\": 0.85\n");
 			prompt.append("}\n");
@@ -238,6 +281,7 @@ public class GeminiServiceImpl implements GeminiService {
 			prompt.append("{\n");
 			prompt.append("  \"emotionId\": 5,\n");
 			prompt.append("  \"reasons\": [\"reason1\", \"reason2\"],\n");
+			prompt.append("  \"refinedDiary\": \"Cleaned and clarified diary entry (max 300 chars)...\",\n");
 			prompt.append("  \"reasoning\": \"Explanation of the prediction...\",\n");
 			prompt.append("  \"confidence\": 0.85\n");
 			prompt.append("}\n");
@@ -261,6 +305,8 @@ public class GeminiServiceImpl implements GeminiService {
 			if (root.has("reasons") && !root.get("reasons").isNull()) {
 				reasons = objectMapper.convertValue(root.get("reasons"), new com.fasterxml.jackson.core.type.TypeReference<List<String>>(){});
 			}
+			String refinedDiary = root.has("refinedDiary") && !root.get("refinedDiary").isNull() ?
+				root.get("refinedDiary").asText() : null;
 			String reasoning = root.has("reasoning") ? root.get("reasoning").asText() : "";
 			Double confidence = root.has("confidence") ? root.get("confidence").asDouble() : 0.0;
 
@@ -268,6 +314,7 @@ public class GeminiServiceImpl implements GeminiService {
 			return new EmotionPredictionResult(
 				providedEmotionId != null ? null : emotionId,
 				providedReasons != null ? null : reasons,
+				refinedDiary,
 				reasoning,
 				confidence
 			);

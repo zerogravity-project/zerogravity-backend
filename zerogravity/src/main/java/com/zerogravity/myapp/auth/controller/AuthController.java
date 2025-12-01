@@ -7,10 +7,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zerogravity.myapp.auth.dto.AuthResponse;
+import com.zerogravity.myapp.auth.dto.RefreshRequest;
+import com.zerogravity.myapp.auth.dto.RefreshResponse;
+import com.zerogravity.myapp.auth.service.RefreshTokenService;
+import com.zerogravity.myapp.common.dto.ApiResponse;
 import com.zerogravity.myapp.user.dto.User;
 import com.zerogravity.myapp.user.service.UserService;
 import com.zerogravity.myapp.common.security.JWTUtil;
@@ -34,12 +39,19 @@ public class AuthController {
 	private final UserService userService;
 	private final JWTUtil jwtUtil;
 	private final SnowflakeIdService snowflakeIdService;
+	private final RefreshTokenService refreshTokenService;
 
 	@Autowired
-	public AuthController(UserService userService, JWTUtil jwtUtil, SnowflakeIdService snowflakeIdService) {
+	public AuthController(
+			UserService userService,
+			JWTUtil jwtUtil,
+			SnowflakeIdService snowflakeIdService,
+			RefreshTokenService refreshTokenService
+	) {
 		this.userService = userService;
 		this.jwtUtil = jwtUtil;
 		this.snowflakeIdService = snowflakeIdService;
+		this.refreshTokenService = refreshTokenService;
 	}
 
 	/**
@@ -51,8 +63,13 @@ public class AuthController {
 	 */
 	@PostMapping("/verify")
 	@Operation(summary = "OAuth User Verification and JWT Issuance", description = "Endpoint called after OAuth login from NextAuth. Verifies user information and issues backend JWT.")
-	public ResponseEntity<AuthResponse> verifyAndCreateUser(@RequestBody User oauthUser, HttpServletResponse response) {
+	public ResponseEntity<ApiResponse<AuthResponse>> verifyAndCreateUser(
+			@RequestBody User oauthUser,
+			@RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
+			HttpServletResponse response) {
 		try {
+			ZoneId timezone = ZoneId.of(clientTimezone);
+
 			// Validate input
 			if (oauthUser == null || oauthUser.getProviderId() == null || oauthUser.getProvider() == null) {
 				return ResponseEntity.badRequest().build();
@@ -91,25 +108,36 @@ public class AuthController {
 				}
 			}
 
-			// 4. Generate JWT token (1-hour expiration)
-			String jwtToken = jwtUtil.createJwt(user.getUserId(), 3600000L);
+			// 4. Generate JWT token (15-minute expiration)
+			String jwtToken = jwtUtil.createJwt(user.getUserId(), 900000L);
 
-			// 5. Set JWT as HttpOnly cookie
+			// 5. Generate refresh token (30-day expiration)
+			String refreshToken = refreshTokenService.createRefreshToken(user.getUserId());
+
+			// 6. Set JWT as HttpOnly cookie
 			Cookie cookie = new Cookie("token", jwtToken);
 			cookie.setHttpOnly(true);        // JS cannot access
 			cookie.setSecure(true);          // HTTPS only (production)
 			cookie.setPath("/");             // All paths
-			cookie.setMaxAge(3600);          // 1 hour (seconds)
+			cookie.setMaxAge(900);           // 15 minutes (seconds)
 			cookie.setAttribute("SameSite", "Lax");  // CSRF protection
 
 			response.addCookie(cookie);
 
-			// Build consents map with UTC timezone (frontend will receive and handle timezone conversion)
-			Map<String, Object> consents = buildConsentsMap(user);
+			// Build consents map with user's timezone
+			Map<String, Object> consents = buildConsentsMap(user, timezone);
 
-			// Response with isNewUser flag for frontend to show consent screen
-			AuthResponse authResponse = new AuthResponse(true, "Authentication successful", isNewUser, consents);
-			return ResponseEntity.ok(authResponse);
+			// Response with isNewUser flag and both tokens for frontend
+			AuthResponse authResponse = new AuthResponse(
+					true,
+					"Authentication successful",
+					isNewUser,
+					consents,
+					jwtToken,
+					refreshToken
+			);
+			ApiResponse<AuthResponse> apiResponse = new ApiResponse<>(authResponse, Instant.now().toString());
+			return ResponseEntity.ok(apiResponse);
 
 		} catch (Exception e) {
 			System.err.println("[AuthController] Error during OAuth verification: " + e.getMessage());
@@ -121,16 +149,16 @@ public class AuthController {
 	/**
 	 * Helper method to build consent information map from User object
 	 * @param user User object with consent fields
-	 * @return Map with all consent fields and timestamps (formatted as UTC)
+	 * @param timezone User's timezone for formatting timestamps
+	 * @return Map with all consent fields and timestamps (formatted in user timezone)
 	 */
-	private Map<String, Object> buildConsentsMap(User user) {
+	private Map<String, Object> buildConsentsMap(User user, ZoneId timezone) {
 		Map<String, Object> consents = new java.util.LinkedHashMap<>();
-		ZoneId utcTimezone = ZoneId.of("UTC");
 
 		// Terms agreement
 		consents.put("termsAgreed", user.getTermsAgreed() != null ? user.getTermsAgreed() : false);
 		if (user.getTermsAgreedAt() != null) {
-			consents.put("termsAgreedAt", TimezoneUtil.formatToUserTimezone(user.getTermsAgreedAt().toInstant(), utcTimezone));
+			consents.put("termsAgreedAt", TimezoneUtil.formatToUserTimezone(user.getTermsAgreedAt().toInstant(), timezone));
 		} else {
 			consents.put("termsAgreedAt", null);
 		}
@@ -138,7 +166,7 @@ public class AuthController {
 		// Privacy agreement
 		consents.put("privacyAgreed", user.getPrivacyAgreed() != null ? user.getPrivacyAgreed() : false);
 		if (user.getPrivacyAgreedAt() != null) {
-			consents.put("privacyAgreedAt", TimezoneUtil.formatToUserTimezone(user.getPrivacyAgreedAt().toInstant(), utcTimezone));
+			consents.put("privacyAgreedAt", TimezoneUtil.formatToUserTimezone(user.getPrivacyAgreedAt().toInstant(), timezone));
 		} else {
 			consents.put("privacyAgreedAt", null);
 		}
@@ -146,7 +174,7 @@ public class AuthController {
 		// Sensitive data consent
 		consents.put("sensitiveDataConsent", user.getSensitiveDataConsent() != null ? user.getSensitiveDataConsent() : false);
 		if (user.getSensitiveDataConsentAt() != null) {
-			consents.put("sensitiveDataConsentAt", TimezoneUtil.formatToUserTimezone(user.getSensitiveDataConsentAt().toInstant(), utcTimezone));
+			consents.put("sensitiveDataConsentAt", TimezoneUtil.formatToUserTimezone(user.getSensitiveDataConsentAt().toInstant(), timezone));
 		} else {
 			consents.put("sensitiveDataConsentAt", null);
 		}
@@ -154,7 +182,7 @@ public class AuthController {
 		// AI analysis consent
 		consents.put("aiAnalysisConsent", user.getAiAnalysisConsent() != null ? user.getAiAnalysisConsent() : false);
 		if (user.getAiAnalysisConsentAt() != null) {
-			consents.put("aiAnalysisConsentAt", TimezoneUtil.formatToUserTimezone(user.getAiAnalysisConsentAt().toInstant(), utcTimezone));
+			consents.put("aiAnalysisConsentAt", TimezoneUtil.formatToUserTimezone(user.getAiAnalysisConsentAt().toInstant(), timezone));
 		} else {
 			consents.put("aiAnalysisConsentAt", null);
 		}
@@ -163,5 +191,49 @@ public class AuthController {
 		consents.put("consentVersion", user.getConsentVersion() != null ? user.getConsentVersion() : "v1.0");
 
 		return consents;
+	}
+
+	/**
+	 * Refresh access token using refresh token
+	 * Implements token rotation: old refresh token is revoked and new tokens are issued
+	 *
+	 * @param request refresh token request
+	 * @return RefreshResponse with new access token and refresh token
+	 */
+	@PostMapping("/refresh")
+	@Operation(
+			summary = "Refresh Access Token",
+			description = "Exchange refresh token for new access token. " +
+					"Refresh token is reused for 30 days until expiration or logout."
+	)
+	public ResponseEntity<ApiResponse<RefreshResponse>> refreshToken(@RequestBody RefreshRequest request) {
+		try {
+			// Validate request
+			if (request == null || request.getRefreshToken() == null || request.getRefreshToken().isBlank()) {
+				return ResponseEntity.badRequest().build();
+			}
+
+			// Validate refresh token and get new access token
+			RefreshTokenService.TokenPair tokenPair = refreshTokenService.validateRefreshToken(
+					request.getRefreshToken()
+			);
+
+			// Create response with new tokens
+			RefreshResponse refreshResponse = new RefreshResponse(
+					tokenPair.accessToken(),
+					tokenPair.refreshToken()
+			);
+
+			ApiResponse<RefreshResponse> apiResponse = new ApiResponse<>(
+					refreshResponse,
+					Instant.now().toString()
+			);
+
+			return ResponseEntity.ok(apiResponse);
+
+		} catch (Exception e) {
+			System.err.println("[AuthController] Error during token refresh: " + e.getMessage());
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
 	}
 }

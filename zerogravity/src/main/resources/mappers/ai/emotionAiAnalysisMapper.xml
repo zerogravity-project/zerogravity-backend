@@ -10,6 +10,7 @@
 		<id property="analysisId" column="analysis_id" />
 		<result property="userId" column="user_id" />
 		<result property="diaryEntry" column="diary_entry" />
+		<result property="refinedDiary" column="refined_diary" />
 		<result property="suggestedEmotionId" column="suggested_emotion_id" />
 		<result property="reasoning" column="reasoning" />
 		<result property="confidence" column="confidence" />
@@ -31,10 +32,10 @@
 	<!-- Insert analysis record -->
 	<insert id="insertAnalysis">
 		INSERT INTO emotion_ai_analysis (
-			analysis_id, user_id, diary_entry, suggested_emotion_id,
+			analysis_id, user_id, diary_entry, refined_diary, suggested_emotion_id,
 			reasoning, confidence, analyzed_at, is_accepted, accepted_at, emotion_record_id
 		) VALUES (
-			#{analysisId}, #{userId}, #{diaryEntry}, #{suggestedEmotionId},
+			#{analysisId}, #{userId}, #{diaryEntry}, #{refinedDiary}, #{suggestedEmotionId},
 			#{reasoning}, #{confidence}, #{analyzedAt}, #{isAccepted}, #{acceptedAt}, #{emotionRecordId}
 		)
 	</insert>
@@ -47,7 +48,7 @@
 
 	<!-- Select analysis by ID -->
 	<select id="selectAnalysisById" resultMap="emotionAiAnalysisResultMap">
-		SELECT analysis_id, user_id, diary_entry, suggested_emotion_id,
+		SELECT analysis_id, user_id, diary_entry, refined_diary, suggested_emotion_id,
 		       reasoning, confidence, analyzed_at, is_accepted, accepted_at, emotion_record_id
 		FROM emotion_ai_analysis
 		WHERE analysis_id = #{analysisId}

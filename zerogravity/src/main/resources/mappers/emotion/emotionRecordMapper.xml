@@ -10,7 +10,7 @@
 		<id property="emotionRecordId" column="emotion_record_id" />
 		<result property="userId" column="user_id" />
 		<result property="emotionId" column="emotion_id" />
-		<result property="emotionRecordType" column="emotion_record_type" typeHandler="org.apache.ibatis.type.EnumTypeHandler" />
+		<result property="emotionRecordType" column="emotion_record_type" typeHandler="com.zerogravity.myapp.emotion.typehandler.EmotionRecordTypeHandler" />
 		<result property="diaryEntry" column="diary_entry" />
 		<result property="isDeleted" column="is_deleted" />
 		<result property="deletedAt" column="deleted_at" />
@@ -30,7 +30,10 @@
 	<!-- Select emotion records by user ID (excluding soft-deleted) -->
 	<select id="selectEmotionRecordByUserId" parameterType="long" resultMap="emotionRecordResultMap">
 		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
-		       er.diary_entry, er.is_deleted, er.deleted_at, er.created_time, er.updated_time
+		       er.diary_entry, er.is_deleted,
+		       er.deleted_at,
+		       er.created_time,
+		       er.updated_time
 		FROM emotion_record er
 		WHERE er.user_id = #{userId}
 		  AND er.is_deleted = FALSE
@@ -48,31 +51,34 @@
 	<!-- Select emotion record by ID and user ID for update validation -->
 	<select id="selectEmotionRecordByIdAndUserId" resultMap="emotionRecordResultMap">
 		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
-		       er.diary_entry, er.is_deleted, er.deleted_at, er.created_time, er.updated_time
+		       er.diary_entry, er.is_deleted,
+		       er.deleted_at,
+		       er.created_time,
+		       er.updated_time
 		FROM emotion_record er
 		WHERE er.emotion_record_id = #{emotionRecordId}
 		  AND er.user_id = #{userId}
 		  AND er.is_deleted = FALSE
 	</select>
 
-	<!-- Check if daily record exists for a specific date -->
+	<!-- Check if daily record exists for a specific date (uses UTC date range for index efficiency) -->
 	<select id="existsDailyRecordForDate" resultType="boolean">
 		SELECT COUNT(*) > 0
 		FROM emotion_record
 		WHERE user_id = #{userId}
 		  AND emotion_record_type = 'daily'
 		  AND is_deleted = FALSE
-		  AND DATE(CONVERT_TZ(created_time, '+00:00', CONCAT(
-		      LPAD(FLOOR(ABS(#{timezoneOffset}) / 60), 2, '0'), ':',
-		      LPAD(MOD(ABS(#{timezoneOffset}), 60), 2, '0'),
-		      IF(#{timezoneOffset} >= 0, '', '-')
-		  ))) = #{date}
+		  AND created_time >= FROM_UNIXTIME(UNIX_TIMESTAMP(#{dateStartUtc}))
+		  AND created_time &lt; FROM_UNIXTIME(UNIX_TIMESTAMP(#{dateEndUtc}))
 	</select>
 
 	<!-- Select emotion records for a specific period and user (excluding soft-deleted) -->
 	<select id="selectEmotionRecordByPeriodAndUserId" resultMap="emotionRecordResultMap">
 		SELECT er.emotion_record_id, er.user_id, er.emotion_id, er.emotion_record_type,
-		       er.diary_entry, er.is_deleted, er.deleted_at, er.created_time, er.updated_time
+		       er.diary_entry, er.is_deleted,
+		       er.deleted_at,
+		       er.created_time,
+		       er.updated_time
 		FROM emotion_record er
 		WHERE er.user_id = #{userId}
 		  AND er.is_deleted = FALSE
@@ -86,16 +92,17 @@
 		SELECT
 		<choose>
 			<when test="groupBy == 'HOUR'">
-				DATE_FORMAT(er.created_time, '%Y-%m-%d %H:00:00') as label,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d %H:00:00') as label,
 			</when>
 			<when test="groupBy == 'DAY'">
-				DATE(er.created_time) as label,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d 00:00:00') as label,
 			</when>
 			<when test="groupBy == 'MONTH'">
-				DATE_FORMAT(er.created_time, '%Y-%m-01') as label,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-01 00:00:00') as label,
 			</when>
 		</choose>
-		AVG(e.emotion_level) as avgLevel,
+		SUM(e.emotion_level * CASE WHEN er.emotion_record_type = 'daily' THEN 1.5 ELSE 1.0 END) /
+		SUM(CASE WHEN er.emotion_record_type = 'daily' THEN 1.5 ELSE 1.0 END) as avgLevel,
 		COUNT(*) as count
 		FROM emotion_record er
 		JOIN emotion e ON er.emotion_id = e.emotion_id
@@ -110,6 +117,19 @@
 	<!-- Select aggregated emotion reason statistics -->
 	<select id="selectEmotionReasonStatsByPeriod" resultType="map">
 		SELECT
+		<if test="groupBy != null and timezoneOffset != null">
+			<choose>
+				<when test="groupBy == 'HOUR'">
+					DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d %H:00:00') as bucket,
+				</when>
+				<when test="groupBy == 'DAY'">
+					DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d 00:00:00') as bucket,
+				</when>
+				<when test="groupBy == 'MONTH'">
+					DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-01 00:00:00') as bucket,
+				</when>
+			</choose>
+		</if>
 		    err.emotion_reason as reason,
 		    COUNT(*) as count
 		FROM emotion_record er
@@ -118,8 +138,8 @@
 		  AND er.is_deleted = FALSE
 		  AND er.created_time BETWEEN FROM_UNIXTIME(UNIX_TIMESTAMP(#{periodStart}))
 		                          AND FROM_UNIXTIME(UNIX_TIMESTAMP(#{periodEnd}))
-		GROUP BY err.emotion_reason
-		ORDER BY count DESC, err.emotion_reason
+		GROUP BY <if test="groupBy != null and timezoneOffset != null">bucket,</if> err.emotion_reason
+		ORDER BY <if test="groupBy != null and timezoneOffset != null">bucket,</if> count DESC, err.emotion_reason
 	</select>
 
 	<!-- Select emotion count statistics for scatter chart -->
@@ -127,13 +147,13 @@
 		SELECT
 		<choose>
 			<when test="groupBy == 'HOUR'">
-				DATE_FORMAT(er.created_time, '%Y-%m-%d %H:00:00') as timestamp,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d %H:00:00') as timestamp,
 			</when>
 			<when test="groupBy == 'DAY'">
-				DATE(er.created_time) as timestamp,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-%d 00:00:00') as timestamp,
 			</when>
 			<when test="groupBy == 'MONTH'">
-				DATE_FORMAT(er.created_time, '%Y-%m-01') as timestamp,
+				DATE_FORMAT(CONVERT_TZ(er.created_time, '+00:00', #{timezoneOffset}), '%Y-%m-01 00:00:00') as timestamp,
 			</when>
 		</choose>
 		    er.emotion_id as emotionId,
@@ -154,7 +174,7 @@
 	<!-- Create emotion record -->
 	<insert id="createEmotionRecord" parameterType="EmotionRecord">
 		INSERT INTO emotion_record (emotion_record_id, user_id, emotion_id, emotion_record_type, diary_entry, created_time)
-		VALUES (#{emotionRecordId}, #{userId}, #{emotionId}, #{emotionRecordType}, #{diaryEntry}, FROM_UNIXTIME(UNIX_TIMESTAMP(#{createdTime})))
+		VALUES (#{emotionRecordId}, #{userId}, #{emotionId}, #{emotionRecordType, typeHandler=com.zerogravity.myapp.emotion.typehandler.EmotionRecordTypeHandler}, #{diaryEntry}, FROM_UNIXTIME(UNIX_TIMESTAMP(#{createdTime})))
 	</insert>
 
 	<!-- Update emotion record -->

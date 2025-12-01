@@ -35,7 +35,7 @@ public class EmotionPredictionServiceImpl implements EmotionPredictionService {
 
 	@Override
 	@Transactional
-	public EmotionPredictionResponse predictEmotion(Long userId, EmotionPredictionRequest request) {
+	public EmotionPredictionResponse predictEmotion(Long userId, EmotionPredictionRequest request, ZoneId timezone) {
 		try {
 			// 1. Validate request
 			validatePredictionRequest(request);
@@ -56,6 +56,7 @@ public class EmotionPredictionServiceImpl implements EmotionPredictionService {
 				analysisId,
 				userId,
 				request.getDiaryEntry(),
+				predictionResult.getRefinedDiary(),
 				predictionResult.getEmotionId(),
 				predictionResult.getReasoning(),
 				predictionResult.getConfidence(),
@@ -81,9 +82,10 @@ public class EmotionPredictionServiceImpl implements EmotionPredictionService {
 				String.valueOf(analysisId),
 				predictionResult.getEmotionId(),
 				predictionResult.getReasons(),
+				predictionResult.getRefinedDiary(),
 				predictionResult.getReasoning(),
 				predictionResult.getConfidence(),
-				TimezoneUtil.formatToUserTimezone(now, ZoneId.of("UTC"))  // Default to UTC
+				TimezoneUtil.formatToUserTimezone(now, timezone)
 			);
 
 		} catch (Exception e) {

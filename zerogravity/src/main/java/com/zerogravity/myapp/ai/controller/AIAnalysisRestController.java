@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -133,9 +134,14 @@ public class AIAnalysisRestController {
 	})
 	public ResponseEntity<?> predictEmotion(
 		@AuthUserId Long userId,
-		@RequestBody EmotionPredictionRequest request
+		@RequestHeader(value = "X-Timezone", defaultValue = "UTC")
+		@Parameter(description = "User's timezone (e.g., Asia/Seoul, America/New_York)")
+		String clientTimezone,
+		@Valid @RequestBody EmotionPredictionRequest request
 	) {
 		try {
+			ZoneId timezone = ZoneId.of(clientTimezone);
+
 			// Check AI analysis consent
 			User user = userService.getUserByUserId(userId);
 			if (user == null || !user.getAiAnalysisConsent()) {
@@ -143,12 +149,12 @@ public class AIAnalysisRestController {
 			}
 
 			// Predict emotion
-			EmotionPredictionResponse predictionResponse = emotionPredictionService.predictEmotion(userId, request);
+			EmotionPredictionResponse predictionResponse = emotionPredictionService.predictEmotion(userId, request, timezone);
 
 			// Wrap in API response
 			ApiResponse<EmotionPredictionResponse> apiResponse = new ApiResponse<>(
 				predictionResponse,
-				TimezoneUtil.formatToUserTimezone(Instant.now(), ZoneId.of("UTC"))
+				TimezoneUtil.formatToUserTimezone(Instant.now(), timezone)
 			);
 
 			return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
