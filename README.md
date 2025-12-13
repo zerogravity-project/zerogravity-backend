@@ -15,20 +15,20 @@
 
 ---
 
-## Table of Contents
+## 📑 Table of Contents
 
-1. [Overview](#-overview)
-2. [Key Features](#-key-features)
-3. [Tech Stack](#-tech-stack)
-4. [Architecture](#-architecture)
-5. [Project Structure](#-project-structure)
-6. [API Endpoints](#-api-endpoints)
-7. [Authentication Flow](#-authentication-flow)
-8. [Technical Challenges & Solutions](#-technical-challenges--solutions)
-9. [Getting Started](#-getting-started)
-10. [Roadmap](#-roadmap)
-11. [Related](#-related)
-12. [Author](#-author)
+1. [📖 Overview](#-overview)
+2. [✨ Key Features](#-key-features)
+3. [🛠 Tech Stack](#-tech-stack)
+4. [🏗 Architecture](#-architecture)
+5. [📂 Project Structure](#-project-structure)
+6. [📡 API Endpoints](#-api-endpoints)
+7. [🔐 Authentication Flow](#-authentication-flow)
+8. [🔧 Technical Challenges & Solutions](#-technical-challenges--solutions)
+9. [🚀 Getting Started](#-getting-started)
+10. [🗓 Roadmap](#-roadmap)
+11. [🔗 Related](#-related)
+12. [👤 Author](#-author)
 
 ---
 
