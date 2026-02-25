@@ -227,13 +227,13 @@ public class GeminiServiceImpl implements GeminiService {
 
 		// Emotion level mapping
 		prompt.append("Emotion Level Mapping (0-6):\n");
-		prompt.append("0 = VERY NEGATIVE (extremely distressed, hopeless, deeply upset)\n");
-		prompt.append("1 = NEGATIVE (sad, frustrated, disappointed, worried)\n");
-		prompt.append("2 = MID NEGATIVE (somewhat down, slightly concerned, mildly bothered)\n");
-		prompt.append("3 = NORMAL (neutral, calm, stable, neither positive nor negative)\n");
-		prompt.append("4 = MID POSITIVE (somewhat good, pleasantly satisfied, mildly pleased)\n");
-		prompt.append("5 = POSITIVE (happy, grateful, excited, joyful)\n");
-		prompt.append("6 = VERY POSITIVE (extremely elated, thrilled, overjoyed, ecstatic)\n\n");
+		prompt.append("0 = VERY NEGATIVE (extremely angry, desperate, terrified)\n");
+		prompt.append("1 = NEGATIVE (sad, anxious, irritated)\n");
+		prompt.append("2 = SLIGHTLY NEGATIVE (worried, uncomfortable, tired)\n");
+		prompt.append("3 = NORMAL (calm, indifferent, ordinary)\n");
+		prompt.append("4 = SLIGHTLY POSITIVE (okay, comfortable, quietly content)\n");
+		prompt.append("5 = POSITIVE (joyful, grateful, excited)\n");
+		prompt.append("6 = VERY POSITIVE (blissful, euphoric, deeply moved)\n\n");
 
 		// Predefined reasons list
 		String[] predefinedReasons = {"Health", "Fitness", "Self-care", "Hobby", "Identity", "Religion", "Community",

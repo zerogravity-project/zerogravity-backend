@@ -35,7 +35,7 @@ public class ChartCountResponse {
 		@Schema(description = "Emotion ID", example = "2")
 		private Integer emotionId;
 
-		@Schema(description = "Emotion Type", example = "MID_NEGATIVE")
+		@Schema(description = "Emotion Type", example = "SLIGHTLY_NEGATIVE")
 		private String emotionType;
 
 		@Schema(description = "Timestamp (ISO 8601 with offset)", example = "2025-10-20T15:00:00+09:00")
