@@ -175,9 +175,9 @@ public class EmotionRecordRestController {
 		switch (emotionId) {
 			case 0: return "VERY_NEGATIVE";
 			case 1: return "NEGATIVE";
-			case 2: return "MID_NEGATIVE";
+			case 2: return "SLIGHTLY_NEGATIVE";
 			case 3: return "NORMAL";
-			case 4: return "MID_POSITIVE";
+			case 4: return "SLIGHTLY_POSITIVE";
 			case 5: return "POSITIVE";
 			case 6: return "VERY_POSITIVE";
 			default: return "UNKNOWN";

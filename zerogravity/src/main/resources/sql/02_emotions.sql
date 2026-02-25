@@ -17,8 +17,8 @@ CREATE TABLE emotion (
 INSERT INTO emotion (emotion_id, emotion_key, emotion_type, emotion_level) VALUES
 (0, 'very_negative', 'VERY NEGATIVE', 0),
 (1, 'negative', 'NEGATIVE', 1),
-(2, 'mid_negative', 'MID NEGATIVE', 2),
+(2, 'slightly_negative', 'SLIGHTLY NEGATIVE', 2),
 (3, 'normal', 'NORMAL', 3),
-(4, 'mid_positive', 'MID POSITIVE', 4),
+(4, 'slightly_positive', 'SLIGHTLY POSITIVE', 4),
 (5, 'positive', 'POSITIVE', 5),
 (6, 'very_positive', 'VERY POSITIVE', 6);
