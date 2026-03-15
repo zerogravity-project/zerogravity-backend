@@ -28,9 +28,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private static final long ACCESS_TOKEN_EXPIRATION_MS = 15 * 60 * 1000L; // 15 minutes
     private static final int REFRESH_TOKEN_EXPIRATION_DAYS = 30; // 30 days
 
-    // Grace period for concurrent refresh requests (seconds)
-    private static final long GRACE_PERIOD_SECONDS = 5L;
-
     private final RefreshTokenDao refreshTokenDao;
     private final JWTUtil jwtUtil;
     private final SnowflakeIdService snowflakeIdService;
