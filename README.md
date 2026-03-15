@@ -161,9 +161,9 @@ zerogravity/src/main/java/com/zerogravity/myapp/
 
 ### Why Domain-Driven Architecture?
 
-**🔍 The Challenge**: The original Spring Boot project had a traditional layered architecture with all controllers, services, and DAOs grouped by technical concern. This made it difficult to understand the business logic and maintain feature boundaries.
+**🔍 The Challenge**: Business logic was hard to follow because the original project used traditional layered architecture, grouping all controllers, services, and DAOs by technical concern.
 
-**💡 The Refactoring**: Instead of a complete rewrite, I analyzed the existing codebase, preserved the working layer structure, and reorganized code by business domain.
+**💡 The Solution**: Reorganized code by business domain while preserving the working layer structure. No complete rewrite needed.
 
 **✅ The Result**:
 - **`common/`**: Shared infrastructure (security, config, exceptions, utilities)
@@ -172,8 +172,6 @@ zerogravity/src/main/java/com/zerogravity/myapp/
 - **`emotion/`**: Core emotion tracking (records, emotions)
 - **`chart/`**: Analytics and statistics
 - **`ai/`**: Gemini-powered predictions and analysis
-
-This organization allows each domain to evolve independently while sharing common infrastructure.
 
 ---
 
@@ -285,8 +283,8 @@ private double calculateMatchScore(EmotionRecord record, Double targetLevel, Str
 
 **💡 Solution**:
 - **X-Timezone Header**: Frontend sends browser-detected timezone (e.g., `Asia/Seoul`, `America/New_York`)
-- **SQL-level CONVERT_TZ**: For grouped data (charts) — grouping must happen in user timezone before aggregation
-- **Java-level Conversion**: For raw timestamps — initially applied CONVERT_TZ to all queries, but JDBC auto-converts DATETIME to JVM timezone, causing double conversion (PR #62)
+- **SQL-level CONVERT_TZ**: For grouped data (charts), grouping must happen in user timezone before aggregation
+- **Java-level Conversion**: For raw timestamps, initially applied CONVERT_TZ to all queries, but JDBC auto-converts DATETIME to JVM timezone, causing double conversion (PR #62)
 
 **✅ Outcome**: Correct chart grouping for users in any timezone, automatic adaptation when traveling
 
@@ -304,7 +302,7 @@ FROM emotion_records
 **🔍 Problem**: NextAuth manages its own sessions, but the Spring Boot backend needs independent JWT authentication. No standard pattern exists for bridging NextAuth OAuth with a separate backend JWT system.
 
 **💡 Solution**:
-- `/auth/verify` endpoint receives OAuth identity (provider + providerId) and issues backend JWT — bridging NextAuth sessions with backend authentication
+- `/auth/verify` endpoint receives OAuth identity (provider + providerId) and issues backend JWT, bridging NextAuth sessions with backend authentication
 - Provider-based user identification (providerId + provider) for multi-OAuth support
 - Dual token lifecycle: 15-min access JWT + 30-day refresh token with DB-backed validation
 - Frontend proxies all API calls server-side, injecting JWT via Authorization header
