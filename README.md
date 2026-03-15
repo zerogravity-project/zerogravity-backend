@@ -37,7 +37,7 @@
 ZeroGravity Backend is a Spring Boot REST API that powers the emotion tracking and personal wellness platform. It provides secure authentication, emotion recording, analytics, and AI-powered insights.
 
 > 📌 Part of the ZeroGravity full-stack project. Refactored from a collaborative Spring Boot project with basic CRUD APIs into a production-ready API.
-> [Frontend Repository](https://github.com/zerogravity-project/zerogravity-react) | [Original Vue Version](https://github.com/zerogravity-project/zerogravity-frontend/tree/main)
+> [Frontend Repository](https://github.com/zerogravity-project/zerogravity-react)
 
 ### Why ZeroGravity Backend?
 
@@ -419,6 +419,7 @@ MYSQL_PORT=3306
 
 - [ ] Chat-based emotion analysis with AI
 - [ ] AI analysis performance optimization
+- [ ] Video asset management strategy
 - [ ] Unit and integration test coverage
 - [ ] Multi-language support (i18n)
 
@@ -427,7 +428,6 @@ MYSQL_PORT=3306
 ## 🔗 Related
 
 - [Frontend (Next.js)](https://github.com/zerogravity-project/zerogravity-react)
-- [Original Vue Version](https://github.com/zerogravity-project/zerogravity-frontend/tree/main)
 
 ---
 
