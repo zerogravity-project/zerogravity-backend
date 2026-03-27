@@ -2,7 +2,7 @@
 
 # 🚀 ZeroGravity Backend
 
-![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=24&pause=1000&color=6366F1&center=true&vCenter=true&width=500&lines=Spring+Boot+REST+API;Emotion+Tracking+Platform;AI-Powered+Insights)
+![Typing SVG](https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=600&size=20&duration=3000&pause=1000&color=0DA95E&center=true&vCenter=true&width=500&lines=Spring+Boot+REST+API;Emotion+Tracking+Platform;AI-Powered+Insights)
 
 **Spring Boot REST API for Emotion Tracking & Personal Wellness Platform**
 
@@ -55,7 +55,7 @@ ZeroGravity Backend is a Spring Boot REST API that powers the emotion tracking a
 | 🔐 **JWT Authentication** | NextAuth integration with 15-min access / 30-day refresh tokens | jjwt, Spring Security |
 | 👤 **User Management** | Profile, consent tracking, account deletion | MyBatis, Snowflake ID |
 | 📊 **Emotion Analytics** | Daily/Moment records, level/count/reason statistics | MySQL, CONVERT_TZ |
-| 🤖 **AI Predictions** | Emotion prediction, period analysis & insights | Google Gemini API |
+| 🤖 **AI Insights** | Emotion prediction, period analysis & insights | Google Gemini API |
 | 🚀 **Zero-Downtime Deploy** | Build-first strategy with auto-rollback | Docker, GitHub Actions |
 | 🔒 **API Security** | Rate limiting, caching, security headers | Nginx, Spring Security |
 
@@ -215,7 +215,7 @@ Base URL: `https://api.zerogv.com`
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/ai/emotion-predictions` | Predict emotion from diary |
+| POST | `/ai/emotion-predictions` | Predict emotion from text |
 | GET | `/ai/period-analyses` | Get AI analysis for period |
 
 ---
@@ -435,7 +435,7 @@ MYSQL_PORT=3306
 
 **Minuk Hwang** - Fullstack Developer
 
-- 📧 [minuk.lucas.hwang@gmail.com](mailto:minuk.lucas.hwang@gmail.com)
-- 💼 [LinkedIn](https://linkedin.com/in/minuk-hwang-934999157)
 - 🌐 [Portfolio](https://www.minukhwang.com)
+- 💼 [LinkedIn](https://linkedin.com/in/minuk-hwang-934999157)
+- 📧 [minuk.lucas.hwang@gmail.com](mailto:minuk.lucas.hwang@gmail.com)
 
