@@ -1,0 +1,208 @@
+name: Auto Release
+
+on:
+  workflow_run:
+    workflows: ["Deploy Backend"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  release:
+    # Only run if deploy succeeded AND not triggered by a release commit
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      !startsWith(github.event.workflow_run.head_commit.message, '🔖 release:')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current version
+        id: current
+        run: |
+          # Extract project version from pom.xml (skip parent block's version)
+          RAW_VERSION=$(sed -n '/<\/parent>/,$ { /<version>/ { s/.*<version>\(.*\)<\/version>.*/\1/p; q; } }' zerogravity/pom.xml)
+          VERSION="${RAW_VERSION%-SNAPSHOT}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION (raw: $RAW_VERSION)"
+
+      - name: Check for manual version bump
+        id: check
+        run: |
+          CURRENT="${{ steps.current.outputs.version }}"
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          if [ -n "$LAST_TAG" ]; then
+            TAG_VERSION="${LAST_TAG#v}"
+            echo "Current pom.xml: $CURRENT"
+            echo "Latest tag: $LAST_TAG ($TAG_VERSION)"
+
+            # Compare versions using sort -V
+            HIGHER=$(printf '%s\n%s' "$TAG_VERSION" "$CURRENT" | sort -V | tail -1)
+            if [ "$CURRENT" != "$TAG_VERSION" ] && [ "$HIGHER" = "$CURRENT" ]; then
+              echo "manual=true" >> $GITHUB_OUTPUT
+              echo "version=$CURRENT" >> $GITHUB_OUTPUT
+              echo "✅ Manual version bump detected: $TAG_VERSION → $CURRENT (tag only)"
+            else
+              echo "manual=false" >> $GITHUB_OUTPUT
+              echo "ℹ️ No manual bump, proceeding with auto bump"
+            fi
+          else
+            # No tag exists — treat current version as initial release (tag only)
+            echo "manual=true" >> $GITHUB_OUTPUT
+            echo "version=$CURRENT" >> $GITHUB_OUTPUT
+            echo "✅ No previous tag found, creating initial tag: v$CURRENT"
+          fi
+
+      - name: Determine version bump
+        if: steps.check.outputs.manual != 'true'
+        id: bump
+        run: |
+          # Get all commit messages since last tag (or last 50 if no tag)
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"%s" --no-merges)
+          else
+            COMMITS=$(git log --pretty=format:"%s" --no-merges -50)
+          fi
+
+          echo "Recent commits:"
+          echo "$COMMITS"
+
+          # Check for features
+          if echo "$COMMITS" | grep -qiE '^(✨|:sparkles:)?\s*(feat|feature)'; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+            echo "Detected: MINOR (new feature)"
+          # Default to patch (fix, docs, style, refactor, perf, test, build, ci, chore)
+          else
+            echo "type=patch" >> $GITHUB_OUTPUT
+            echo "Detected: PATCH (fix/improvement)"
+          fi
+
+      - name: Calculate new version
+        if: steps.check.outputs.manual != 'true'
+        id: new
+        run: |
+          CURRENT="${{ steps.current.outputs.version }}"
+          BUMP="${{ steps.bump.outputs.type }}"
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+
+          if [ "$BUMP" = "minor" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Version bump: $CURRENT → $NEW_VERSION ($BUMP)"
+
+      - name: Update pom.xml version
+        if: steps.check.outputs.manual != 'true'
+        run: |
+          NEW_VERSION="${{ steps.new.outputs.version }}"
+
+          # Find <artifactId>zerogravity</artifactId> line, then update the next <version> tag
+          LINE=$(grep -n '<artifactId>zerogravity</artifactId>' zerogravity/pom.xml | head -1 | cut -d: -f1)
+          NEXT_VERSION_LINE=$(tail -n +$LINE zerogravity/pom.xml | grep -n '<version>' | head -1 | cut -d: -f1)
+          TARGET_LINE=$((LINE + NEXT_VERSION_LINE - 1))
+          sed -i "${TARGET_LINE}s|<version>.*</version>|<version>${NEW_VERSION}</version>|" zerogravity/pom.xml
+
+          echo "Updated pom.xml to v$NEW_VERSION"
+          grep '<version>' zerogravity/pom.xml
+
+      - name: Create release branch and PR
+        if: steps.check.outputs.manual != 'true'
+        run: |
+          NEW_VERSION="${{ steps.new.outputs.version }}"
+          BRANCH="release/v${NEW_VERSION}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Clean up stale release branch from previous failed runs
+          git push origin --delete "$BRANCH" 2>/dev/null || true
+
+          # Create release branch, commit, push
+          git checkout -b "$BRANCH"
+          git add zerogravity/pom.xml
+          git commit -m "🔖 release: v${NEW_VERSION}"
+          git push origin "$BRANCH"
+
+          # Create PR and merge (commit message = PR title)
+          PR_URL=$(gh pr create \
+            --title "🔖 release: v${NEW_VERSION}" \
+            --body "Automated version bump: v${NEW_VERSION}" \
+            --base main \
+            --head "$BRANCH")
+
+          gh pr merge "$PR_URL" --merge --admin --delete-branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve version for tagging
+        id: resolve
+        run: |
+          if [ "${{ steps.check.outputs.manual }}" = "true" ]; then
+            echo "version=${{ steps.check.outputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ steps.new.outputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create tag and release
+        run: |
+          VERSION="${{ steps.resolve.outputs.version }}"
+          MANUAL="${{ steps.check.outputs.manual }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Pull latest main (includes version bump PR if auto bump)
+          git checkout main
+          git pull origin main
+
+          # Create tag
+          git tag "v${VERSION}"
+          git push origin "v${VERSION}"
+
+          # Generate release notes
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          if [ "$MANUAL" = "true" ]; then
+            # For manual bump, include all commits since last tag
+            RANGE_END="HEAD"
+          else
+            # For auto bump, exclude the release commit itself
+            RANGE_END="HEAD~1"
+          fi
+
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git log ${LAST_TAG}..${RANGE_END} --pretty=format:"- %s" --no-merges)
+          else
+            COMMITS=$(git log --pretty=format:"- %s" --no-merges -20)
+          fi
+
+          cat > /tmp/release-notes.md << NOTES_EOF
+          ## What's Changed
+
+          ${COMMITS}
+          NOTES_EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ steps.resolve.outputs.version }}"
+          name: "v${{ steps.resolve.outputs.version }}"
+          body_path: /tmp/release-notes.md
+          generate_release_notes: false
