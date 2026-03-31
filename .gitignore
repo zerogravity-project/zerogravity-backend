@@ -206,3 +206,6 @@ README.html
 # claude
 .claude/
 CLAUDE.md
+
+# One-off SQL scripts (seeds, migrations, utilities)
+/zerogravity/src/main/resources/sql/scripts/
