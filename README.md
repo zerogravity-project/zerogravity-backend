@@ -427,7 +427,8 @@ MYSQL_PORT=3306
 
 ## 🔗 Related
 
-- [Frontend (Next.js)](https://github.com/zerogravity-project/zerogravity-react)
+- 🌐 [Read more on my portfolio →](https://minukhwang.com/projects/zerogravity-backend)
+- 🪐 [Frontend (Next.js)](https://github.com/zerogravity-project/zerogravity-react)
 
 ---
 
