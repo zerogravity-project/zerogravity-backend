@@ -20,10 +20,10 @@ public class SwaggerConfig {
       public OpenAPI springShopOpenAPI() {
           String securitySchemeName = "bearerAuth";
           return new OpenAPI()
-                  .info(new Info().title("ZeroGravity REST API")
-                  .description("ZeroGravity REST API")
+                  .info(new Info().title("Zero Gravity REST API")
+                  .description("Zero Gravity REST API")
                   .version("v0.0.1")
-                  .license(new License().name("ZeroGravity").url("http://www.zerogravity.com")))
+                  .license(new License().name("Zero Gravity").url("http://www.zerogravity.com")))
                   .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                   .components(new Components()
                           .addSecuritySchemes(securitySchemeName,
