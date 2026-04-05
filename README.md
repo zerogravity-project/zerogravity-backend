@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚀 ZeroGravity Backend
+# 🚀 Zero Gravity Backend
 
 ![Typing SVG](https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=600&size=20&duration=3000&pause=1000&color=0DA95E&center=true&vCenter=true&width=500&lines=Spring+Boot+REST+API;Emotion+Tracking+Platform;AI-Powered+Insights)
 
@@ -34,12 +34,12 @@
 
 ## 📖 Overview
 
-ZeroGravity Backend is a Spring Boot REST API that powers the emotion tracking and personal wellness platform. It provides secure authentication, emotion recording, analytics, and AI-powered insights.
+Zero Gravity Backend is a Spring Boot REST API that powers the emotion tracking and personal wellness platform. It provides secure authentication, emotion recording, analytics, and AI-powered insights.
 
-> 📌 Part of the ZeroGravity full-stack project. Refactored from a collaborative Spring Boot project with basic CRUD APIs into a production-ready API.
+> 📌 Part of the Zero Gravity full-stack project. Refactored from a collaborative Spring Boot project with basic CRUD APIs into a production-ready API.
 > [Frontend Repository](https://github.com/zerogravity-project/zerogravity-react)
 
-### Why ZeroGravity Backend?
+### Why Zero Gravity Backend?
 
 - 🔐 **Secure Authentication** - JWT integration with NextAuth, supporting Google & Kakao OAuth
 - 📊 **Analytics Engine** - Timezone-aware emotion statistics and chart data
