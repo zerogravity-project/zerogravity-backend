@@ -16,6 +16,7 @@ import com.zerogravity.myapp.auth.dto.RefreshRequest;
 import com.zerogravity.myapp.auth.dto.RefreshResponse;
 import com.zerogravity.myapp.auth.service.RefreshTokenService;
 import com.zerogravity.myapp.common.dto.ApiResponse;
+import com.zerogravity.myapp.common.dto.ErrorResponse;
 import com.zerogravity.myapp.user.dto.User;
 import com.zerogravity.myapp.user.service.UserService;
 import com.zerogravity.myapp.common.security.JWTUtil;
@@ -86,6 +87,16 @@ public class AuthController {
 
 			// 2. Create a new user if it doesn't exist
 			if (user == null) {
+				// Check if a soft-deleted user exists (deactivated account)
+				if (userService.existsDeletedUser(oauthUser.getProviderId(), oauthUser.getProvider())) {
+					ErrorResponse errorResponse = new ErrorResponse(
+						"USER_DEACTIVATED",
+						"This account has been deactivated. Please contact support to restore.",
+						Instant.now().toString()
+					);
+					return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse<>(false, errorResponse, Instant.now().toString()));
+				}
+
 				// Generate Snowflake ID (unique, non-sequential, sortable)
 				long newUserId = snowflakeIdService.generateId();
 				oauthUser.setUserId(newUserId);

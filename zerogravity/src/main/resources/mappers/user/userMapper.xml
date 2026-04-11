@@ -28,6 +28,18 @@
 		  AND is_deleted = FALSE
 	</select>
 
+	<!-- Select soft-deleted user by provider ID and provider -->
+	<select id="selectDeletedUserByProviderIdAndProvider" resultType="User">
+		SELECT user_id, provider_id, provider, email, name, image, is_deleted, deleted_at,
+		       terms_agreed, terms_agreed_at, privacy_agreed, privacy_agreed_at,
+		       sensitive_data_consent, sensitive_data_consent_at, ai_analysis_consent, ai_analysis_consent_at,
+		       consent_version, created_time, updated_time
+		FROM user
+		WHERE provider_id = #{providerId}
+		  AND provider = #{provider}
+		  AND is_deleted = TRUE
+	</select>
+
 	<!-- Insert new user -->
 	<insert id="insertUser" parameterType="User">
 		INSERT INTO user (user_id, provider_id, provider, email, name, image)
