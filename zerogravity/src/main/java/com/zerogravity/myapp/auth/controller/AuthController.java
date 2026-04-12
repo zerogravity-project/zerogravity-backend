@@ -145,6 +145,8 @@ public class AuthController {
 			ApiResponse<AuthResponse> apiResponse = new ApiResponse<>(authResponse, Instant.now().toString());
 			return ResponseEntity.ok(apiResponse);
 
+		} catch (UserDeactivatedException e) {
+			throw e; // Let GlobalExceptionHandler handle 409 response
 		} catch (Exception e) {
 			System.err.println("[AuthController] Error during OAuth verification: " + e.getMessage());
 			e.printStackTrace();
