@@ -9,6 +9,7 @@ import com.zerogravity.myapp.emotion.exception.MomentNotEditableException;
 import com.zerogravity.myapp.ai.exception.GeminiApiException;
 import com.zerogravity.myapp.ai.exception.AIAnalysisCacheException;
 import com.zerogravity.myapp.auth.exception.UnauthorizedException;
+import com.zerogravity.myapp.auth.exception.UserDeactivatedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -162,6 +163,22 @@ public class GlobalExceptionHandler {
 		);
 
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+	}
+
+	@ExceptionHandler(UserDeactivatedException.class)
+	public ResponseEntity<ErrorResponse> handleUserDeactivatedException(
+		UserDeactivatedException ex, WebRequest request) {
+
+		String timezone = request.getHeader("X-Timezone");
+		ZoneId zoneId = timezone != null ? ZoneId.of(timezone) : ZoneId.of("UTC");
+
+		ErrorResponse error = new ErrorResponse(
+			"USER_DEACTIVATED",
+			ex.getMessage(),
+			TimezoneUtil.formatToUserTimezone(Instant.now(), zoneId)
+		);
+
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
 	}
 
 	@ExceptionHandler(UnauthorizedException.class)
