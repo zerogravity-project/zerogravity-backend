@@ -25,6 +25,14 @@ public interface UserService {
 	public abstract User getUserByProviderIdAndProvider(String providerId, String provider);
 
 	/**
+	 * Check if a soft-deleted user exists by provider
+	 * @param providerId OAuth provider ID
+	 * @param provider Provider name
+	 * @return true if soft-deleted user exists
+	 */
+	public abstract boolean existsDeletedUser(String providerId, String provider);
+
+	/**
 	 * Create a new user
 	 * @param user User object to create
 	 * @return true if creation successful, false otherwise

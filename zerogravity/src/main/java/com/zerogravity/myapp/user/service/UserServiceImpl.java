@@ -33,6 +33,12 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
+	public boolean existsDeletedUser(String providerId, String provider) {
+		return userDao.selectDeletedUserByProviderIdAndProvider(providerId, provider) != null;
+	}
+
+	@Override
 	@Transactional
 	public boolean createUser(User user) {
 		int userResult = userDao.insertUser(user);

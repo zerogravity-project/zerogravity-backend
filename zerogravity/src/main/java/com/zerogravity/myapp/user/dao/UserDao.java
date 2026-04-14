@@ -28,6 +28,14 @@ public interface UserDao {
 	User selectUserByProviderIdAndProvider(@Param("providerId") String providerId, @Param("provider") String provider);
 
 	/**
+	 * Select soft-deleted user by OAuth provider ID and provider name
+	 * @param providerId OAuth provider ID
+	 * @param provider Provider name (e.g., "kakao", "google")
+	 * @return Soft-deleted User object or null if not found
+	 */
+	User selectDeletedUserByProviderIdAndProvider(@Param("providerId") String providerId, @Param("provider") String provider);
+
+	/**
 	 * Insert a new user
 	 * @param user User object to insert
 	 * @return Number of rows affected

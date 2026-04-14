@@ -16,6 +16,7 @@ import com.zerogravity.myapp.auth.dto.RefreshRequest;
 import com.zerogravity.myapp.auth.dto.RefreshResponse;
 import com.zerogravity.myapp.auth.service.RefreshTokenService;
 import com.zerogravity.myapp.common.dto.ApiResponse;
+import com.zerogravity.myapp.auth.exception.UserDeactivatedException;
 import com.zerogravity.myapp.user.dto.User;
 import com.zerogravity.myapp.user.service.UserService;
 import com.zerogravity.myapp.common.security.JWTUtil;
@@ -67,83 +68,81 @@ public class AuthController {
 			@RequestBody User oauthUser,
 			@RequestHeader(value = "X-Timezone", defaultValue = "UTC") String clientTimezone,
 			HttpServletResponse response) {
-		try {
-			ZoneId timezone = ZoneId.of(clientTimezone);
+		ZoneId timezone = ZoneId.of(clientTimezone);
 
-			// Validate input
-			if (oauthUser == null || oauthUser.getProviderId() == null || oauthUser.getProvider() == null) {
-				return ResponseEntity.badRequest().build();
-			}
-
-			// 1. Check if a user exists by providerId + provider
-			User user = userService.getUserByProviderIdAndProvider(
-				oauthUser.getProviderId(),
-				oauthUser.getProvider()
-			);
-
-			// Track if user is new
-			boolean isNewUser = false;
-
-			// 2. Create a new user if it doesn't exist
-			if (user == null) {
-				// Generate Snowflake ID (unique, non-sequential, sortable)
-				long newUserId = snowflakeIdService.generateId();
-				oauthUser.setUserId(newUserId);
-
-				// Create user with default consent values (all false)
-				boolean created = userService.createUser(oauthUser);
-				if (!created) {
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-				}
-				user = oauthUser;
-				isNewUser = true;
-			} else {
-				// 3. Update user info if the user already exists
-				user.setEmail(oauthUser.getEmail());
-				user.setName(oauthUser.getName());
-				user.setImage(oauthUser.getImage());
-				boolean modified = userService.modifyUser(user);
-				if (!modified) {
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-				}
-			}
-
-			// 4. Generate JWT token (15-minute expiration)
-			String jwtToken = jwtUtil.createJwt(user.getUserId(), 900000L);
-
-			// 5. Generate refresh token (30-day expiration)
-			String refreshToken = refreshTokenService.createRefreshToken(user.getUserId());
-
-			// 6. Set JWT as HttpOnly cookie
-			Cookie cookie = new Cookie("token", jwtToken);
-			cookie.setHttpOnly(true);        // JS cannot access
-			cookie.setSecure(true);          // HTTPS only (production)
-			cookie.setPath("/");             // All paths
-			cookie.setMaxAge(900);           // 15 minutes (seconds)
-			cookie.setAttribute("SameSite", "Lax");  // CSRF protection
-
-			response.addCookie(cookie);
-
-			// Build consents map with user's timezone
-			Map<String, Object> consents = buildConsentsMap(user, timezone);
-
-			// Response with isNewUser flag and both tokens for frontend
-			AuthResponse authResponse = new AuthResponse(
-					true,
-					"Authentication successful",
-					isNewUser,
-					consents,
-					jwtToken,
-					refreshToken
-			);
-			ApiResponse<AuthResponse> apiResponse = new ApiResponse<>(authResponse, Instant.now().toString());
-			return ResponseEntity.ok(apiResponse);
-
-		} catch (Exception e) {
-			System.err.println("[AuthController] Error during OAuth verification: " + e.getMessage());
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		// Validate input
+		if (oauthUser == null || oauthUser.getProviderId() == null || oauthUser.getProvider() == null) {
+			throw new IllegalArgumentException("OAuth user information is incomplete");
 		}
+
+		// 1. Check if a user exists by providerId + provider
+		User user = userService.getUserByProviderIdAndProvider(
+			oauthUser.getProviderId(),
+			oauthUser.getProvider()
+		);
+
+		// Track if user is new
+		boolean isNewUser = false;
+
+		// 2. Create a new user if it doesn't exist
+		if (user == null) {
+			// Check if a soft-deleted user exists (deactivated account)
+			if (userService.existsDeletedUser(oauthUser.getProviderId(), oauthUser.getProvider())) {
+				throw new UserDeactivatedException("This account has been deactivated. Please contact support to restore.");
+			}
+
+			// Generate Snowflake ID (unique, non-sequential, sortable)
+			long newUserId = snowflakeIdService.generateId();
+			oauthUser.setUserId(newUserId);
+
+			// Create user with default consent values (all false)
+			boolean created = userService.createUser(oauthUser);
+			if (!created) {
+				throw new RuntimeException("Failed to create user");
+			}
+			user = oauthUser;
+			isNewUser = true;
+		} else {
+			// 3. Update user info if the user already exists
+			user.setEmail(oauthUser.getEmail());
+			user.setName(oauthUser.getName());
+			user.setImage(oauthUser.getImage());
+			boolean modified = userService.modifyUser(user);
+			if (!modified) {
+				throw new RuntimeException("Failed to update user");
+			}
+		}
+
+		// 4. Generate JWT token (15-minute expiration)
+		String jwtToken = jwtUtil.createJwt(user.getUserId(), 900000L);
+
+		// 5. Generate refresh token (30-day expiration)
+		String refreshToken = refreshTokenService.createRefreshToken(user.getUserId());
+
+		// 6. Set JWT as HttpOnly cookie
+		Cookie cookie = new Cookie("token", jwtToken);
+		cookie.setHttpOnly(true);        // JS cannot access
+		cookie.setSecure(true);          // HTTPS only (production)
+		cookie.setPath("/");             // All paths
+		cookie.setMaxAge(900);           // 15 minutes (seconds)
+		cookie.setAttribute("SameSite", "Lax");  // CSRF protection
+
+		response.addCookie(cookie);
+
+		// Build consents map with user's timezone
+		Map<String, Object> consents = buildConsentsMap(user, timezone);
+
+		// Response with isNewUser flag and both tokens for frontend
+		AuthResponse authResponse = new AuthResponse(
+				true,
+				"Authentication successful",
+				isNewUser,
+				consents,
+				jwtToken,
+				refreshToken
+		);
+		ApiResponse<AuthResponse> apiResponse = new ApiResponse<>(authResponse, Instant.now().toString());
+		return ResponseEntity.ok(apiResponse);
 	}
 
 	/**
