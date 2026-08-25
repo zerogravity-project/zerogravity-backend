@@ -255,7 +255,7 @@ Base URL: `https://api.zerogv.com`
   - Year: 365 → 12 records (1 per month)
   - Month: ~30 → 4 records (1 per week)
 - **Smart Matching Algorithm**: 60% emotion level + 40% reason matching
-- **Daily 1.5x Weighting**: Daily records weighted higher (more representative than moment)
+- **Daily-weighted average**: daily records count 1.5x toward the bucket average
 - **Tie-breaking**: score → diary length → reason count → recency
 - **Prompt Design**: JSON-only response, emotion level mapping (0-6), predefined reasons
 
@@ -264,10 +264,8 @@ Base URL: `https://api.zerogv.com`
 ```java
 // Select best matching record per bucket using weighted scoring
 private double calculateMatchScore(EmotionRecord record, Double targetLevel, String topReason) {
-    // Daily records weighted 1.5x (more representative)
-    double recordLevel = record.getEmotionId() *
-        (record.getEmotionRecordType() == EmotionRecord.Type.DAILY ? 1.5 : 1.0);
-    double levelScore = 1.0 - (Math.abs(recordLevel - targetLevel) / 9.0);
+    // Level score: distance from the bucket average (levels are 0-6)
+    double levelScore = 1.0 - (Math.abs(record.getEmotionId() - targetLevel) / 6.0);
 
     // Reason matching
     double reasonScore = record.getEmotionReasons().contains(topReason) ? 1.0 : 0.0;

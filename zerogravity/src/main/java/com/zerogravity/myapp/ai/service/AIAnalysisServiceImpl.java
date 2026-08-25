@@ -463,7 +463,7 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
 
 	/**
 	 * Find the best matching record based on level and reason matching
-	 * Applies Daily record 1.5x weighting to level comparison
+	 * Ties fall through to diary length, reason count, then recency
 	 */
 	private EmotionRecord findBestMatchingRecord(
 			List<EmotionRecord> records,
@@ -489,14 +489,12 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
 
 	/**
 	 * Calculate match score for a record
-	 * Applies Daily 1.5x weighting to level comparison
+	 * The bucket average already weights daily records 1.5x, so no type bonus is applied here
 	 */
 	private double calculateMatchScore(EmotionRecord record, Double targetLevel, String topReason) {
-		// Level score with Daily weighting
-		double recordLevel = record.getEmotionId() *
-				(record.getEmotionRecordType() == EmotionRecord.Type.DAILY ? 1.5 : 1.0);
-		double levelDiff = Math.abs(recordLevel - targetLevel);
-		double levelScore = 1.0 - (levelDiff / 9.0); // Max diff = 6 * 1.5 = 9
+		// Level score: distance from the bucket average
+		double levelDiff = Math.abs(record.getEmotionId() - targetLevel);
+		double levelScore = 1.0 - (levelDiff / 6.0); // Max diff = 6 (levels are 0-6)
 		levelScore = Math.max(0.0, Math.min(1.0, levelScore)); // Clamp to [0, 1]
 
 		// Reason score
